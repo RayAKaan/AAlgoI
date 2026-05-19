@@ -1,0 +1,22 @@
+# Include all Python modules in root
+include *.py
+
+# Include the pretrained model checkpoints
+recursive-include checkpoints *.pt
+
+# Include all Python source files
+recursive-include core *.py
+recursive-include algorithms *.py
+recursive-include training *.py
+recursive-include tests *.py
+
+# Include demo and setup files
+include demo.py
+include setup.py
+include requirements.txt
+include README.md
+
+# Exclude build artifacts
+global-exclude __pycache__
+global-exclude *.pyc
+global-exclude *.pyo

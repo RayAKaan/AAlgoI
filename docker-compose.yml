@@ -1,0 +1,25 @@
+services:
+  web:
+    build: .
+    image: aalgoi:latest
+    ports:
+      - "7860:7860"
+    command: ["web", "--port", "7860"]
+    volumes:
+      - chroma_data:/app/chroma_data
+      - ./config/config.json:/app/config.json:ro
+    restart: unless-stopped
+
+  api:
+    build: .
+    image: aalgoi:latest
+    ports:
+      - "8000:8000"
+    command: ["api", "--port", "8000"]
+    volumes:
+      - chroma_data:/app/chroma_data
+      - ./config/config.json:/app/config.json:ro
+    restart: unless-stopped
+
+volumes:
+  chroma_data:

@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+*.egg
+.pytest_cache/
+*.pyo
+*.pyd
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ChromaDB persistent storage
+chroma_data/
+*.chroma/
+
+# AAlgoI-specific
+audit.jsonl
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+.docker/

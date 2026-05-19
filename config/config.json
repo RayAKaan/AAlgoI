@@ -1,0 +1,97 @@
+
+{
+  "system_name": "AAlgoI",
+  "version": "2.0.0",
+  "default_strategy": "hybrid",
+  "context_engine": {
+    "time_budget_ms": 500,
+    "memory_budget_mb": 1024,
+    "accuracy_target": 0.95,
+    "priority": "balanced"
+  },
+  "meta_controller": {
+    "retrain_interval": 100,
+    "exploration_rate": 0.2,
+    "min_history_for_ml": 50
+  },
+  "compositor": {
+    "cache_size": 256,
+    "max_parallelism": 8,
+    "enable_ast_optimization": true
+  },
+  "performance_tracker": {
+    "track_memory": true,
+    "track_cpu": true
+  },
+  "knowledge_base": {
+    "path": "knowledge.json",
+    "max_size": 100000,
+    "auto_save": true,
+    "collection_name": "aalgoi_memory"
+  },
+  "llm": {
+    "enabled": false,
+    "backend": "ollama",
+    "model": "phi3:mini",
+    "ollama_url": "http://localhost:11434",
+    "llamacpp_url": "http://localhost:8080",
+    "confidence_threshold": 0.4,
+    "max_tokens": 256,
+    "temperature": 0.1
+  },
+  "bandit": {
+    "epsilon_initial": 0.2,
+    "epsilon_decay": 0.99,
+    "epsilon_min": 0.05
+  },
+  "drift": {
+    "enabled": true,
+    "window": 100,
+    "threshold": 0.05
+  },
+  "federated": {
+    "enabled": false,
+    "nodes": [],
+    "sync_interval": 60
+  },
+  "warm_cache": {
+    "max_entries": 1000,
+    "min_hits_for_hot": 50
+  },
+  "rl": {
+    "enabled": false,
+    "mode": "inference",
+    "state_dim": 200,
+    "time_budget_ms": 1000,
+    "memory_budget_mb": 1024,
+    "priority": "balanced",
+    "reward_shaper": "adaptive",
+    "max_steps_per_episode": 50,
+    "agents": {
+      "selection": {
+        "type": "ppo",
+        "learning_rate": 0.0003,
+        "hidden_dim": 256,
+        "gamma": 0.99,
+        "gae_lambda": 0.95,
+        "clip_epsilon": 0.2,
+        "entropy_coef": 0.01,
+        "value_coef": 0.5,
+        "max_grad_norm": 0.5,
+        "update_epochs": 10,
+        "batch_size": 64
+      }
+    },
+    "training": {
+      "num_episodes": 10000,
+      "curriculum_enabled": true,
+      "save_interval": 100,
+      "eval_interval": 50
+    },
+    "exploration": {
+      "initial_epsilon": 1.0,
+      "final_epsilon": 0.05,
+      "decay_steps": 5000
+    }
+  }
+}
