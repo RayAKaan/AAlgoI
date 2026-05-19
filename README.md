@@ -17,7 +17,7 @@
 - **Algorithm Marketplace** — Discover, register, benchmark, and share custom algorithms across instances
 - **Natural Language Interface** — `question_parser.py` converts English descriptions into structured problem specs
 - **Federated Learning** — Optional P2P or central-server mode for cross-instance knowledge sharing
-- **Rich CLI** — 10 commands via `click`: `solve`, `benchmark`, `marketplace`, `ml`, `debug`, `web`, `api`, and more
+- **Rich CLI** — `solve`, `benchmark`, `marketplace`, `ml`, `debug`, and more
 - **226 Passing Tests** — CI-verified test suite
 
 ---
@@ -33,12 +33,6 @@ aalgoi solve "sort this list of numbers" --data 3,1,4,1,5,9,2,6,5,3,5
 
 # Solve with explicit spec
 aalgoi solve-spec --type sorting --data 5,2,8,1,9
-
-# Start the web UI
-aalgoi web
-
-# Start the REST API
-aalgoi api
 ```
 
 ---
@@ -55,9 +49,7 @@ For optional features:
 
 ```bash
 pip install aalgoi[rl]       # Reinforcement learning (PyTorch)
-pip install aalgoi[web]      # Web UI (Gradio, FastAPI)
 pip install aalgoi[llm]      # LLM integration (Ollama)
-pip install aalgoi[full]     # Everything
 ```
 
 ### From Source
@@ -72,14 +64,13 @@ pip install -e .
 
 Core: numpy, scikit-learn, networkx, chromadb, click, psutil
 RL (optional): torch>=2.0.0
-Web (optional): gradio, fastapi, uvicorn
 
 ---
 
 ## Architecture
 
 ```
-User Input (CLI / Web / API)
+User Input (CLI)
         │
         ▼
 ┌───────────────────┐
@@ -121,7 +112,7 @@ User Input (CLI / Web / API)
 
 ### Pipeline Flow
 
-1. **Input** — CLI command, natural language, or structured API call
+1. **Input** — CLI command or natural language
 2. **Parsing** — `SmartSolver` / `question_parser` extract problem type and data
 3. **State Encoding** — 200-dimensional vector: data stats + problem type one-hot + environment info
 4. **RL Selection** — PPO agent outputs action probabilities over 20 algorithms
@@ -174,8 +165,6 @@ python training/pretrain_master.py
 | `aalgoi ml similar-words` | Find similar words in a trained model |
 | `aalgoi ml visualize-embeddings` | Visualize word embeddings |
 | `aalgoi debug visualize` | Visualize internal state / decision boundaries |
-| `aalgoi web` | Launch Gradio web UI |
-| `aalgoi api` | Start FastAPI REST server |
 
 ---
 
@@ -200,17 +189,8 @@ For persistent registration, add your algorithm to `algorithms/` and register it
 ## Training
 
 ```bash
-# Quick pre-train (test)
+# Pre-train the model
 python training/pretrain_master.py
-
-# Full pipeline with all stages
-python training/full_train.py
-
-# Distributed training (multi-GPU)
-torchrun --nproc_per_node=2 training/distributed_train.py
-
-# Federated training
-python training/federated_train.py --mode central --server localhost:5000
 ```
 
 ---
@@ -241,11 +221,9 @@ AAlgoI/
 │   ├── pipeline_graph.py   # Execution pipeline
 │   └── problem_spec.py     # Problem type system
 ├── interface/          # User interfaces
-│   ├── cli.py          # Click CLI (10 commands)
+│   ├── cli.py          # Click CLI
 │   ├── cli_ml.py       # ML subcommands
 │   ├── cli_debug.py    # Debug subcommands
-│   ├── web_ui.py       # Gradio web interface
-│   ├── api.py          # FastAPI server
 │   └── nl_parser.py    # Natural language parsing
 ├── training/           # Training pipelines
 │   ├── pretrain_master.py  # 3-stage pre-training
