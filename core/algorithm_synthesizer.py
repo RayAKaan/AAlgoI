@@ -1,11 +1,21 @@
+import ast
 import json
 import time
 import logging
 from typing import Any, Dict, List, Optional, Tuple, Callable
 from dataclasses import dataclass, field
 
+from core.ast_optimizer import ASTOptimizer
+from core.llm_client import OllamaClient
+from core.sandboxed_executor import (
+    create_sandboxed_module,
+    execute_sandboxed,
+    benchmark_sandboxed,
+)
+from core.prompt_builder import build_synthesis_prompt
 from core.problem_spec import ProblemSpec, ProblemType
 from core.problem_library import ProblemLibrary
+from algorithms.base import Algorithm
 from algorithms.primitives import (
     PRIMITIVES, get_primitive_names, get_composable_chain,
     compose_pipeline, Primitive
@@ -334,3 +344,103 @@ class AlgorithmSynthesizer:
 
     def clear_cache(self):
         self._synthesis_cache.clear()
+
+
+class LLMAlgorithmSynthesizer:
+    def __init__(self, ollama_url: str = None, model: str = "llama2"):
+        self.llm = OllamaClient(base_url=ollama_url, model=model)
+
+    def synthesize(
+        self,
+        spec: ProblemSpec,
+        data: Any,
+        baseline_algo: Optional[Algorithm] = None,
+        min_improvement: float = 0.05,
+    ) -> Optional[Algorithm]:
+        if not self._should_attempt(spec, data):
+            return None
+
+        prompt = build_synthesis_prompt(spec, data[:10] if isinstance(data, list) else data)
+        try:
+            code = self.llm.generate(prompt, temperature=0.3, max_tokens=1000)
+        except RuntimeError:
+            return None
+        if not code or "def process" not in code:
+            return None
+
+        optimizer = ASTOptimizer()
+        code = optimizer.optimize(code)
+
+        module = create_sandboxed_module("synthesized_algo", code)
+        if not module:
+            return None
+
+        sample = data[:5] if isinstance(data, list) else data
+        success, result = execute_sandboxed(module, "process", sample)
+        if not success:
+            return None
+
+        if baseline_algo:
+            ok, synth_time, base_time = benchmark_sandboxed(
+                module, "process", data,
+                lambda d: baseline_algo.process(d),
+                trials=3,
+            )
+            if not ok:
+                return None
+            if synth_time > base_time * (1 - min_improvement):
+                return None
+
+        return self._module_to_algorithm(module, spec, code)
+
+    def _should_attempt(self, spec: ProblemSpec, data: Any) -> bool:
+        size = len(data) if hasattr(data, '__len__') else 0
+        return 10 <= size <= 1000
+
+    def _module_to_algorithm(
+        self, module: Any, spec: ProblemSpec, original_code: str,
+    ) -> Algorithm:
+        tree = ast.parse(original_code)
+        complexity = self._infer_complexity(tree)
+        name_suffix = str(hash(original_code))[-8:]
+
+        class SynthesizedAlgorithm(Algorithm):
+            def __init__(self):
+                super().__init__()
+                self.name = f"synth_{spec.problem_type.name.lower()}_{name_suffix}"
+                self.time_complexity = complexity.get('time', 'O(n)')
+                self.space_complexity = complexity.get('space', 'O(n)')
+                self.tags = [spec.problem_type.name.lower(), 'synthesized']
+                self.best_for = [spec.problem_type.name.lower()]
+                self._process_func = getattr(module, 'process')
+
+            def process(self, data):
+                return self._process_func(data)
+
+        return SynthesizedAlgorithm()
+
+    @staticmethod
+    def _infer_complexity(tree: ast.Module) -> dict:
+        loops = 0
+        nested_loops = 0
+        for node in ast.walk(tree):
+            if isinstance(node, (ast.For, ast.While)):
+                loops += 1
+
+        for node1 in ast.walk(tree):
+            if isinstance(node1, (ast.For, ast.While)):
+                for node2 in ast.walk(node1):
+                    if node2 is not node1 and isinstance(node2, (ast.For, ast.While)):
+                        nested_loops += 1
+
+        if nested_loops > 0:
+            time_complexity = "O(n^2)"
+        elif loops > 0:
+            time_complexity = "O(n)"
+        else:
+            time_complexity = "O(1)"
+
+        return {
+            'time': time_complexity,
+            'space': "O(n)" if loops > 0 else "O(1)",
+        }

@@ -2,6 +2,26 @@ import numpy as np
 from algorithms.base import Algorithm
 
 
+def _handle_dict_input(data):
+    if not isinstance(data, dict):
+        return data, None, False, False
+    items = data.get("data", data.get("items", data.get("array", [])))
+    key = data.get("key", data.get("sort_key", None))
+    order = data.get("order", data.get("direction", "asc"))
+    if key and isinstance(items, list) and items and isinstance(items[0], dict):
+        return items, key, order == "desc", True
+    return data, None, False, False
+
+
+def _sorting_validate_header(input_data):
+    """Extract items list from dict input for validation."""
+    if isinstance(input_data, dict):
+        items = input_data.get("data", input_data.get("items", input_data.get("array", input_data)))
+        if isinstance(items, list):
+            return items
+    return input_data
+
+
 class QuickSort(Algorithm):
     def __init__(self):
         super().__init__()
@@ -10,8 +30,11 @@ class QuickSort(Algorithm):
         self.space_complexity = "O(log n)"
         self.tags = ["sorting", "comparison", "divide_and_conquer"]
         self.best_for = ["random_data", "large_arrays"]
+        self.patterns = ["DivideAndConquer", "ComparisonSort"]
+        self.problem_types = ["SORTING"]
 
     def validate_output(self, input_data, output_data):
+        input_data = _sorting_validate_header(input_data)
         if not super().validate_output(input_data, output_data):
             return False
         if len(output_data) != len(input_data):
@@ -19,6 +42,9 @@ class QuickSort(Algorithm):
         return all(output_data[i] <= output_data[i+1] for i in range(len(output_data)-1))
 
     def process(self, data):
+        items, key, reverse, is_dict = _handle_dict_input(data)
+        if is_dict:
+            return sorted(items, key=lambda x: x.get(key, 0), reverse=reverse)
         if len(data) <= 1:
             return data
         pivot = data[len(data)//2]
@@ -36,8 +62,11 @@ class TimSort(Algorithm):
         self.space_complexity = "O(n)"
         self.tags = ["sorting", "stable", "hybrid"]
         self.best_for = ["nearly_sorted", "real_world_data"]
+        self.patterns = ["Hybrid", "Stable", "ComparisonSort"]
+        self.problem_types = ["SORTING"]
 
     def validate_output(self, input_data, output_data):
+        input_data = _sorting_validate_header(input_data)
         if not super().validate_output(input_data, output_data):
             return False
         if len(output_data) != len(input_data):
@@ -45,6 +74,9 @@ class TimSort(Algorithm):
         return all(output_data[i] <= output_data[i+1] for i in range(len(output_data)-1))
 
     def process(self, data):
+        items, key, reverse, is_dict = _handle_dict_input(data)
+        if is_dict:
+            return sorted(items, key=lambda x: x.get(key, 0), reverse=reverse)
         return sorted(data)
 
 
@@ -56,8 +88,11 @@ class HeapSort(Algorithm):
         self.space_complexity = "O(1)"
         self.tags = ["sorting", "in_place", "heap"]
         self.best_for = ["large_arrays", "memory_constrained"]
+        self.patterns = ["ComparisonSort", "InPlace"]
+        self.problem_types = ["SORTING"]
 
     def validate_output(self, input_data, output_data):
+        input_data = _sorting_validate_header(input_data)
         if not super().validate_output(input_data, output_data):
             return False
         if len(output_data) != len(input_data):
@@ -65,6 +100,9 @@ class HeapSort(Algorithm):
         return all(output_data[i] <= output_data[i+1] for i in range(len(output_data)-1))
 
     def process(self, data):
+        items, key, reverse, is_dict = _handle_dict_input(data)
+        if is_dict:
+            return sorted(items, key=lambda x: x.get(key, 0), reverse=reverse)
         import heapq
         heap = data[:]
         heapq.heapify(heap)
@@ -79,8 +117,11 @@ class InsertionSort(Algorithm):
         self.space_complexity = "O(1)"
         self.tags = ["sorting", "stable", "in_place"]
         self.best_for = ["small_arrays", "nearly_sorted"]
+        self.patterns = ["ComparisonSort", "Incremental"]
+        self.problem_types = ["SORTING"]
 
     def validate_output(self, input_data, output_data):
+        input_data = _sorting_validate_header(input_data)
         if not super().validate_output(input_data, output_data):
             return False
         if len(output_data) != len(input_data):
@@ -88,6 +129,9 @@ class InsertionSort(Algorithm):
         return all(output_data[i] <= output_data[i+1] for i in range(len(output_data)-1))
 
     def process(self, data):
+        items, key, reverse, is_dict = _handle_dict_input(data)
+        if is_dict:
+            return sorted(items, key=lambda x: x.get(key, 0), reverse=reverse)
         result = data[:]
         for i in range(1, len(result)):
             key = result[i]
@@ -107,8 +151,11 @@ class RadixSort(Algorithm):
         self.space_complexity = "O(n + k)"
         self.tags = ["sorting", "non_comparison", "integer"]
         self.best_for = ["integers", "fixed_length_keys"]
+        self.patterns = ["NonComparisonSort", "DistributionBased"]
+        self.problem_types = ["SORTING"]
 
     def validate_output(self, input_data, output_data):
+        input_data = _sorting_validate_header(input_data)
         if not super().validate_output(input_data, output_data):
             return False
         if len(output_data) != len(input_data):
@@ -116,6 +163,9 @@ class RadixSort(Algorithm):
         return all(output_data[i] <= output_data[i+1] for i in range(len(output_data)-1))
 
     def process(self, data):
+        items, key, reverse, is_dict = _handle_dict_input(data)
+        if is_dict:
+            return sorted(items, key=lambda x: x.get(key, 0), reverse=reverse)
         if not data:
             return data
 
@@ -153,8 +203,11 @@ class MergeSort(Algorithm):
         self.space_complexity = "O(n)"
         self.tags = ["sorting", "stable", "divide_and_conquer"]
         self.best_for = ["large_arrays", "stable_required"]
+        self.patterns = ["DivideAndConquer", "Stable", "ComparisonSort"]
+        self.problem_types = ["SORTING"]
 
     def validate_output(self, input_data, output_data):
+        input_data = _sorting_validate_header(input_data)
         if not super().validate_output(input_data, output_data):
             return False
         if len(output_data) != len(input_data):
@@ -162,6 +215,9 @@ class MergeSort(Algorithm):
         return all(output_data[i] <= output_data[i+1] for i in range(len(output_data)-1))
 
     def process(self, data):
+        items, key, reverse, is_dict = _handle_dict_input(data)
+        if is_dict:
+            return sorted(items, key=lambda x: x.get(key, 0), reverse=reverse)
         if len(data) <= 1:
             return data
 

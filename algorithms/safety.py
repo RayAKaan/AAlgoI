@@ -11,6 +11,8 @@ class IdentityAlgorithm(Algorithm):
         self.space_complexity = "O(1)"
         self.tags = ["safety", "fallback", "no_op"]
         self.best_for = ["unknown_problems", "malformed_data"]
+        self.patterns = ["Identity"]
+        self.problem_types = ["SAFETY"]
 
     def process(self, data):
         return data
@@ -26,6 +28,8 @@ class SafeSort(Algorithm):
         self.name = "safe_sort"
         self.time_complexity = "O(n log n)"
         self.tags = ["safety", "sorting"]
+        self.patterns = ["Fallback", "Sorting"]
+        self.problem_types = ["SORTING", "SAFETY"]
 
     def process(self, data):
         try:
@@ -43,6 +47,8 @@ class SafePath(Algorithm):
         super().__init__()
         self.name = "safe_path"
         self.tags = ["safety", "pathfinding"]
+        self.patterns = ["Fallback", "Pathfinding"]
+        self.problem_types = ["PATHFINDING", "SAFETY"]
 
     def process(self, data):
         try:
@@ -65,6 +71,8 @@ class SafeKnapsack(Algorithm):
         super().__init__()
         self.name = "safe_knapsack"
         self.tags = ["safety", "optimization"]
+        self.patterns = ["Fallback", "Optimization"]
+        self.problem_types = ["OPTIMIZATION", "SAFETY"]
 
     def process(self, data):
         try:

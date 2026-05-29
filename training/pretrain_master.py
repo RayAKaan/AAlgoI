@@ -36,9 +36,11 @@ class PreTrainer:
     """
     Generates the pre-trained model for distribution.
     Runs 3 stages: Supervised -> RL -> Adversarial.
+    Uses the 38-dim state + attention-based action head architecture.
     """
 
     def __init__(self, agent: PPOAgent, registry: Dict[str, Any],
+                 embedder=None,
                  save_path: str = "checkpoints/pretrained_v1.pt"):
         self.agent = agent
         self.registry = registry
@@ -46,6 +48,12 @@ class PreTrainer:
         self.algo_to_idx = {name: i for i, name in enumerate(self.algo_names)}
         self.idx_to_algo = {i: name for name, i in self.algo_to_idx.items()}
         self.save_path = save_path
+
+        from core.algorithm_embedder import AlgorithmEmbedder
+        self.embedder = embedder or AlgorithmEmbedder()
+        self.embedder.embed_all(registry)
+        all_embeds = self.embedder.get_all_embeddings(registry)
+        agent.update_algo_embeddings(all_embeds, self.algo_names)
 
         self.data_gen = SyntheticDataGenerator()
         self.curriculum = CurriculumScheduler()
@@ -97,14 +105,14 @@ class PreTrainer:
         optimizer = torch.optim.Adam(self.agent.network.parameters(), lr=1e-3)
         loss_fn = nn.CrossEntropyLoss()
 
-        # Cycle through all problem domains evenly, not just the current curriculum level.
-        # The curriculum starts at level 1.0 (sorting), so _generate_problem() would
-        # never expose the network to PATHFINDING/OPTIMIZATION one-hot features.
         problem_types = [
             ProblemType.SORTING,
             ProblemType.PATHFINDING,
             ProblemType.OPTIMIZATION,
         ]
+
+        algo_embeds = self.agent._algo_embeddings
+        n_actions = len(self.algo_names)
 
         for i in range(iterations):
             pt = problem_types[i % len(problem_types)]
@@ -112,16 +120,18 @@ class PreTrainer:
             state = self._build_state(spec, data)
 
             target_idx = self._get_rule_based_label(spec, data)
-            if target_idx is None or target_idx >= self.agent.num_actions:
+            if target_idx is None or target_idx >= n_actions:
                 continue
 
             state_tensor = torch.FloatTensor(state).unsqueeze(0)
-            # Use raw logits — CrossEntropyLoss applies LogSoftmax internally;
-            # feeding softmax-probabilities would double-softmax and destroy gradients.
-            features = self.agent.network.feature_net(state_tensor)
-            logits = self.agent.network.actor(features)
-            target_tensor = torch.tensor([target_idx])
 
+            # Compute attention scores (pre-softmax) as logits for CrossEntropy
+            features = self.agent.network.encoder(state_tensor)
+            query = self.agent.network.query_proj(features)
+            keys = self.agent.network.key_proj(algo_embeds)
+            logits = torch.matmul(query, keys.T) / self.agent.network.scale
+
+            target_tensor = torch.tensor([target_idx])
             loss = loss_fn(logits, target_tensor)
 
             optimizer.zero_grad()
@@ -172,9 +182,10 @@ class PreTrainer:
     def _stage3_self_play(self, iterations: int):
         logger.info("Stage 3: Adversarial Self-Play (%d iterations)...", iterations)
 
+        n_actions = len(self.algo_names)
         world_model = WorldModel(
             state_dim=self.agent.state_dim,
-            action_dim=self.agent.num_actions,
+            action_dim=n_actions,
         )
         engine = SelfPlayEngine(agent=self.agent, world_model=world_model)
         stats = engine.train_round(iterations=iterations, state_dim=self.agent.state_dim)
@@ -203,28 +214,63 @@ class PreTrainer:
         return self.curriculum.generate_problem()
 
     def _build_state(self, spec: ProblemSpec, data: Any) -> np.ndarray:
-        """Build a 200-dim state vector from spec + data."""
-        state = np.zeros(200, dtype=np.float32)
+        """Build a 42-dim state vector from spec + data."""
+        vec = np.zeros(42, dtype=np.float32)
 
-        state[0] = np.log10(len(data) + 1) if hasattr(data, "__len__") else 0.0
-
+        size = len(data) if hasattr(data, "__len__") else 0
         patterns = self._detect_patterns(data)
-        state[1] = 1.0 if patterns.get("is_sorted") else 0.0
-        state[2] = 1.0 if patterns.get("is_nearly_sorted") else 0.0
-        state[3] = 1.0 if patterns.get("is_reverse") else 0.0
-        state[4] = float(patterns.get("unique_ratio", 1.0))
-
-        all_types = list(ProblemType)
-        if spec.problem_type in all_types:
-            idx = all_types.index(spec.problem_type)
-            if 20 + idx < 200:
-                state[20 + idx] = 1.0
-
+        stats = self._compute_stats(data)
         env = self._get_env_info()
-        state[10] = env.get("cpu_free", 0.5)
-        state[11] = env.get("mem_ratio", 0.5)
 
-        return state
+        vec[0] = np.log10(size + 1) / 7.0
+        vec[1] = 1.0 if patterns.get("is_sorted") else 0.0
+        vec[2] = 1.0 if patterns.get("is_nearly_sorted") else 0.0
+        vec[3] = 1.0 if patterns.get("is_reverse") else 0.0
+        vec[4] = float(stats.get("unique_ratio", 1.0))
+        vec[5] = 1.0 if stats.get("unique_ratio", 1.0) < 1.0 else 0.0
+        vec[6] = 1.0 if stats.get("has_negatives", False) else 0.0
+
+        mean = stats.get("mean", 0.0)
+        std  = stats.get("std", 1.0)
+        vec[8]  = float(np.tanh(mean / (std + 1e-8)))
+        vec[9]  = float(min(1.0, std / (abs(mean) + 1e-8)))
+
+        vec[14] = env.get("cpu_free", 0.5)
+        vec[15] = env.get("mem_ratio", 0.5)
+
+        TYPE_ORDER = [
+            ProblemType.SORTING, ProblemType.PATHFINDING,
+            ProblemType.OPTIMIZATION, ProblemType.CLUSTERING,
+            ProblemType.CLASSIFICATION, ProblemType.REGRESSION,
+            ProblemType.ML, ProblemType.IMAGE_PROCESSING,
+            ProblemType.SEARCH, ProblemType.NLP,
+            ProblemType.ROUTING, ProblemType.TRANSFORMATION,
+            ProblemType.GENERATION, ProblemType.DECISION,
+            ProblemType.SCHEDULING, ProblemType.COMPUTER_VISION,
+        ]
+        if spec and spec.problem_type in TYPE_ORDER:
+            vec[18 + TYPE_ORDER.index(spec.problem_type)] = 1.0
+
+        vec[40] = 1.0 if size > 100_000 else 0.0
+        vec[41] = 1.0 if size < 100 else 0.0
+
+        return np.nan_to_num(vec, nan=0.0)
+
+    def _compute_stats(self, data: Any) -> Dict[str, Any]:
+        stats: Dict[str, Any] = {}
+        if isinstance(data, (list, tuple)) and len(data) > 0:
+            try:
+                arr = np.array([x for x in data if isinstance(x, (int, float))], dtype=float)
+                if len(arr) > 0:
+                    stats["mean"] = float(np.mean(arr))
+                    stats["std"] = float(np.std(arr))
+                    stats["min"] = float(np.min(arr))
+                    stats["max"] = float(np.max(arr))
+                    stats["has_negatives"] = bool(np.any(arr < 0))
+                    stats["unique_ratio"] = len(set(arr.tolist())) / max(len(arr), 1)
+            except Exception:
+                pass
+        return stats
 
     def _detect_patterns(self, data: Any) -> Dict[str, Any]:
         patterns: Dict[str, Any] = {}
@@ -453,19 +499,33 @@ class PreTrainer:
 
 
 if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser(description="Pre-train the attention-based model")
+    parser.add_argument("--supervised-steps", type=int, default=200000)
+    parser.add_argument("--rl-steps", type=int, default=0)
+    parser.add_argument("--selfplay-steps", type=int, default=0)
+    parser.add_argument("--output", type=str, default="checkpoints/pretrained_v1.pt")
+    args = parser.parse_args()
+
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s - %(levelname)s - %(message)s",
     )
 
     from pipeline import UniversalSolver
+    from core.algorithm_embedder import AlgorithmEmbedder
 
     solver = UniversalSolver()
     agent = solver.meta_controller.rl_agent
     registry = solver.registry
+    embedder = AlgorithmEmbedder()
 
-    trainer = PreTrainer(agent, registry, save_path="checkpoints/pretrained_v1.pt")
-    results = trainer.pretrain(supervised_iters=200000, rl_iters=0, selfplay_iters=0)
+    trainer = PreTrainer(agent, registry, embedder=embedder, save_path=args.output)
+    results = trainer.pretrain(
+        supervised_iters=args.supervised_steps,
+        rl_iters=args.rl_steps,
+        selfplay_iters=args.selfplay_steps,
+    )
 
     print("\n=== Pre-Training Complete ===")
     print(f"  Sorting accuracy:      {results.get('sorting_accuracy')}")

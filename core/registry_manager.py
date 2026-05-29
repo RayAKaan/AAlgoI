@@ -31,6 +31,42 @@ class DynamicRegistry:
         logger.info("Registered algorithm: %s", algorithm.name)
         return True
 
+    def register_from_code(self, name: str, code: str) -> bool:
+        """
+        Register an algorithm from source code string.
+        Dynamically loads the code and extracts Algorithm subclasses.
+        """
+        import importlib.util as _util
+        import sys as _sys
+        import tempfile as _tf
+
+        with _tf.NamedTemporaryFile(
+            mode='w', suffix='.py', delete=False, encoding='utf-8'
+        ) as f:
+            f.write(code)
+            tmp_path = f.name
+
+        try:
+            spec = _util.spec_from_file_location(f"dynamic_{name}", tmp_path)
+            module = _util.module_from_spec(spec)
+            _sys.modules[f"dynamic_{name}"] = module
+            spec.loader.exec_module(module)
+
+            registered = False
+            for attr_name in dir(module):
+                obj = getattr(module, attr_name)
+                if isinstance(obj, type) and issubclass(obj, Algorithm) and obj != Algorithm:
+                    instance = obj()
+                    self.register(instance)
+                    registered = True
+
+            return registered
+        finally:
+            try:
+                os.unlink(tmp_path)
+            except Exception:
+                pass
+
     def register_from_file(self, file_path: str, class_name: Optional[str] = None) -> List[str]:
         """
         Load an algorithm from a .py file.

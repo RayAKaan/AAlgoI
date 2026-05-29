@@ -103,6 +103,86 @@ class AlgorithmKnowledgeGraph:
         except (nx.NetworkXNoPath, nx.NodeNotFound):
             return "No semantic path found."
 
+    # ── Cross-domain routing ──────────────────────────────────────────
+
+    def find_cross_domain_candidates(
+        self,
+        problem_type: str,
+        constraints: list,
+        max_hops: int = 4,
+    ) -> list:
+        """
+        BFS from problem_type through IS_A → APPLICABLE_TO → SOLVED_BY
+        to find algorithms from other domains.
+
+        Returns algorithm names sorted by similarity score descending,
+        excluding algorithms that are directly SOLVED_BY the start type.
+        """
+        if not self.graph.has_node(problem_type):
+            return []
+
+        direct_algos = set(
+            target for _, target, data
+            in self.graph.edges(problem_type, data=True)
+            if data.get("relation") == "SOLVED_BY"
+        )
+
+        candidates = {}
+        visited = set()
+        queue = [(problem_type, 0, 1.0)]
+
+        while queue:
+            node, hops, score = queue.pop(0)
+
+            if hops > max_hops:
+                continue
+            if node in visited:
+                continue
+            visited.add(node)
+
+            node_type = self.graph.nodes[node].get("type")
+
+            if node_type == "Algorithm" and node not in direct_algos:
+                seen = candidates.get(node, 0.0)
+                candidates[node] = max(seen, score)
+                continue
+
+            # Outgoing edges  (u=node → v=neighbor)
+            for _, neighbor, data in self.graph.edges(node, data=True):
+                rel = data.get("relation", "")
+                weight = self._cross_domain_edge_weight(rel)
+                if weight > 0 and neighbor not in visited:
+                    queue.append((neighbor, hops + 1, score * weight))
+
+            # Incoming edges (u=neighbor → v=node)
+            for neighbor, _, data in self.graph.in_edges(node, data=True):
+                rel = data.get("relation", "")
+                weight = self._cross_domain_edge_weight(rel)
+                if weight > 0 and neighbor not in visited:
+                    queue.append((neighbor, hops + 1, score * weight))
+
+        return sorted(candidates, key=candidates.get, reverse=True)
+
+    @staticmethod
+    def _cross_domain_edge_weight(relation: str) -> float:
+        return {
+            "SOLVED_BY": 1.0,
+            "IS_A": 0.9,
+            "APPLICABLE_TO": 0.8,
+            "SIMILAR_TO": 0.6,
+        }.get(relation, 0.0)
+
+    def add_cross_domain_edge(
+        self,
+        source: str,
+        target: str,
+        relation: str,
+        weight: float = 0.8,
+    ):
+        self._safe_add_node(source, type="Pattern" if relation == "APPLICABLE_TO" else "Problem")
+        self._safe_add_node(target, type="Problem" if relation == "APPLICABLE_TO" else "Pattern")
+        self.graph.add_edge(source, target, relation=relation, weight=weight)
+
     def _safe_add_node(self, node_name: str, type: str):
         if not self.graph.has_node(node_name):
             self.graph.add_node(node_name, type=type)

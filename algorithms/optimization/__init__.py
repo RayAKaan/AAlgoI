@@ -1,3 +1,9 @@
-from .optimization_algos import GreedyKnapsack, SimulatedAnnealing
+from .optimization_algos import (
+    GreedyKnapsack, SimulatedAnnealing, GeneticAlgorithm,
+    HillClimbing, ParticleSwarmOptimization, AntColonyOptimization
+)
 
-__all__ = ['GreedyKnapsack', 'SimulatedAnnealing']
+__all__ = [
+    'GreedyKnapsack', 'SimulatedAnnealing', 'GeneticAlgorithm',
+    'HillClimbing', 'ParticleSwarmOptimization', 'AntColonyOptimization'
+]

@@ -13,6 +13,8 @@ class Word2VecTrainer(Algorithm):
         self.time_complexity = "O(n * window * dim)"
         self.tags = ["nlp", "embeddings", "unsupervised"]
         self.best_for = ["domain_specific_corpus", "semantic_similarity"]
+        self.patterns = ["EmbeddingTraining", "NeuralNetwork"]
+        self.problem_types = ["NLP", "EMBEDDINGS"]
 
     def process(self, data: Dict) -> Dict:
         from gensim.models import Word2Vec
@@ -94,6 +96,8 @@ class PCAReduction(Algorithm):
         self.time_complexity = "O(n * d^2)"
         self.tags = ["dimensionality_reduction", "visualization"]
         self.best_for = ["embedding_visualization", "feature_extraction"]
+        self.patterns = ["LinearReduction", "Unsupervised"]
+        self.problem_types = ["DIMENSIONALITY_REDUCTION"]
 
     def process(self, data: Dict) -> Dict:
         from sklearn.decomposition import PCA
@@ -129,6 +133,8 @@ class TSNEVisualization(Algorithm):
         self.time_complexity = "O(n^2)"
         self.tags = ["visualization", "dimensionality_reduction"]
         self.best_for = ["cluster_visualization", "exploratory_analysis"]
+        self.patterns = ["NonLinearReduction", "Probabilistic"]
+        self.problem_types = ["VISUALIZATION"]
 
     def process(self, data: Dict) -> Dict:
         from sklearn.manifold import TSNE
@@ -168,6 +174,8 @@ class SemanticSimilarityGenerator(Algorithm):
         self.time_complexity = "O(n log n)"
         self.tags = ["nlp", "generation", "semantic_search"]
         self.best_for = ["word_generation", "query_expansion"]
+        self.patterns = ["EmbeddingBased", "Similarity"]
+        self.problem_types = ["NLP", "SIMILARITY"]
 
     def process(self, data: Dict) -> Dict:
         model = data.get("model")

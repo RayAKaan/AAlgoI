@@ -223,6 +223,270 @@ EXPLANATION_TEMPLATES = {
             "Return dp[n][m] as the LCS length"
         ],
         "best_for": "Sequence comparison, diff tools, bioinformatics"
+    },
+
+    "linear_regression": {
+        "summary": "Linear regression models the relationship between features and target as a linear function, minimizing mean squared error.",
+        "complexity": "O(n*d\u00b2) training, O(d) prediction",
+        "steps": [
+            "Compute X^T X matrix",
+            "Solve normal equations (X^T X)^-1 X^T y",
+            "Return coefficients and intercept"
+        ],
+        "best_for": "Small datasets with linear relationships, interpretable baseline"
+    },
+    "ridge": {
+        "summary": "Ridge regression adds L2 regularization to linear regression, preventing overfitting on multicollinear data.",
+        "complexity": "O(n*d\u00b2) training",
+        "steps": [
+            "Add penalty term \u03b1 * ||w||\u00b2 to loss",
+            "Solve regularized normal equations",
+            "Return shrunken coefficients"
+        ],
+        "best_for": "Data with correlated features or more features than samples"
+    },
+    "lasso": {
+        "summary": "Lasso regression uses L1 regularization, driving some coefficients to zero for automatic feature selection.",
+        "complexity": "O(n*d\u00b2) training (iterative)",
+        "steps": [
+            "Add penalty term \u03b1 * ||w||\u2081 to loss",
+            "Optimize via coordinate descent",
+            "Return sparse coefficient vector"
+        ],
+        "best_for": "Feature selection, sparse solutions"
+    },
+    "logistic_regression": {
+        "summary": "Logistic regression models the probability of a binary outcome using the logistic function.",
+        "complexity": "O(n*d) per iteration",
+        "steps": [
+            "Initialize weights",
+            "Compute predicted probabilities via sigmoid",
+            "Update weights via gradient descent",
+            "Repeat until convergence"
+        ],
+        "best_for": "Binary classification with probabilistic output, baseline classifier"
+    },
+    "knn": {
+        "summary": "K-Nearest Neighbors classifies a point by majority vote of its k nearest neighbors in feature space.",
+        "complexity": "O(n*d) prediction (lazy learner, no training)",
+        "steps": [
+            "Store all training samples",
+            "For each query, compute distance to all stored points",
+            "Return majority class of k nearest neighbors"
+        ],
+        "best_for": "Small datasets with well-defined decision boundaries"
+    },
+    "svm": {
+        "summary": "Support Vector Machine finds the hyperplane that maximally separates classes using kernel tricks for nonlinear boundaries.",
+        "complexity": "O(n\u00b2*d) training, O(d) prediction",
+        "steps": [
+            "Map input to feature space via kernel",
+            "Find support vectors at margin boundary",
+            "Maximize margin between classes"
+        ],
+        "best_for": "High-dimensional data with clear separation margins, small-to-medium datasets"
+    },
+    "gaussian_nb": {
+        "summary": "Gaussian Naive Bayes assumes features are independent and normally distributed per class. Extremely fast.",
+        "complexity": "O(n*d) training, O(d) prediction",
+        "steps": [
+            "Compute mean and variance per feature per class",
+            "Apply Bayes' theorem for prediction",
+            "Return class with highest posterior probability"
+        ],
+        "best_for": "High-dimensional data, real-time prediction, when features are roughly independent"
+    },
+    "random_forest_classification": {
+        "summary": "Random Forest builds multiple decision trees on bootstrapped samples and averages their predictions.",
+        "complexity": "O(n*m*log(n)) training, O(log n) prediction",
+        "steps": [
+            "Bootstrap sample the data",
+            "Train a decision tree on each sample with random feature subset",
+            "Average predictions across all trees"
+        ],
+        "best_for": "Tabular data with nonlinear relationships, robust default classifier"
+    },
+    "xgboost_classification": {
+        "summary": "XGBoost is a gradient boosting framework that builds trees sequentially, each correcting errors of the previous ensemble.",
+        "complexity": "O(n*m*log(n)) per tree",
+        "steps": [
+            "Initialize with constant prediction",
+            "Compute residuals from current ensemble",
+            "Fit a tree to predict residuals",
+            "Add tree to ensemble with shrinkage",
+            "Repeat for specified number of trees"
+        ],
+        "best_for": "Tabular data where prediction accuracy is the top priority"
+    },
+    "kmeans": {
+        "summary": "K-Means partitions data into k clusters by minimizing within-cluster variance.",
+        "complexity": "O(n*k*i) where i is iterations",
+        "steps": [
+            "Initialize k centroids randomly",
+            "Assign each point to nearest centroid",
+            "Update centroids as cluster means",
+            "Repeat until convergence"
+        ],
+        "best_for": "Spherical clusters, large datasets, fast prototyping"
+    },
+    "dbscan": {
+        "summary": "DBSCAN groups together points that are closely packed together, marking points in low-density regions as outliers.",
+        "complexity": "O(n*log(n)) with spatial indexing",
+        "steps": [
+            "For each point, count neighbors within \u03b5 radius",
+            "Points with \u2265min_samples neighbors are core points",
+            "Expand clusters from core points",
+            "Mark isolated points as noise"
+        ],
+        "best_for": "Arbitrary-shaped clusters, noise detection, outlier detection"
+    },
+    "gmm": {
+        "summary": "Gaussian Mixture Model represents data as a weighted sum of Gaussian distributions, fitted via Expectation-Maximization.",
+        "complexity": "O(n*k*d) per iteration",
+        "steps": [
+            "Initialize k Gaussian components",
+            "E-step: compute probability of each point belonging to each component",
+            "M-step: update component parameters",
+            "Repeat until convergence"
+        ],
+        "best_for": "Soft clustering, density estimation, overlapping clusters"
+    },
+    "pca": {
+        "summary": "Principal Component Analysis finds orthogonal directions of maximum variance.",
+        "complexity": "O(n*d\u00b2) training",
+        "steps": [
+            "Center the data",
+            "Compute covariance matrix",
+            "Extract eigenvectors with largest eigenvalues",
+            "Project data onto top k components"
+        ],
+        "best_for": "Visualization, noise reduction, feature extraction, preprocessing"
+    },
+
+    "word2vec_trainer": {
+        "summary": "Trains Word2Vec embeddings by predicting context words, learning semantic relationships between words.",
+        "complexity": "O(V * E) where V=vocabulary size, E=epochs",
+        "steps": [
+            "Initialize random embeddings for each word",
+            "For each word, predict surrounding context words",
+            "Update embeddings via backpropagation",
+            "Result: words with similar meanings have similar vectors"
+        ],
+        "best_for": "Training custom embeddings for domain-specific vocabulary"
+    },
+
+    "frequency_arithmetic": {
+        "summary": "Performs word arithmetic using word frequencies, finding words with similar frequency patterns.",
+        "complexity": "O(N) where N=corpus size",
+        "steps": [
+            "Count word frequencies in corpus",
+            "Add/subtract frequency values per the operation",
+            "Find words with closest resulting frequency"
+        ],
+        "best_for": "Simple word analogies on small corpora (Lab 1)"
+    },
+
+    "word_vector_arithmetic": {
+        "summary": "Performs semantic word arithmetic using pre-trained embeddings like GloVe.",
+        "complexity": "O(V) for nearest neighbor search",
+        "steps": [
+            "Retrieve embeddings for each word in the operation",
+            "Add positive vectors, subtract negative vectors",
+            "Find nearest neighbors to the result vector"
+        ],
+        "best_for": "Word analogies (king - man + woman = queen)"
+    },
+
+    "embedding_visualization": {
+        "summary": "Projects high-dimensional word embeddings into 2D/3D space for visualization.",
+        "complexity": "O(V * D\u00b2) for PCA, O(V * iter) for t-SNE",
+        "steps": [
+            "Load or train word embeddings",
+            "Apply PCA or t-SNE dimensionality reduction",
+            "Project to 2D or 3D coordinates",
+            "Visualize clusters and relationships"
+        ],
+        "best_for": "Understanding semantic relationships visually"
+    },
+
+    "sentiment_analysis": {
+        "summary": "Classifies text as positive, negative, or neutral using transformer models.",
+        "complexity": "O(L) where L=text length",
+        "steps": [
+            "Tokenize input text",
+            "Pass through fine-tuned transformer (DistilBERT/BERT)",
+            "Output sentiment label and confidence score"
+        ],
+        "best_for": "Analyzing opinions, reviews, social media sentiment"
+    },
+
+    "text_summarization": {
+        "summary": "Condenses long documents into shorter summaries using seq2seq transformers.",
+        "complexity": "O(L\u00b2) due to transformer attention",
+        "steps": [
+            "Encode input text with encoder (BART/T5)",
+            "Decode summary with decoder",
+            "Apply length constraints (min/max)"
+        ],
+        "best_for": "Document summarization, article condensation"
+    },
+
+    "rag_retrieval": {
+        "summary": "Retrieves relevant passages from documents using semantic similarity.",
+        "complexity": "O(N * D) where N=passages, D=embedding dimension",
+        "steps": [
+            "Split document into passages",
+            "Encode passages and query with sentence transformers",
+            "Compute cosine similarity",
+            "Return top-k most similar passages"
+        ],
+        "best_for": "Document QA, chatbots, information retrieval (Lab 10)"
+    },
+
+    "semantic_search": {
+        "summary": "Finds semantically similar texts in a corpus using embedding similarity.",
+        "complexity": "O(N * D) where N=corpus size, D=embedding dimension",
+        "steps": [
+            "Encode all documents in corpus",
+            "Encode query",
+            "Compute cosine similarities",
+            "Return top-k results"
+        ],
+        "best_for": "Document matching, duplicate detection, semantic retrieval"
+    },
+
+    "prompt_enrichment": {
+        "summary": "Enhances prompts by adding semantically related terms from embeddings.",
+        "complexity": "O(V) for similarity search",
+        "steps": [
+            "Identify seed word from prompt",
+            "Find similar words using embeddings",
+            "Append related terms to the prompt"
+        ],
+        "best_for": "Improving prompt quality for generative AI (Lab 4)"
+    },
+
+    "creative_generation": {
+        "summary": "Generates creative sentences/stories using word embeddings and templates.",
+        "complexity": "O(V) for word similarity",
+        "steps": [
+            "Find similar words to seed word",
+            "Select from template sentences",
+            "Combine into paragraph"
+        ],
+        "best_for": "Creative writing, story generation (Lab 5)"
+    },
+
+    "word_expansion": {
+        "summary": "Expands a word into related terms and concepts across multiple levels.",
+        "complexity": "O(D * V) where D=depth, V=vocabulary",
+        "steps": [
+            "Find similar words to the input",
+            "For each similar word, find more related words",
+            "Repeat to specified depth",
+            "Collect all terms"
+        ],
+        "best_for": "Keyword expansion, query broadening, brainstorming"
     }
 }
 

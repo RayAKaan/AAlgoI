@@ -1,3 +1,3 @@
-from .pathfinding_algos import Dijkstra, AStar, BFSPathfinder
+from .pathfinding_algos import Dijkstra, AStar, BFSPathfinder, FloydWarshall
 
-__all__ = ['Dijkstra', 'AStar', 'BFSPathfinder']
+__all__ = ['Dijkstra', 'AStar', 'BFSPathfinder', 'FloydWarshall']

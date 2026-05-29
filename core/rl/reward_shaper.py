@@ -24,6 +24,43 @@ class RewardShaper:
         self.novel_bonus = 3.0
         self.discovery_bonus = 50.0
 
+    def compute(self, success: bool, elapsed: float, data_size: int,
+                algo_name: str = "", metrics: Dict = None) -> float:
+        if not success:
+            return self.failure_penalty
+
+        reward = self.reward_scale * 0.5
+
+        if data_size > 0 and elapsed > 0:
+            expected_log = max(1.0, data_size * 0.03)
+            ratio = expected_log / (elapsed * 1000 + 0.001)
+            speed_bonus = min(10.0, ratio * 3.0)
+        else:
+            speed_bonus = 0.0
+        reward += speed_bonus
+
+        size_bonus = min(2.0, 0.5 * (data_size / 10000))
+        reward += size_bonus
+
+        if elapsed < 0.001 and data_size > 100:
+            reward += 3.0
+
+        if metrics and isinstance(metrics, dict):
+            if "accuracy" in metrics:
+                acc = float(metrics["accuracy"])
+                acc_reward = (acc - 0.5) * 20.0
+                reward += acc_reward
+            elif "r2_score" in metrics:
+                r2 = float(metrics["r2_score"])
+                r2_reward = r2 * 10.0
+                reward += r2_reward
+            elif "f1" in metrics:
+                f1 = float(metrics["f1"])
+                f1_reward = (f1 - 0.5) * 15.0
+                reward += f1_reward
+
+        return reward
+
     def compute_reward(self, is_valid: bool, metrics: Dict[str, Any],
                        context: Dict[str, Any], history: Dict[str, Any] = None,
                        discovered_algorithm: Optional[Dict] = None) -> float:

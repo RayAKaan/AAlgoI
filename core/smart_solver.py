@@ -21,7 +21,7 @@ class SmartSolver:
     """
 
     def __init__(self, config: Optional[Dict] = None):
-        self.parser = QuestionParser(use_transformer=True)
+        self.parser = QuestionParser(use_transformer=False)
         self._config = config or {}
         self._solver = None
 
@@ -31,6 +31,26 @@ class SmartSolver:
             from pipeline import UniversalSolver
             self._solver = UniversalSolver(config=self._config)
         return self._solver
+
+    def ask_with_spec(self, spec, data: Any = None, **kwargs) -> Dict:
+        """
+        Same as ask() but accepts a pre-built ProblemSpec.
+        Skips NL parsing. Used by aalgoi.transformer.solve().
+        """
+        if kwargs:
+            for key, value in kwargs.items():
+                if key == "priority" and value:
+                    spec.constraints.append(f"priority={value}")
+                elif key not in spec.inputs:
+                    spec.inputs[key] = value
+
+        result = self.solver.solve(spec, data)
+
+        if result.get("success"):
+            question = spec.description or "problem"
+            result["answer"] = self._format_answer(question, result)
+
+        return result
 
     def ask(self, question: str, data: Any = None, **kwargs) -> Dict:
         """

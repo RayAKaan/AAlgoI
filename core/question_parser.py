@@ -1,6 +1,8 @@
 """
 Lightweight question-to-ProblemSpec converter.
 Uses optional DistilBERT + rule patterns for offline inference.
+DistilBERT is NOT loaded at import time. It loads on first
+_detect_problem_type call that needs it (ambiguous queries only).
 """
 
 import re
@@ -10,13 +12,6 @@ from typing import Dict, Any, Optional, List
 from core.problem_spec import ProblemSpec, ProblemType, Objective, Constraint
 
 logger = logging.getLogger(__name__)
-
-try:
-    from transformers import pipeline as hf_pipeline
-
-    HAS_TRANSFORMERS = True
-except ImportError:
-    HAS_TRANSFORMERS = False
 
 
 class QuestionParser:
@@ -31,39 +26,107 @@ class QuestionParser:
           -> ProblemSpec(type=ML, inputs={corpus, vector_size=200, domain=medical})
     """
 
-    def __init__(self, use_transformer: bool = True):
-        self.use_transformer = use_transformer and HAS_TRANSFORMERS
+    # ── Shorthand aliases (expanded before keyword detection) ──
+    SHORTHAND = {
+        "sort asc":          "sort ascending",
+        "sort desc":         "sort descending",
+        "sort fast":         "sort ascending quickly",
+        "sort slow":         "sort ascending stably",
+        "sort rev":          "sort descending",
+        "sort reverse":      "sort descending",
+        "sort stable":       "sort ascending stably",
+        "sort big":          "sort ascending large data",
+        "path":              "find shortest path",
+        "shortest":          "find shortest path",
+        "route":             "find shortest path",
+        "navigate":          "find shortest path",
+        "knapsack":          "maximize value within capacity",
+        "maximize":          "maximize value",
+        "minimize":          "minimize this function",
+        "optimize":          "maximize value",
+        "schedule":          "schedule tasks optimally",
+        "cluster":           "cluster this data",
+        "classify":          "classify",
+        "regress":           "fit regression model",
+        "embed":             "train word embeddings",
+        "reduce":            "reduce dimensions",
+        "blur":              "blur image",
+        "denoise":           "denoise image",
+        "edges":             "detect edges in image",
+        "enhance":           "enhance this data",
+        "why":               "explain algorithm choice",
+        "best":              "use best algorithm",
+        "fast":              "use fastest algorithm",
+        "compare":           "benchmark algorithms",
+    }
 
-        if self.use_transformer:
-            try:
-                self.classifier = hf_pipeline(
-                    "zero-shot-classification",
-                    model="typeform/distilbert-base-uncased-mnli",
-                    device=-1,
-                )
-                logger.info("Loaded zero-shot classifier for question parsing")
-            except Exception as e:
-                logger.warning("Transformer model unavailable: %s", e)
-                self.use_transformer = False
+    ARROW_PATTERN = re.compile(
+        r"([A-Za-z0-9_]+)\s*(?:->|=>|→|:)\s*([A-Za-z0-9_]+)"
+    )
 
+    def __init__(self, use_transformer: bool = False):
+        self.use_transformer = use_transformer
+        self._classifier = None
         self.keyword_patterns = self._load_keyword_patterns()
 
     def _load_keyword_patterns(self) -> Dict[ProblemType, List[str]]:
         return {
             ProblemType.SORTING: ["sort", "order", "arrange", "organize", "rank"],
             ProblemType.PATHFINDING: ["path", "route", "navigate", "shortest", "distance", "graph"],
-            ProblemType.OPTIMIZATION: ["optimize", "maximize", "minimize", "best", "knapsack", "allocate"],
-            ProblemType.ML: ["train", "model", "learn", "predict", "classify", "regress", "embedding", "neural", "word2vec"],
-            ProblemType.NLP: ["text", "sentence", "semantic", "corpus", "language", "tokenize"],
-            ProblemType.COMPUTER_VISION: ["detect", "segment", "recognize", "object", "visual"],
-            ProblemType.IMAGE_PROCESSING: ["blur", "filter", "denoise", "edge", "enhance", "image"],
-            ProblemType.CLUSTERING: ["cluster", "group", "segment", "partition"],
-            ProblemType.CLASSIFICATION: ["classify", "categorize", "label", "predict class"],
-            ProblemType.REGRESSION: ["regress", "predict value", "forecast", "estimate"],
+            ProblemType.OPTIMIZATION: ["optimize", "maximize", "minimize", "best", "knapsack", "allocate", "anneal", "genetic", "hill climbing", "ant colony", "particle swarm", "swarm"],
+            ProblemType.ML: ["train", "model", "learn", "neural", "xgboost", "random_forest", "lightgbm", "gmm", "pca", "dimensionality", "reduce dimension", "t-sne", "tsne", "dimensionality reduction", "pca reduction"],
+            ProblemType.NLP: ["text", "sentence", "semantic", "corpus", "language", "tokenize", "sentiment", "summariz", "enrich", "expand", "visualize word", "arithmetic", "rag", "retrieval", "retrieve", "analogy", "terminology", "vocabulary", "word2vec", "embedding"],
+            ProblemType.COMPUTER_VISION: ["detect", "segment", "recognize", "object", "satellite"],
+            ProblemType.IMAGE_PROCESSING: ["blur", "filter", "denoise", "edge", "image", "satellite", "template", "pattern", "morpholog", "segment"],
+            ProblemType.CLUSTERING: ["cluster", "group", "partition", "kmeans", "dbscan"],
+            ProblemType.CLASSIFICATION: ["classify", "categorize", "label", "predict class", "logistic_regression", "knn", "svm", "naive_bayes", "decision_tree", "risk tier"],
+            ProblemType.REGRESSION: ["predict", "regress", "predict value", "forecast", "estimate", "linear_regression", "ridge", "lasso", "growth rate"],
             ProblemType.SEARCH: ["find", "search", "locate", "match", "retrieve"],
-            ProblemType.GENERATION: ["generate", "create", "produce", "synthesize"],
+            ProblemType.GENERATION: ["generate", "create", "produce", "synthesize", "creative"],
             ProblemType.SCHEDULING: ["schedule", "timetable", "assign", "allocate time"],
         }
+
+    def _get_classifier(self):
+        """Load DistilBERT on first call. Cache on instance."""
+        if self._classifier is None:
+            try:
+                from transformers import pipeline as hf_pipeline
+                self._classifier = hf_pipeline(
+                    "zero-shot-classification",
+                    model="typeform/distilbert-base-uncased-mnli",
+                    device=-1,
+                )
+                logger.info("Loaded zero-shot classifier for question parsing")
+            except ImportError:
+                logger.warning(
+                    "transformers not installed. "
+                    "Run: pip install aalgoi[transformer]"
+                )
+                self.use_transformer = False
+                return None
+            except Exception as e:
+                logger.warning("Failed to load transformer: %s", e)
+                self.use_transformer = False
+                return None
+        return self._classifier
+
+    def _apply_shorthand(self, text: str) -> str:
+        """Expand shorthand aliases into full phrases the parser handles."""
+        text = text.strip().lower()
+
+        match = self.ARROW_PATTERN.search(text)
+        if match:
+            return f"find shortest path from {match.group(1)} to {match.group(2)}"
+
+        for short, full in sorted(self.SHORTHAND.items(), key=lambda x: -len(x[0])):
+            pattern = r'\b' + re.escape(short) + r'\b'
+            if re.search(pattern, text):
+                full_in_text = re.search(r'\b' + re.escape(full) + r'\b', text)
+                if full_in_text:
+                    continue
+                return re.sub(pattern, full, text, count=1)
+
+        return text
 
     def parse(self, question: str, data: Any = None) -> ProblemSpec:
         """
@@ -76,6 +139,7 @@ class QuestionParser:
         Returns:
             ProblemSpec ready for UniversalSolver
         """
+        question = self._apply_shorthand(question)
         question_lower = question.lower()
 
         problem_type = self._detect_problem_type(question_lower)
@@ -98,15 +162,7 @@ class QuestionParser:
         return spec
 
     def _detect_problem_type(self, question: str) -> ProblemType:
-        if self.use_transformer:
-            candidate_labels = [pt.value for pt in ProblemType if pt != ProblemType.UNKNOWN]
-            try:
-                result = self.classifier(question, candidate_labels)
-                if result["scores"][0] > 0.5:
-                    return ProblemType(result["labels"][0])
-            except Exception:
-                pass
-
+        # Step 1: Keywords (zero cost, always runs first)
         scores = {}
         for ptype, keywords in self.keyword_patterns.items():
             score = sum(1 for kw in keywords if kw in question)
@@ -115,6 +171,18 @@ class QuestionParser:
 
         if scores:
             return max(scores, key=scores.get)
+
+        # Step 2: Transformer (only if keywords found nothing)
+        if self.use_transformer:
+            clf = self._get_classifier()
+            if clf is not None:
+                candidate_labels = [pt.value for pt in ProblemType if pt != ProblemType.UNKNOWN]
+                try:
+                    result = clf(question, candidate_labels)
+                    if result["scores"][0] > 0.5:
+                        return ProblemType(result["labels"][0])
+                except Exception:
+                    pass
 
         return ProblemType.UNKNOWN
 
@@ -197,4 +265,25 @@ class QuestionParser:
                 spec.problem_type = ProblemType.NLP
             elif "model" in data:
                 spec.problem_type = ProblemType.ML
+            elif "X_train" in data:
+                y = data.get("y_train")
+                if y is not None:
+                    import numpy as _np
+                    if isinstance(y, (list, tuple, _np.ndarray)):
+                        y_arr = _np.asarray(y)
+                        if y_arr.ndim == 1:
+                            if y_arr.dtype.kind in 'UO':
+                                spec.problem_type = ProblemType.CLASSIFICATION
+                            elif y_arr.dtype.kind in 'biuf':
+                                unique_count = len(_np.unique(y_arr))
+                                if unique_count < len(y_arr) * 0.5 and unique_count < 20:
+                                    spec.problem_type = ProblemType.CLASSIFICATION
+                                else:
+                                    spec.problem_type = ProblemType.REGRESSION
+                            else:
+                                spec.problem_type = ProblemType.CLUSTERING
+                        else:
+                            spec.problem_type = ProblemType.CLUSTERING
+                else:
+                    spec.problem_type = ProblemType.CLUSTERING
         return spec

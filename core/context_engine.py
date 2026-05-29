@@ -34,12 +34,23 @@ class ContextEngine:
         context["predictions"] = self._predict_optimal_conditions(context)
         context["features"] = self._extract_features(context)
 
+        if isinstance(data, dict) and "X_train" in data:
+            context["ml_profile"] = self._analyze_ml_data(data)
+        elif hasattr(data, 'shape') and len(getattr(data, 'shape', [])) >= 2:
+            context["ml_profile"] = self._analyze_ml_data(data)
+
         if context["task_type"] == "unknown" or context["task_type"] == "auto":
-            if hasattr(data, '__len__'):
+            if isinstance(data, dict) and "X_train" in data:
+                if data.get("y_train") is not None:
+                    unique = len(set(data["y_train"][:1000].tolist() if hasattr(data["y_train"], 'tolist') else data["y_train"][:1000]))
+                    context["task_type"] = "classification" if unique < 20 else "regression"
+                else:
+                    context["task_type"] = "clustering"
+            elif hasattr(data, '__len__'):
                 context["task_type"] = "safety"
             else:
                 context["task_type"] = "safety"
-        known_types = {"sorting", "pathfinding", "optimization", "clustering", "classification", "regression", "search", "safety", "transformation", "image_processing"}
+        known_types = {"sorting", "pathfinding", "optimization", "clustering", "classification", "regression", "search", "safety", "transformation", "image_processing", "ml", "dimensionality_reduction"}
         if context["task_type"] not in known_types:
             context["task_type"] = "safety"
 
@@ -266,6 +277,61 @@ class ContextEngine:
             return sys.getsizeof(data)
         except:
             return len(data) * 8  # rough estimate
+
+    def _analyze_ml_data(self, data) -> Dict:
+        if isinstance(data, dict):
+            X = data.get("X_train")
+            y = data.get("y_train")
+        elif hasattr(data, 'shape'):
+            X = data
+            y = None
+        else:
+            return {}
+
+        if X is None:
+            return {}
+
+        profile = {"type": "ml"}
+
+        if hasattr(X, 'shape') and len(X.shape) >= 2:
+            n, d = X.shape[0], X.shape[1]
+            profile["n_samples"] = int(n)
+            profile["n_features"] = int(d)
+            profile["samples_per_feature"] = float(n / max(1, d))
+
+            try:
+                from scipy import sparse
+                if sparse.issparse(X):
+                    profile["sparsity"] = float(1.0 - X.nnz / (n * d))
+                elif hasattr(X, 'size') and X.size > 0:
+                    profile["sparsity"] = float(1.0 - (np.count_nonzero(X) / X.size))
+                else:
+                    profile["sparsity"] = 0.0
+            except ImportError:
+                if hasattr(X, 'size') and X.size > 0:
+                    profile["sparsity"] = float(1.0 - (np.count_nonzero(X) / X.size))
+
+            profile["memory_mb"] = float(X.nbytes / (1024 * 1024)) if hasattr(X, 'nbytes') else 0.0
+
+        if y is not None and hasattr(y, 'shape'):
+            unique = np.unique(y)
+            profile["n_classes"] = int(len(unique))
+
+            if len(unique) < 20 and y.dtype.kind in 'biuf':
+                profile["is_classification"] = True
+                try:
+                    counts = np.bincount(y.astype(int))
+                    if len(counts) > 1 and min(counts) > 0:
+                        profile["imbalance_ratio"] = float(max(counts) / min(counts))
+                        profile["majority_class_pct"] = float(max(counts) / sum(counts))
+                except (ValueError, TypeError):
+                    pass
+            else:
+                profile["is_classification"] = False
+                profile["target_mean"] = float(np.mean(y))
+                profile["target_std"] = float(np.std(y))
+
+        return profile
 
     def get_feature_vector(self, context: Dict) -> List[float]:
         """Get flat feature vector for ML consumption."""

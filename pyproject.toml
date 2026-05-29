@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "aalgoi"
-version = "1.1.0"
+version = "1.4.0"
 description = "Artificial Algorithm Intelligence - Self-Adaptive Algorithm Selection & Universal Problem Solving"
 readme = "README.md"
 requires-python = ">=3.8"
@@ -64,8 +64,12 @@ aalgoi = "interface.cli:main"
 aalgoi-web = "interface.web_ui:launch"
 aalgoi-api = "interface.api:run"
 
+[tool.setuptools]
+py-modules = ["pipeline"]
+
 [tool.setuptools.packages.find]
-include = ["core*", "algorithms*", "interface*", "domains*", "utils*"]
+include = ["core*", "algorithms*", "interface*", "domains*", "utils*", "aalgoi*"]
+exclude = ["tests*", "training*", "checkpoints*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

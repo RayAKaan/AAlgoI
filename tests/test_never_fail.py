@@ -56,24 +56,20 @@ class TestNeverFail:
         assert result["selected"] == []
 
     def test_prepare_input_data_none(self, solver):
-        spec = ProblemSpec(name="test", problem_type=ProblemType.SORTING)
-        result = solver._prepare_input_data(spec, None)
+        result = solver._prepare_input_data(None, "sorting")
         assert result == []
 
     def test_prepare_input_data_pathfinding_none(self, solver):
-        spec = ProblemSpec(name="test", problem_type=ProblemType.PATHFINDING)
-        result = solver._prepare_input_data(spec, None)
+        result = solver._prepare_input_data(None, "pathfinding")
         assert isinstance(result, dict)
         assert "graph" in result
 
     def test_prepare_input_data_string(self, solver):
-        spec = ProblemSpec(name="test", problem_type=ProblemType.SORTING)
-        result = solver._prepare_input_data(spec, "[1, 2, 3]")
+        result = solver._prepare_input_data("[1, 2, 3]", "sorting")
         assert result == [1, 2, 3]
 
     def test_prepare_input_data_string_not_json(self, solver):
-        spec = ProblemSpec(name="test", problem_type=ProblemType.SORTING)
-        result = solver._prepare_input_data(spec, "hello")
+        result = solver._prepare_input_data("hello", "sorting")
         assert result == "hello"
 
     def test_solve_none_data_returns_identity(self, solver):

@@ -4,7 +4,7 @@ import json
 import math
 import logging
 import threading
-from dataclasses import dataclass, field
+import numpy as np
 from typing import Any, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
@@ -21,38 +21,160 @@ from core.decision_log import DecisionLog, Decision
 from core.pipeline_graph import PipelineGraph
 from core.genetic_evolver import GeneticPipelineEvolver
 
-from algorithms.pathfinding import Dijkstra, AStar, BFSPathfinder
-from algorithms.optimization import GreedyKnapsack, SimulatedAnnealing
+from algorithms.pathfinding import Dijkstra, AStar, BFSPathfinder, FloydWarshall
+from algorithms.optimization import (
+    GreedyKnapsack, SimulatedAnnealing, GeneticAlgorithm,
+    HillClimbing, ParticleSwarmOptimization, AntColonyOptimization,
+)
 from algorithms.safety import IdentityAlgorithm, SafeSort, SafePath, SafeKnapsack
 
 from core.problem_spec import ProblemSpec, ProblemType
 from core.meta_controller import UniversalMetaController
 from core.validator import LearningValidator
 from core.explainer import Explainer
+from core.rl.reward_shaper import RewardShaper
 from algorithms.primitives import PRIMITIVES
 
 
-@dataclass
 class Result:
-    output: Any = None
-    algorithm: str = ""
-    time_ms: float = 0.0
-    success: bool = True
-    metrics: Dict = field(default_factory=dict)
-    pipeline: List[str] = field(default_factory=list)
+    """
+    Return type for all AAlgoI solve operations.
+    Supports both dict-style and attribute-style access.
+    Prints beautifully. Never silently returns None.
+    """
+
+    KNOWN_KEYS = {
+        "result":      "result",
+        "algorithm":   "algorithm",
+        "time_ms":     "time_ms",
+        "success":     "success",
+        "answer":      "answer",
+        "error":       "error",
+        "confidence":  "confidence",
+        "alternatives":"alternatives",
+        "metrics":     "metrics",
+        "pipeline":    "pipeline",
+        # Aliases — map to canonical names
+        "ok":          "success",
+        "value":       "result",
+        "ms":          "time_ms",
+        "algo":        "algorithm",
+        "output":      "result",
+    }
+
+    def __init__(
+        self,
+        result=None,
+        algorithm: str = "",
+        time_ms: float = 0.0,
+        success: bool = True,
+        answer: str = "",
+        error: str = "",
+        confidence: float = 0.0,
+        alternatives: list = None,
+        metrics: Dict = None,
+        pipeline: list = None,
+    ):
+        self.result = result
+        self.algorithm = algorithm
+        self.time_ms = time_ms
+        self.success = success
+        self.answer = answer
+        self.error = error
+        self.confidence = confidence
+        self.alternatives = alternatives or []
+        self.metrics = metrics or {}
+        self.pipeline = pipeline or []
+
+    # ── Dict-style access ──────────────────────────────────
+    def __getitem__(self, key: str):
+        canonical = self.KNOWN_KEYS.get(key)
+        if canonical is None:
+            raise KeyError(
+                f"Result has no field '{key}'. "
+                f"Valid keys: {sorted(k for k, v in Result.KNOWN_KEYS.items() if k == v)}"
+            )
+        return getattr(self, canonical)
+
+    def __setitem__(self, key: str, value):
+        setattr(self, key, value)
+
+    def __contains__(self, key: str) -> bool:
+        try:
+            self[key]
+            return True
+        except KeyError:
+            return False
+
+    def get(self, key: str, default=None):
+        try:
+            return self[key]
+        except KeyError:
+            return default
+
+    def keys(self):
+        return [k for k, v in self.KNOWN_KEYS.items() if k == v and hasattr(self, k)]
 
     def to_dict(self) -> Dict:
-        return {
-            "result": self.output,
-            "algorithm": self.algorithm,
-            "success": self.success,
-            "time_ms": self.time_ms,
-        }
+        return {k: getattr(self, k) for k in [
+            "result", "algorithm", "time_ms", "success",
+            "answer", "error", "confidence", "alternatives",
+            "metrics", "pipeline",
+        ] if k in ("result", "algorithm", "time_ms", "success") or getattr(self, k) is not None}
+
+    # ── Shortcuts ──────────────────────────────────────────
+    @property
+    def ok(self) -> bool:
+        return self.success
+
+    @property
+    def value(self):
+        return self.result
+
+    @property
+    def ms(self) -> float:
+        return self.time_ms
+
+    @property
+    def algo(self) -> str:
+        return self.algorithm
+
+    # ── Display ───────────────────────────────────────────
+    def __repr__(self) -> str:
+        status = "OK" if self.success else "FAIL"
+        conf = f" ({self.confidence:.0%})" if self.confidence > 0 else ""
+        return f"Result({status} {self.algorithm}{conf} in {self.time_ms:.2f}ms)"
+
+    def __str__(self) -> str:
+        if self.answer:
+            return self.answer
+        return repr(self)
+
+    def __bool__(self) -> bool:
+        return self.success
+
+    def _repr_html_(self) -> str:
+        status_color = "#2ecc71" if self.success else "#e74c3c"
+        status_icon  = "✓" if self.success else "✗"
+        return f"""
+        <div style="font-family: monospace; padding: 8px; border-left: 3px solid {status_color};">
+            <span style="color:{status_color}; font-weight:bold">{status_icon}</span>
+            <strong>{self.algorithm}</strong>
+            &nbsp;|&nbsp; {self.time_ms:.2f}ms
+            &nbsp;|&nbsp; {f"{self.confidence:.0%} confidence" if self.confidence else ""}
+            <br>
+            <span style="color:#555">{self.answer or str(self.result)[:80]}</span>
+        </div>
+        """
+
+    def __lt__(self, other) -> bool:
+        return self.time_ms < other.time_ms
 
 
 class UniversalSolver:
     def __init__(self, problem_library=None, llm_client=None, config=None):
         self.config = config or {}
+        self.config.setdefault("rl_deterministic", False)
         self.registry = self._build_registry()
         self.meta_controller = UniversalMetaController(
             config=self.config,
@@ -68,6 +190,59 @@ class UniversalSolver:
             default_detail=self.config.get("explanation_detail", "short")
         )
         self._execution_count = 0
+
+        self.reward_shaper = RewardShaper(config=self.config.get("reward", {}))
+        self._solve_count = 0
+        self._train_interval = self.config.get("train_interval", 64)
+        self._total_solves = 0
+
+        self._execution_count = 0
+
+        # Push algorithm embeddings to RL agent's attention head
+        from core.algorithm_embedder import AlgorithmEmbedder
+        self.embedder = AlgorithmEmbedder()
+        self.embedder.embed_all(self.registry)
+        rl = self.meta_controller.rl_agent
+        all_embeds = self.embedder.get_all_embeddings(self.registry)
+        rl.update_algo_embeddings(all_embeds, list(self.registry.keys()))
+
+        # LoRA adapter for per-user personalization
+        from core.rl.lora_adapter import LoRAAdapter
+        self.lora_adapter = LoRAAdapter(
+            rl.network,
+            rank=self.config.get('lora_rank', 4),
+        )
+        self.lora_adapter.apply()
+        rl.lora_adapter = self.lora_adapter
+
+        # Rebuild optimizer — LoRALinear base weights are frozen internally
+        # so only trainable params (encoder, LoRA A/B, value_proj, critic) get gradients
+        import torch as _torch
+        rl.optimizer = _torch.optim.Adam(
+            rl.network.parameters(),
+            lr=rl.config.get("learning_rate", 3e-4),
+        )
+
+        # Checkpoint manager for versioned LoRA weights
+        from core.checkpoint_manager import CheckpointManager
+        self.checkpoint_manager = CheckpointManager()
+        adapter_path = self.checkpoint_manager.get_current_adapter_path()
+        if adapter_path:
+            self.lora_adapter.load(adapter_path)
+
+        # GitHub registry sync (background thread)
+        from core.registry_sync import GitHubRegistrySync
+        self.registry_sync = GitHubRegistrySync(
+            local_registry=self.registry,
+            embedder=self.embedder,
+            agent=rl,
+        )
+        self.registry_sync.start()
+
+        from core.checkpoint_downloader import ensure_checkpoint_async
+        ensure_checkpoint_async()
+
+        self._checkpoint_interval = self.config.get('checkpoint_interval', 50)
 
     def solve(self, problem_spec: ProblemSpec, data: Any,
               use_llm: bool = False,
@@ -162,23 +337,32 @@ class UniversalSolver:
                              use_llm: bool = False,
                              expected: Any = None) -> Dict:
         start = time.perf_counter()
-        result_obj = Result()
 
         ptype = problem_spec.problem_type
+
+        # Only override with data shape inference when NL parser was uncertain
+        if data is not None and ptype in (ProblemType.UNKNOWN, ProblemType.TRANSFORMATION):
+            from_data = ProblemSpec._infer_from_data_shape(data)
+            if from_data != ProblemType.UNKNOWN:
+                ptype = from_data
+                problem_spec.problem_type = from_data
+
         if ptype in (ProblemType.UNKNOWN, ProblemType.TRANSFORMATION, ProblemType.SORTING):
             detected = problem_spec.infer_problem_type(data)
             if detected != ptype:
                 problem_spec.problem_type = detected
 
-        data = self._prepare_input_data(problem_spec, data)
+        data = self._prepare_input_data(data, problem_spec.problem_type.value)
 
         context = self.context_engine.analyze(data, problem_spec.problem_type.value)
         context["data"] = data
 
+        query = problem_spec.description or problem_spec.name or ""
         algo = self.meta_controller.select(
             context=context,
             candidates=list(self.registry.keys()),
             problem_spec=problem_spec,
+            query=query,
         )
 
         if algo is None:
@@ -188,6 +372,7 @@ class UniversalSolver:
         try:
             output = algo.process(data)
             success = algo.validate_output(data, output)
+            output = self._normalize_result(output, algo_name)
             if expected is not None and success:
                 output_list = output if isinstance(output, list) else []
                 expected_list = expected if isinstance(expected, list) else []
@@ -207,76 +392,262 @@ class UniversalSolver:
                 output = data
                 success = False
 
-        elapsed = (time.perf_counter() - start) * 1000
+        elapsed_ms = (time.perf_counter() - start) * 1000
 
-        result_obj.output = output
-        result_obj.algorithm = algo_name
-        result_obj.time_ms = elapsed
-        result_obj.success = success
-        result_obj.pipeline = [algo_name]
-        result_obj.metrics = {"wall_time_ms": elapsed, "success": success}
+        # === ONLINE RL FEEDBACK LOOP ===
+        state = self.meta_controller._last_state
+        action_idx = self.meta_controller._last_action_idx
+        log_prob = self.meta_controller._last_log_prob
+        value = self.meta_controller._last_value
+
+        if state is not None and action_idx is not None:
+            data_size = len(data) if hasattr(data, '__len__') else 0
+            reward = self.reward_shaper.compute(
+                success=success,
+                elapsed=elapsed_ms / 1000.0,
+                data_size=data_size,
+                algo_name=algo_name,
+            )
+            agent = self.meta_controller.rl_agent
+            agent.store_transition(
+                state=state,
+                action=action_idx,
+                reward=reward,
+                done=True,
+                log_prob=log_prob,
+                value=value,
+            )
+
+            self._solve_count += 1
+            self._total_solves += 1
+            if self._solve_count >= self._train_interval:
+                train_result = agent.train()
+                if train_result and train_result.get("total_loss", 0.0) > 0.0:
+                    logger.info(
+                        f"RL trained: loss={train_result['total_loss']:.4f}, "
+                        f"policy_loss={train_result['policy_loss']:.4f}, "
+                        f"entropy={train_result['entropy']:.4f}, "
+                        f"buffer={len(agent.buffer)}"
+                    )
+                self._solve_count = 0
+
+            # Save LoRA checkpoint periodically
+            if hasattr(self, 'checkpoint_manager') and self._total_solves % self._checkpoint_interval == 0:
+                self.checkpoint_manager.save_checkpoint(
+                    adapter=self.lora_adapter,
+                    solve_count=self._total_solves,
+                    metrics={'success_rate': float(success), 'reward': reward},
+                )
+        # === END FEEDBACK LOOP ===
+
+        result_obj = Result(
+            result=output,
+            algorithm=algo_name,
+            time_ms=elapsed_ms,
+            success=success,
+            pipeline=[algo_name],
+            metrics={"wall_time_ms": elapsed_ms, "success": success},
+        )
 
         self._execution_count += 1
         return result_obj.to_dict()
 
-    def _prepare_input_data(self, problem_spec: ProblemSpec, raw_data: Any) -> Any:
-        if raw_data is None:
-            ptype = problem_spec.problem_type
-            if ptype == ProblemType.SORTING:
+    def _prepare_input_data(self, data, algo_name: str = "") -> Any:
+        # ML data — pass through untouched with numpy conversion
+        if isinstance(data, dict):
+            ml_signal_keys = {
+                "X_train", "y_train", "X_test",
+                "n_clusters", "n_components",
+                "corpus", "texts", "text", "query", "document",
+                "words", "seed_word", "operation", "num_sentences",
+            }
+            if any(k in data for k in ml_signal_keys):
+                prepared = {}
+                for k, v in data.items():
+                    if isinstance(v, np.ndarray):
+                        prepared[k] = v.tolist()
+                    elif isinstance(v, list) and v and isinstance(v[0], np.ndarray):
+                        prepared[k] = [x.tolist() if isinstance(x, np.ndarray) else x for x in v]
+                    else:
+                        prepared[k] = v
+                return prepared
+
+            # Graph/image/optimization data — pass through as-is
+            return data
+
+        # Non-dict data — handle None and string parsing
+        if data is None:
+            ptype = algo_name
+            if ptype == "sorting":
                 return []
-            elif ptype == ProblemType.PATHFINDING:
+            elif ptype == "pathfinding":
                 return {"graph": {}, "start": "", "end": ""}
-            elif ptype == ProblemType.OPTIMIZATION:
+            elif ptype == "optimization":
                 return {"items": [], "capacity": 0}
             return {}
 
-        if isinstance(raw_data, str):
+        if isinstance(data, str):
             try:
-                import json
-                return json.loads(raw_data)
+                return json.loads(data)
             except Exception:
                 try:
-                    return eval(raw_data)
+                    return eval(data)
                 except Exception:
-                    return raw_data
+                    return data
 
-        ptype = problem_spec.problem_type
-        if ptype == ProblemType.PATHFINDING:
-            if isinstance(raw_data, tuple) and len(raw_data) == 3:
-                return {"graph": raw_data[0], "start": raw_data[1], "end": raw_data[2]}
-            if isinstance(raw_data, dict):
-                return raw_data
-        elif ptype == ProblemType.OPTIMIZATION:
-            if isinstance(raw_data, tuple) and len(raw_data) == 2:
-                return {"items": raw_data[0], "capacity": raw_data[1]}
-            if isinstance(raw_data, dict):
-                return raw_data
-        return raw_data
+        return data
+
+    def _normalize_result(self, result: Any, algo_name: str) -> dict:
+        if isinstance(result, dict):
+            ml_classifiers = {
+                "knn_classifier", "decision_tree_classifier", "svm_classifier",
+                "naive_bayes_classifier", "logistic_regression",
+                "random_forest_classifier", "xgboost_classifier",
+            }
+            ml_regressors = {
+                "linear_regression", "polynomial_regression", "ridge_regression",
+                "lasso_regression", "decision_tree_regressor", "random_forest_regressor",
+            }
+            ml_clustering = {
+                "kmeans", "dbscan", "hierarchical_clustering", "gmm",
+            }
+            ml_reduction = {
+                "pca_reduction", "tsne_reduction",
+            }
+
+            if algo_name in ml_classifiers and "predictions" not in result:
+                for alt_key in ("preds", "y_pred", "y_test", "predicted", "labels", "result", "output"):
+                    if alt_key in result:
+                        val = result[alt_key]
+                        if isinstance(val, (list, np.ndarray)):
+                            result["predictions"] = list(val) if isinstance(val, np.ndarray) else val
+                            break
+
+            if algo_name in ml_regressors and "predictions" not in result:
+                for alt_key in ("preds", "y_pred", "y_test", "predicted", "values", "result", "output"):
+                    if alt_key in result:
+                        val = result[alt_key]
+                        if isinstance(val, (list, np.ndarray)):
+                            result["predictions"] = list(val) if isinstance(val, np.ndarray) else val
+                            break
+
+            if algo_name in ml_clustering and "labels" not in result:
+                for alt_key in ("clusters", "cluster_labels", "assignments", "result", "output", "predictions"):
+                    if alt_key in result:
+                        val = result[alt_key]
+                        if isinstance(val, (list, np.ndarray)):
+                            result["labels"] = list(val) if isinstance(val, np.ndarray) else val
+                            break
+
+            if algo_name in ml_reduction and "transformed" not in result:
+                for alt_key in ("components", "embedding", "reduced", "result", "output", "X_transformed"):
+                    if alt_key in result:
+                        val = result[alt_key]
+                        if isinstance(val, (list, np.ndarray)):
+                            result["transformed"] = list(val) if isinstance(val, np.ndarray) else val.tolist() if isinstance(val, np.ndarray) else val
+                            break
+
+            return result
+
+        pathfinding_names = {
+            "bfs", "dfs", "dijkstra", "astar", "bellman_ford",
+            "floyd_warshall", "greedy_search",
+        }
+
+        if isinstance(result, (list, tuple)):
+            if algo_name in pathfinding_names:
+                return {"path": list(result), "cost": None}
+            return result
+
+        if isinstance(result, np.ndarray):
+            return {"result": result.tolist()}
+
+        if isinstance(result, (int, float, str, bool)):
+            return {"result": result}
+
+        return {"result": result}
 
     def _build_registry(self) -> Dict:
         from algorithms.sorting import (
             QuickSort, TimSort, HeapSort, InsertionSort,
             RadixSort, MergeSort
         )
-        from algorithms.pathfinding import Dijkstra, AStar, BFSPathfinder
-        from algorithms.optimization import GreedyKnapsack, SimulatedAnnealing
+        from algorithms.pathfinding import Dijkstra, AStar, BFSPathfinder, FloydWarshall
+        from algorithms.optimization import (
+            GreedyKnapsack, SimulatedAnnealing, GeneticAlgorithm,
+            HillClimbing, ParticleSwarmOptimization, AntColonyOptimization,
+        )
         from algorithms.ml import (
-            KMeansClustering, DBSCANClustering,
-            LinearRegression, RandomForestClassifier
+            LinearRegressionAlgo,
+            RidgeAlgo,
+            LassoAlgo,
+            LogisticRegressionAlgo,
+            KNNAlgo,
+            SVMAlgo,
+            GaussianNBAlgo,
+            RandomForestAlgo,
+            XGBoostAlgo,
+            LightGBMAlgo,
+            KMeansClustering,
+            DBSCANClustering,
+            GMMAlgo,
+            PCAReductionAlgo,
         )
         from algorithms.ml.embeddings import (
-            Word2VecTrainer, PCAReduction,
-            TSNEVisualization, SemanticSimilarityGenerator
+            PCAReduction, TSNEVisualization, SemanticSimilarityGenerator
         )
         from algorithms.image_processing import (
             GaussianBlur, MedianFilter,
-            BilateralFilter, SobelEdgeDetection,
-            CLAHE
+            BilateralFilter, SobelEdgeDetection, CLAHE
         )
         from algorithms.safety import (
             IdentityAlgorithm, SafeSort, SafePath,
             SafeKnapsack
         )
+        from algorithms.nlp import (
+            Word2VecTrainer,
+            FrequencyVectorArithmetic,
+            WordVectorArithmetic,
+            EmbeddingVisualization,
+            SentimentAnalyzer,
+            TextSummarizer,
+            RAGRetriever,
+            SemanticSearcher,
+            PromptEnricher,
+            CreativeSentenceGenerator,
+            WordExpander,
+        )
+
+        ml_classes = [
+            LinearRegressionAlgo,
+            RidgeAlgo,
+            LassoAlgo,
+            LogisticRegressionAlgo,
+            KNNAlgo,
+            SVMAlgo,
+            GaussianNBAlgo,
+            RandomForestAlgo,
+            XGBoostAlgo,
+            LightGBMAlgo,
+            KMeansClustering,
+            DBSCANClustering,
+            GMMAlgo,
+            PCAReductionAlgo,
+        ]
+
+        nlp_classes = [
+            Word2VecTrainer,
+            FrequencyVectorArithmetic,
+            WordVectorArithmetic,
+            EmbeddingVisualization,
+            SentimentAnalyzer,
+            TextSummarizer,
+            RAGRetriever,
+            SemanticSearcher,
+            PromptEnricher,
+            CreativeSentenceGenerator,
+            WordExpander,
+        ]
 
         registry = {}
 
@@ -286,17 +657,31 @@ class UniversalSolver:
         for cls in [QuickSort, TimSort, HeapSort, InsertionSort, RadixSort, MergeSort]:
             algo = cls(); registry[algo.name] = algo
 
-        for cls in [Dijkstra, AStar, BFSPathfinder]:
+        for cls in [Dijkstra, AStar, BFSPathfinder, FloydWarshall]:
             algo = cls(); registry[algo.name] = algo
 
-        for cls in [GreedyKnapsack, SimulatedAnnealing]:
+        for cls in [GreedyKnapsack, SimulatedAnnealing, GeneticAlgorithm,
+                     HillClimbing, ParticleSwarmOptimization, AntColonyOptimization]:
             algo = cls(); registry[algo.name] = algo
 
-        for cls in [KMeansClustering, DBSCANClustering, LinearRegression, RandomForestClassifier]:
+        for cls in ml_classes:
+            try:
+                algo = cls()
+                registry[algo.name] = algo
+            except ImportError as e:
+                logger.info("Skipping %s: %s", cls.__name__, e)
+            except Exception as e:
+                logger.warning("Failed to load %s: %s", cls.__name__, e)
+
+        for cls in [PCAReduction, TSNEVisualization, SemanticSimilarityGenerator]:
             algo = cls(); registry[algo.name] = algo
 
-        for cls in [Word2VecTrainer, PCAReduction, TSNEVisualization, SemanticSimilarityGenerator]:
-            algo = cls(); registry[algo.name] = algo
+        for cls in nlp_classes:
+            try:
+                algo = cls()
+                registry[algo.name] = algo
+            except Exception as e:
+                logger.info("Skipping %s: %s", cls.__name__, e)
 
         for cls in [GaussianBlur, MedianFilter, BilateralFilter, SobelEdgeDetection, CLAHE]:
             algo = cls(); registry[algo.name] = algo
@@ -316,12 +701,24 @@ class UniversalSolver:
         }
 
     def register_algorithm(self, algorithm):
-        """Hot-register a new algorithm at runtime."""
+        """Hot-register a new algorithm at runtime.
+        Immediately generates its embedding and updates
+        the RL agent's key matrix. No retraining required.
+        """
         from algorithms.base import Algorithm
         if not isinstance(algorithm, Algorithm):
             raise TypeError("Must be instance of Algorithm base class")
         self.registry[algorithm.name] = algorithm
-        logger.info("Registered algorithm: %s", algorithm.name)
+        from core.algorithm_embedder import AlgorithmEmbedder
+        if not hasattr(self, 'embedder'):
+            self.embedder = AlgorithmEmbedder()
+            self.embedder.embed_all(self.registry)
+        else:
+            self.embedder.embed_algorithm(algorithm)
+        rl = self.meta_controller.rl_agent
+        all_embeds = self.embedder.get_all_embeddings(self.registry)
+        rl.update_algo_embeddings(all_embeds, list(self.registry.keys()))
+        logger.info("Registered algorithm: %s (embeddings updated)", algorithm.name)
 
     def register_from_file(self, file_path: str, class_name: str = None):
         """Load and register an algorithm from a .py file."""
@@ -450,15 +847,29 @@ class AAlgoI:
         from algorithms.sorting import (
             QuickSort, InsertionSort, MergeSort, TimSort, RadixSort, HeapSort
         )
-        from algorithms.pathfinding import Dijkstra, AStar, BFSPathfinder
-        from algorithms.optimization import GreedyKnapsack, SimulatedAnnealing
+        from algorithms.pathfinding import Dijkstra, AStar, BFSPathfinder, FloydWarshall
+        from algorithms.optimization import (
+            GreedyKnapsack, SimulatedAnnealing, GeneticAlgorithm,
+            HillClimbing, ParticleSwarmOptimization, AntColonyOptimization,
+        )
         from algorithms.ml import (
-            KMeansClustering, DBSCANClustering,
-            LinearRegression, RandomForestClassifier
+            LinearRegressionAlgo,
+            RidgeAlgo,
+            LassoAlgo,
+            LogisticRegressionAlgo,
+            KNNAlgo,
+            SVMAlgo,
+            GaussianNBAlgo,
+            RandomForestAlgo,
+            XGBoostAlgo,
+            LightGBMAlgo,
+            KMeansClustering,
+            DBSCANClustering,
+            GMMAlgo,
+            PCAReductionAlgo,
         )
         from algorithms.ml.embeddings import (
-            Word2VecTrainer, PCAReduction,
-            TSNEVisualization, SemanticSimilarityGenerator
+            PCAReduction, TSNEVisualization, SemanticSimilarityGenerator
         )
         from algorithms.image_processing import (
             GaussianBlur, MedianFilter,
@@ -467,6 +878,50 @@ class AAlgoI:
         from algorithms.safety import (
             IdentityAlgorithm, SafeSort, SafePath, SafeKnapsack
         )
+        from algorithms.nlp import (
+            Word2VecTrainer,
+            FrequencyVectorArithmetic,
+            WordVectorArithmetic,
+            EmbeddingVisualization,
+            SentimentAnalyzer,
+            TextSummarizer,
+            RAGRetriever,
+            SemanticSearcher,
+            PromptEnricher,
+            CreativeSentenceGenerator,
+            WordExpander,
+        )
+
+        ml_classes = [
+            LinearRegressionAlgo,
+            RidgeAlgo,
+            LassoAlgo,
+            LogisticRegressionAlgo,
+            KNNAlgo,
+            SVMAlgo,
+            GaussianNBAlgo,
+            RandomForestAlgo,
+            XGBoostAlgo,
+            LightGBMAlgo,
+            KMeansClustering,
+            DBSCANClustering,
+            GMMAlgo,
+            PCAReductionAlgo,
+        ]
+
+        nlp_classes = [
+            Word2VecTrainer,
+            FrequencyVectorArithmetic,
+            WordVectorArithmetic,
+            EmbeddingVisualization,
+            SentimentAnalyzer,
+            TextSummarizer,
+            RAGRetriever,
+            SemanticSearcher,
+            PromptEnricher,
+            CreativeSentenceGenerator,
+            WordExpander,
+        ]
 
         registry = {}
         for cls in [IdentityAlgorithm, SafeSort, SafePath, SafeKnapsack]:
@@ -475,13 +930,26 @@ class AAlgoI:
             algo = cls(); registry[algo.name] = algo
         for cls in [GaussianBlur, MedianFilter, BilateralFilter, SobelEdgeDetection, CLAHE]:
             algo = cls(); registry[algo.name] = algo
-        for cls in [KMeansClustering, DBSCANClustering, LinearRegression, RandomForestClassifier]:
+        for cls in ml_classes:
+            try:
+                algo = cls()
+                registry[algo.name] = algo
+            except ImportError as e:
+                logger.info("Skipping %s: %s", cls.__name__, e)
+            except Exception as e:
+                logger.warning("Failed to load %s: %s", cls.__name__, e)
+        for cls in [PCAReduction, TSNEVisualization, SemanticSimilarityGenerator]:
             algo = cls(); registry[algo.name] = algo
-        for cls in [Word2VecTrainer, PCAReduction, TSNEVisualization, SemanticSimilarityGenerator]:
+        for cls in nlp_classes:
+            try:
+                algo = cls()
+                registry[algo.name] = algo
+            except Exception as e:
+                logger.info("Skipping %s: %s", cls.__name__, e)
+        for cls in [Dijkstra, AStar, BFSPathfinder, FloydWarshall]:
             algo = cls(); registry[algo.name] = algo
-        for cls in [Dijkstra, AStar, BFSPathfinder]:
-            algo = cls(); registry[algo.name] = algo
-        for cls in [GreedyKnapsack, SimulatedAnnealing]:
+        for cls in [GreedyKnapsack, SimulatedAnnealing, GeneticAlgorithm,
+                     HillClimbing, ParticleSwarmOptimization, AntColonyOptimization]:
             algo = cls(); registry[algo.name] = algo
         return registry
 

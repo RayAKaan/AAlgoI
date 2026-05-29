@@ -77,9 +77,10 @@ class TestPathfindingDomain:
         result = solver.solve(spec, data)
 
         assert result['success'] is True
-        assert len(result['result']) > 0
-        assert result['result'][0] == data['start']
-        assert result['result'][-1] == data['end']
+        path = result['result'] if isinstance(result['result'], list) else result['result'].get('path', [])
+        assert len(path) > 0
+        assert path[0] == data['start']
+        assert path[-1] == data['end']
 
     def test_dense_graph(self, solver):
         data = generate_connected_graph(20, 0.6)
@@ -87,14 +88,16 @@ class TestPathfindingDomain:
         result = solver.solve(spec, data)
 
         assert result['success'] is True
-        assert len(result['result']) > 0
+        path = result['result'] if isinstance(result['result'], list) else result['result'].get('path', [])
+        assert len(path) > 0
 
     def test_no_path(self, solver):
         data = {'graph': {'A': {}, 'B': {}}, 'start': 'A', 'end': 'B'}
         spec = ProblemSpec(name="test", problem_type=ProblemType.PATHFINDING)
         result = solver.solve(spec, data)
 
-        assert result['success'] is False or len(result['result']) == 0
+        path = result['result'] if isinstance(result['result'], list) else result['result'].get('path', [])
+        assert result['success'] is False or len(path) == 0
 
 
 class TestOptimizationDomain:

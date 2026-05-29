@@ -25,6 +25,17 @@ env/
 chroma_data/
 *.chroma/
 
+# Checkpoint files — never commit training artifacts
+checkpoints/pretrain_v2/best_model_ep*.pt
+checkpoints/pretrained_v1.pt
+
+# User model cache
+.aalgoi/
+
+# Dev files that should not exist in the repo
+verify_build.py
+setup.cfg
+
 # AAlgoI-specific
 audit.jsonl
 *.log

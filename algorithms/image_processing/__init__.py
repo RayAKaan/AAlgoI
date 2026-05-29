@@ -7,6 +7,8 @@ class GaussianBlur(Algorithm):
     name = "gaussian_blur"
     tags = ["image_processing", "blur", "noise_reduction", "fast"]
     complexity = {"time": "O(n)", "space": "O(n)"}
+    patterns = ["Convolution", "LinearFilter"]
+    problem_types = ["IMAGE_PROCESSING"]
     performance_profiles = {
         "noise_reduction": {"score": 0.8, "conditions": {"noise_level": "high"}},
         "general": {"score": 0.7, "conditions": {}}
@@ -31,6 +33,8 @@ class MedianFilter(Algorithm):
     name = "median_filter"
     tags = ["image_processing", "denoise", "salt_pepper", "edge_preserving"]
     complexity = {"time": "O(n)", "space": "O(n)"}
+    patterns = ["NonLinearFilter", "OrderStatistics"]
+    problem_types = ["IMAGE_PROCESSING"]
     performance_profiles = {
         "salt_pepper": {"score": 0.95, "conditions": {"noise_type": "salt_pepper"}},
         "general": {"score": 0.75, "conditions": {}}
@@ -55,6 +59,8 @@ class BilateralFilter(Algorithm):
     name = "bilateral_filter"
     tags = ["image_processing", "edge_preserving", "slow", "high_quality"]
     complexity = {"time": "O(n)", "space": "O(n)"}
+    patterns = ["EdgePreserving", "NonLinearFilter"]
+    problem_types = ["IMAGE_PROCESSING"]
     performance_profiles = {
         "edge_preserving": {"score": 0.95, "conditions": {"preserve_edges": "true"}},
         "general": {"score": 0.6, "conditions": {}}
@@ -84,6 +90,8 @@ class SobelEdgeDetection(Algorithm):
     name = "sobel_edge"
     tags = ["image_processing", "edge_detection", "fast"]
     complexity = {"time": "O(n)", "space": "O(n)"}
+    patterns = ["Convolution", "GradientBased"]
+    problem_types = ["IMAGE_PROCESSING"]
     performance_profiles = {
         "edge_detection": {"score": 0.85, "conditions": {"task": "edge_detection"}},
         "general": {"score": 0.5, "conditions": {}}
@@ -109,6 +117,8 @@ class CLAHE(Algorithm):
     name = "clahe"
     tags = ["image_processing", "contrast", "enhancement", "adaptive"]
     complexity = {"time": "O(n)", "space": "O(n)"}
+    patterns = ["AdaptiveHistogram", "ContrastEnhancement"]
+    problem_types = ["IMAGE_PROCESSING"]
     performance_profiles = {
         "low_contrast": {"score": 0.9, "conditions": {"contrast": "low"}},
         "general": {"score": 0.7, "conditions": {}}

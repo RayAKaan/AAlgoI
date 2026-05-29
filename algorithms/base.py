@@ -13,6 +13,8 @@ class Algorithm(ABC):
         self.space_complexity: str = "O(1)"
         self.tags: List[str] = []
         self.best_for: List[str] = []
+        self.patterns: List[str] = []
+        self.problem_types: List[str] = []
         self.params: Dict[str, Any] = {}
 
         self.modifications: List[str] = []
@@ -50,16 +52,19 @@ class Algorithm(ABC):
                 setattr(self, key, value)
         return self
 
-    def describe(self) -> Dict[str, Any]:
+    def metadata(self) -> Dict[str, Any]:
         return {
             "name": self.name,
-            "time_complexity": self.time_complexity,
-            "space_complexity": self.space_complexity,
             "tags": self.tags,
             "best_for": self.best_for,
-            "last_execution_ms": self.last_execution_time,
-            "last_memory_mb": self.last_memory_usage,
+            "time_complexity": self.time_complexity,
+            "space_complexity": self.space_complexity,
+            "patterns": self.patterns,
+            "problem_types": self.problem_types,
         }
+
+    def describe(self) -> Dict[str, Any]:
+        return self.metadata()
 
     def clone(self):
         return copy.deepcopy(self)

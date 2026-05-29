@@ -117,3 +117,71 @@ class SyntheticDataGenerator:
             problem_type=ProblemType.OPTIMIZATION,
         )
         return spec, {"items": items, "capacity": capacity}
+
+    def generate_classification(self, n_classes: int = None) -> Tuple[ProblemSpec, Dict]:
+        """Generate synthetic classification problems for training."""
+        from sklearn.datasets import make_classification
+
+        if n_classes is None:
+            n_classes = 2 if self.level <= CurriculumLevel.INTERMEDIATE else random.choice([2, 3, 4])
+
+        if self.level == CurriculumLevel.BEGINNER:
+            n_samples = random.randint(100, 500)
+            n_features = random.randint(2, 10)
+        elif self.level == CurriculumLevel.INTERMEDIATE:
+            n_samples = random.randint(500, 2000)
+            n_features = random.randint(5, 20)
+        elif self.level == CurriculumLevel.ADVANCED:
+            n_samples = random.randint(1000, 5000)
+            n_features = random.randint(10, 50)
+        else:
+            n_samples = random.randint(2000, 10000)
+            n_features = random.randint(20, 100)
+
+        X, y = make_classification(
+            n_samples=n_samples,
+            n_features=n_features,
+            n_informative=max(2, n_features // 2),
+            n_redundant=max(0, n_features // 4),
+            n_classes=n_classes,
+            flip_y=0.05 if self.level <= CurriculumLevel.INTERMEDIATE else 0.1,
+            random_state=None,
+        )
+
+        spec = ProblemSpec(
+            name=f"classify_{n_classes}class_lvl{self.level}",
+            problem_type=ProblemType.CLASSIFICATION,
+        )
+        self.stats["problems_generated"] += 1
+        return spec, {"X_train": X, "y_train": y}
+
+    def generate_regression(self) -> Tuple[ProblemSpec, Dict]:
+        """Generate synthetic regression problems for training."""
+        from sklearn.datasets import make_regression
+
+        if self.level == CurriculumLevel.BEGINNER:
+            n_samples = random.randint(100, 500)
+            n_features = random.randint(2, 10)
+        elif self.level == CurriculumLevel.INTERMEDIATE:
+            n_samples = random.randint(500, 2000)
+            n_features = random.randint(5, 20)
+        elif self.level == CurriculumLevel.ADVANCED:
+            n_samples = random.randint(1000, 5000)
+            n_features = random.randint(10, 50)
+        else:
+            n_samples = random.randint(2000, 10000)
+            n_features = random.randint(20, 100)
+
+        X, y = make_regression(
+            n_samples=n_samples,
+            n_features=n_features,
+            noise=random.uniform(0.1, 5.0),
+            random_state=None,
+        )
+
+        spec = ProblemSpec(
+            name=f"regress_lvl{self.level}",
+            problem_type=ProblemType.REGRESSION,
+        )
+        self.stats["problems_generated"] += 1
+        return spec, {"X_train": X, "y_train": y}

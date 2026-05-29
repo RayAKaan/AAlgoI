@@ -1,3 +1,3 @@
-from core.rl.agents.selection_agent import PPOAgent, ActorCriticNetwork
+from core.rl.agents.selection_agent import PPOAgent, AttentionActorCritic
 
-__all__ = ["PPOAgent", "ActorCriticNetwork"]
+__all__ = ["PPOAgent", "AttentionActorCritic"]

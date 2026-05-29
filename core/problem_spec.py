@@ -213,8 +213,26 @@ class ProblemSpec:
                 return ProblemType.ML
             if "embeddings" in data:
                 return ProblemType.NLP
+            if "X_train" in data:
+                y = data.get("y_train")
+                if y is not None:
+                    if hasattr(y, 'shape'):
+                        import numpy as np
+                        unique = np.unique(y)
+                        if len(unique) < 20:
+                            return ProblemType.CLASSIFICATION
+                        return ProblemType.REGRESSION
+                    if isinstance(y, list):
+                        unique = list(set(y))
+                        if all(isinstance(v, str) for v in unique):
+                            return ProblemType.CLASSIFICATION
+                        if all(isinstance(v, (int, float)) for v in unique):
+                            return ProblemType.REGRESSION
+                return ProblemType.CLUSTERING
         if isinstance(data, list) and len(data) > 0 and isinstance(data[0], (int, float)):
             return ProblemType.SORTING
+        if hasattr(data, 'shape') and len(data.shape) == 2:
+            return ProblemType.CLUSTERING
         return ProblemType.UNKNOWN
 
     def to_vector(self) -> np.ndarray:

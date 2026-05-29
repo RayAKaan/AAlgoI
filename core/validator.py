@@ -82,32 +82,42 @@ class LearningValidator:
         return passed, details
 
     def record_result(self, algorithm_name: str, passed: bool,
-                      details: List[ValidationDetail]):
+                      details: List[ValidationDetail],
+                      input_data: Any = None):
         record = {
             "passed": passed,
             "timestamp": time.time(),
-            "details": [d.to_dict() for d in details]
+            "details": [d.to_dict() for d in details],
+            "input_size": len(input_data) if hasattr(input_data, '__len__') else None,
         }
         self._history[algorithm_name].append(record)
 
         if passed:
-            self._adapt_thresholds(algorithm_name, details)
+            self._adapt_thresholds(algorithm_name, details, input_data)
 
     def _adapt_thresholds(self, algorithm_name: str,
-                          details: List[ValidationDetail]):
+                          details: List[ValidationDetail],
+                          input_data: Any = None):
         thresholds = self._thresholds[algorithm_name]
         self._adaptation_counts[algorithm_name] += 1
         count = self._adaptation_counts[algorithm_name]
         rate = self.adaptation_rate / max(1, count / 10)
 
+        current_size = len(input_data) if hasattr(input_data, '__len__') else 1
+
         for d in details:
             if d.metric == "max_time_ms" and d.passed:
-                margin = d.threshold - d.value
-                if margin > d.threshold * 0.5:
+                ref_size = thresholds.get("_ref_size", current_size)
+                size_factor = max(0.5, current_size / max(1, ref_size))
+                scaled_threshold = d.threshold * size_factor
+                margin = scaled_threshold - d.value
+
+                if margin > scaled_threshold * 0.5 and count >= 5:
                     thresholds["max_time_ms"] = max(
                         d.value * 1.5,
                         thresholds["max_time_ms"] * (1 - rate)
                     )
+                    thresholds["_ref_size"] = current_size
 
     def get_thresholds(self, algorithm_name: str) -> Dict[str, float]:
         return dict(self._thresholds[algorithm_name])

@@ -272,7 +272,7 @@ class LLMAdapter:
             "clahe": {"clip_limit": 0.03},
             "kmeans": {"n_clusters": 3, "max_iter": 100},
             "dbscan": {"eps": 0.5, "min_samples": 5},
-            "random_forest": {"n_estimators": 100, "max_depth": 10},
+            "random_forest_classification": {"n_estimators": 100, "max_depth": 10},
             "linear_regression": {"fit_intercept": True}
         }
         return known.get(algo_name, {})
