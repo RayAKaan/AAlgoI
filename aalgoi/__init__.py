@@ -55,11 +55,7 @@ from aalgoi.shortcuts import sort, search, path, knapsack, cluster, classify, re
 
 __version__ = "2.1.0"
 
-# Backward compat — lazy re-exports
 def __getattr__(name):
-    if name == "SandboxRL":
-        from aalgoi.core.rl.sandbox import SandboxRL
-        return SandboxRL
     if name == "explain":
         from aalgoi.core.explainer import Explainer
         _explainer = Explainer()
@@ -69,24 +65,18 @@ def __getattr__(name):
     raise AttributeError(f"module 'aalgoi' has no attribute {name!r}")
 
 __all__ = [
-    # Primary API
     "solve",
     "session",
     "Mind",
     "SolveResult",
-    # Data utilities
     "normalize",
     "detect_type",
     "normalize_with_metadata",
-    # Shortcuts
     "sort", "search", "path", "knapsack",
     "cluster", "classify", "regress",
     "compare", "why",
-    # Info classes
     "AlgorithmInfo",
     "BenchmarkReport",
-    # Explain (lazy)
     "explain",
-    # Meta
     "__version__",
 ]
