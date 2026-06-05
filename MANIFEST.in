@@ -14,17 +14,19 @@ recursive-include interface *.py
 recursive-exclude checkpoints *
 recursive-exclude tests *
 recursive-exclude training *
+recursive-exclude examples *
+recursive-exclude docs *
 prune checkpoints
 prune tests
 prune training
+prune examples
+prune docs
 
 # Exclude dev files
-exclude main.py
-exclude demo.py
-exclude verify_build.py
-exclude examples.py
+exclude scripts/main.py
+exclude scripts/verify_build.py
+exclude scripts/run_attention_verify.py
 exclude setup.cfg
-exclude CHEATSHEET.md
 
 # Exclude build artifacts
 global-exclude __pycache__

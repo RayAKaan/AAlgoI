@@ -1,5 +1,5 @@
 """aalgoi 1.4.0 — quick test script.
-Run:  pip install aalgoi  &&  python test_aalgoi.py
+Run:  pip install aalgoi  &&  python examples/test_aalgoi.py
 """
 from aalgoi import ProblemSpec, ProblemType, benchmark, cluster, explain, knapsack, path, solve, sort
 

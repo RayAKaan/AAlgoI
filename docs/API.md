@@ -145,16 +145,16 @@ class MyAlgorithm(Algorithm):
 
 ```bash
 # Run demo
-python main.py --mode demo
+python scripts/main.py --mode demo
 
 # Benchmark algorithms
-python main.py --mode benchmark --size 10000
+python scripts/main.py --mode benchmark --size 10000
 
 # Learning demonstration
-python main.py --mode learning
+python scripts/main.py --mode learning
 
 # Interactive mode
-python main.py --mode interactive
+python scripts/main.py --mode interactive
 ```
 
 ## Extending AAlgoI

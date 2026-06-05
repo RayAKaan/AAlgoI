@@ -1,5 +1,5 @@
 """aalgoi 1.4.0 — real-world problem solver demo.
-Run:  pip install aalgoi  &&  python demo_aalgoi.py
+Run:  pip install aalgoi  &&  python examples/demo_aalgoi.py
 """
 from aalgoi import (
     ProblemSpec,

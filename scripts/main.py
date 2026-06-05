@@ -5,10 +5,10 @@ AAlgoI - Artificial Algorithm Intelligence
 Main entry point for the adaptive algorithm system.
 
 Usage:
-    python main.py --mode demo
-    python main.py --mode benchmark --size 10000
-    python main.py --mode interactive
-    python main.py --mode learning --llm-enabled --llm-model phi3:mini
+    python scripts/main.py --mode demo
+    python scripts/main.py --mode benchmark --size 10000
+    python scripts/main.py --mode interactive
+    python scripts/main.py --mode learning --llm-enabled --llm-model phi3:mini
 """
 
 import argparse

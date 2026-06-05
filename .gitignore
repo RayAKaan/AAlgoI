@@ -33,7 +33,7 @@ checkpoints/pretrained_v1.pt
 .aalgoi/
 
 # Dev files that should not exist in the repo
-verify_build.py
+scripts/verify_build.py
 setup.cfg
 
 # AAlgoI-specific

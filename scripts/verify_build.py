@@ -31,8 +31,8 @@ def main():
         ("python -m pip install build", "Install build tool"),
         ("python -m build", "Build package"),
         ("python -m pip install -e .", "Install in editable mode"),
-        ("python -c \"from pipeline import UniversalSolver; s=UniversalSolver(); print('Import OK')\"", "Test import"),
-        ("python demo.py", "Run demo"),
+        ("python -c \"from aalgoi.pipeline import UniversalSolver; s=UniversalSolver(); print('Import OK')\"", "Test import"),
+        ("python examples/demo.py", "Run demo"),
         ("python -m pytest tests/test_full_integration.py -v", "Run test suite"),
     ]
 
