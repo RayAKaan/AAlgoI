@@ -1,4 +1,4 @@
-# aalgoi — Algorithmic AI
+# aalgoi — Algorithmic AI (v2.1.0)
 
 [![PyPI version](https://img.shields.io/pypi/v/aalgoi.svg)](https://pypi.org/project/aalgoi/)
 [![Python 3.11+](https://img.shields.io/pypi/pyversions/aalgoi.svg)](https://pypi.org/project/aalgoi/)
@@ -7,6 +7,8 @@
 **An algorithmic mind that learns, reasons, and discovers.**
 
 aalgoi solves algorithmic problems from natural language descriptions. It doesn't look up answers — it reasons about problems, selects strategies, generates code, proves correctness, and learns from experience. Over time, it discovers new algorithms.
+
+> **v2.1.0** — namespace migration: `core/`, `algorithms/`, `pipeline.py` moved under `aalgoi/`. API fixes include word-boundary matching, `Mind.learn()` deprecation, `no-torch` warnings, and ASCII terminal output. Ruff + mypy lint infrastructure added.
 
 ```python
 import aalgoi
@@ -137,14 +139,14 @@ mind.train(epochs=10)
 # Benchmark — 50-problem suite
 report = mind.benchmark()
 print(report)
-# 📊 Benchmark
-# ╔══════════════════════════════════════╗
-# ║ Accuracy: 42/50 (84%)               ║
-# ║ ──────────────────────────────────── ║
-# ║ integers        8/10  ██████████░░ 80% ║
-# ║ pathfinding     5/5   ████████████ 100%║
-# ║ dynamic_prog    6/8   ███████████░ 75% ║
-# ╚══════════════════════════════════════╝
+# [Benchmark]
+# +------------------------------------+
+# | Accuracy: 42/50 (84%)              |
+# +------------------------------------+
+# | integers        8/10  80%          |
+# | pathfinding     5/5   100%         |
+# | dynamic_prog    6/8   75%          |
+# +------------------------------------+
 
 # Checkpoint — save a safe state
 mind.checkpoint()
@@ -163,16 +165,16 @@ mind.receive()     # import updates from other minds
 
 # Status
 print(mind.status())
-# 🧠 Algorithmic Mind
-# ╔══════════════════════════════════════╗
-# ║ Algorithms:  42                      ║
-# ║ Principles:  18                      ║
-# ║ Problems:    24                      ║
-# ║ Discovered:  3                       ║
-# ║ Solved:      127                     ║
-# ║ Success rate: 89%                    ║
-# ║ Avg time:     98.3ms                 ║
-# ╚══════════════════════════════════════╝
+# [Algorithmic Mind]
+# +------------------------------------+
+# | Algorithms:  42                     |
+# | Principles:  18                     |
+# | Problems:    24                     |
+# | Discovered:  3                      |
+# | Solved:      127                    |
+# | Success rate: 89%                   |
+# | Avg time:     98.3ms                |
+# +------------------------------------+
 ```
 
 ## Algorithm Coverage
@@ -304,7 +306,7 @@ normalize(Fraction(22, 7))           # 3.142857...    (→ float)
 normalize(datetime(2024, 1, 15))     # "2024-01-15T00:00:00"
 normalize(timedelta(hours=2))        # 7200.0         (→ seconds)
 normalize(complex(3, 4))             # {"real": 3.0, "imag": 4.0}
-normalize(range(5))                  # {"start": 0, "stop": 5, "step": 1}
+normalize(range(5))                  # {"type": "range", "start": 0, "stop": 5, "step": 1}
 
 # Enums
 class Color(Enum):
@@ -321,7 +323,7 @@ normalize(Point(1.0, 2.0))           # {"x": 1.0, "y": 2.0}
 
 # Bytes — JSON, CSV, or raw
 normalize(b'{"key": 42}')            # {"key": 42}    (JSON decode)
-normalize(b'a,b\n1,2\n3,4')         # {"columns": [...], "rows": [...]}  (CSV parse)
+normalize(b'a,b\n1,2\n3,4')         # {"columns": [...], "rows": [...], "shape": [2, 2]}  (CSV parse)
 
 # Generators — materialized (capped at 10,000)
 normalize(i**2 for i in range(5))    # [0, 1, 4, 9, 16]
@@ -355,16 +357,16 @@ info.times_succeeded   # 44
 info.performance       # 0.93
 
 print(info.display())
-# 📋 dijkstra
-# ╔══════════════════════════════════════╗
-# ║ Name:        dijkstra                ║
-# ║ Time:        O((V+E) log V)          ║
-# ║ Space:       O(V)                    ║
-# ║ Principles:  greedy_exchange, ...    ║
-# ║ Best for:    shortest_path, ...      ║
-# ║ Used:        47x (44 succeeded)      ║
-# ║ Performance: 0.93                    ║
-# ╚══════════════════════════════════════╝
+# [dijkstra]
+# +------------------------------------+
+# | Name:        dijkstra               |
+# | Time:        O((V+E) log V)         |
+# | Space:       O(V)                   |
+# | Principles:  greedy_exchange, ...   |
+# | Best for:    shortest_path, ...     |
+# | Used:        47x (44 succeeded)     |
+# | Performance: 0.93                   |
+# +------------------------------------+
 ```
 
 ## SolveResult API
@@ -406,13 +408,14 @@ repr(result)            # Boxed display with metadata
 
 ## Architecture
 
-aalgoi ships three packages:
+All code lives under a single `aalgoi/` package:
 
-| Package | Purpose |
-|---------|---------|
+| Module | Purpose |
+|--------|---------|
 | `aalgoi/` | Public API — solve, session, Mind, normalize, CLI |
-| `core/` | Mind engine — RL agent, knowledge graph, synthesis, training, federation, correctness prover |
-| `algorithms/` | Algorithm implementations — sorting, pathfinding, ML, NLP, optimization, image processing |
+| `aalgoi/core/` | Mind engine — RL agent, knowledge graph, synthesis, training, federation, correctness prover |
+| `aalgoi/algorithms/` | Algorithm implementations — sorting, pathfinding, ML, NLP, optimization, image processing |
+| `aalgoi/pipeline.py` | UniversalSolver pipeline orchestrating normalize → understand → reason → select → synthesize → prove → execute → learn |
 
 Key components:
 - **Knowledge Graph** — 42+ algorithms, 18 mathematical principles, 24 problem types, connected by applicability relations
@@ -431,6 +434,22 @@ Key components:
 
 Optional (for data format support):
 - numpy, pandas, polars, scipy, scikit-learn, Pillow, pyarrow, pydantic
+
+## Repository Structure
+
+```
+aalgoi/               # Public API — solve, session, Mind, normalize
+aalgoi/__init__.py, _core.py, _data.py, _status.py, shortcuts.py
+aalgoi/core/          # Mind engine — KG, synthesis, proving, training
+aalgoi/algorithms/    # Algorithm implementations
+aalgoi/pipeline.py    # UniversalSolver pipeline (normalize → learn)
+docs/                 # API.md, CHEATSHEET.md, architecture diagram
+examples/             # Demo scripts
+scripts/              # Utilities: verify_build, attention_verify
+tests/                # Pytest suite (core, security, smoke, ML, RL)
+tests/stress/         # Stress tests (13 scenarios)
+pyproject.toml        # Build config + ruff + mypy + pytest
+```
 
 ## License
 
