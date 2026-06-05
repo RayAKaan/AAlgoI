@@ -43,9 +43,6 @@ def main() -> None:
     solve_p.add_argument("--file", "-f", help="Input data file (JSON/CSV/etc)")
     solve_p.add_argument("--explain", "-e", action="store_true", help="Show explanation")
     solve_p.add_argument("--code", "-c", action="store_true", help="Show generated code")
-    solve_p.add_argument("--max-iter", type=int, default=50, help="Max iterations")
-    solve_p.add_argument("--time-limit", type=float, default=30.0, help="Time limit (seconds)")
-
     # ── status ───────────────────────────────────────────────────────
     subparsers.add_parser("status", help="Show mind status")
 
@@ -117,11 +114,7 @@ def _cmd_solve(args, mind_path: Path) -> None:
         data = normalize(args.file)
 
     mind = Mind(mind_path)
-    result = mind.solve(
-        args.problem, data,
-        max_iterations=args.max_iter,
-        time_limit=args.time_limit,
-    )
+    result = mind.solve(args.problem, data)
 
     if result.ok:
         if isinstance(result.output, (list, dict)):

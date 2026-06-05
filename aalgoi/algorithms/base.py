@@ -31,8 +31,8 @@ class Algorithm(ABC):
                 return False
 
         if type(input_data) != type(output_data):
-            if not (isinstance(input_data, (list, tuple, np.ndarray)) and
-                    isinstance(output_data, (list, tuple, np.ndarray))):
+            if not (isinstance(input_data, (list, tuple, np.ndarray, str)) and
+                    isinstance(output_data, (list, tuple, np.ndarray, str))):
                 return False
 
         return True

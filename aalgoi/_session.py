@@ -29,16 +29,10 @@ class MindSession:
         problem: str,
         data: Any = None,
         *,
-        examples: list[dict] | None = None,
-        max_iterations: int = 50,
-        time_limit: float = 30.0,
         hint: str | None = None,
     ) -> SolveResult:
         result = self._mind.solve(
             problem, data,
-            examples=examples,
-            max_iterations=max_iterations,
-            time_limit=time_limit,
             hint=hint,
         )
         self._history.append({
@@ -56,19 +50,18 @@ class MindSession:
         data: Any = None,
         *,
         expected: Any = None,
-        examples: list[dict] | None = None,
-        max_iterations: int = 50,
-        time_limit: float = 30.0,
     ) -> SolveResult:
-        result = self.solve(
-            problem, data,
-            examples=examples,
-            max_iterations=max_iterations,
-            time_limit=time_limit,
-        )
+        result = self.solve(problem, data)
         if expected is not None and result.ok:
             if result.output != expected:
-                pass  # will track correctness in future iterations
+                result = SolveResult(
+                    output=result.output,
+                    algorithm=result.algorithm,
+                    complexity=result.complexity,
+                    time_ms=result.time_ms,
+                    confidence=result.confidence * 0.5,
+                    error=f"Expected {expected!r}, got {result.output!r}",
+                )
         return result
 
     def status(self) -> str:

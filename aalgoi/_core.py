@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import time
 import hashlib
 import importlib
@@ -102,7 +103,7 @@ class BenchmarkReport:
 
     def __repr__(self):
         pct = int(self.accuracy * 100)
-        return f"\U0001f4ca Benchmark\n{self.total} problems, {self.correct} correct ({pct}%)"
+        return f"[Benchmark] {self.total} problems, {self.correct} correct ({pct}%)"
 
     def details(self):
         return self.problems
@@ -205,6 +206,11 @@ class Mind:
             return SolveResult(output=None, error=str(e), time_ms=elapsed)
 
     def learn(self, problem_text: str, data: Any = None, expected: Any = None) -> SolveResult:
+        import warnings
+        warnings.warn(
+            "Mind.learn() is deprecated — use Mind.solve() and verify output manually",
+            DeprecationWarning, stacklevel=2,
+        )
         result = self.solve(problem_text, data)
         if expected is not None and result.output is not None:
             if result.output != expected:
@@ -221,6 +227,14 @@ class Mind:
         self._ensure_loaded()
         if self._mind and hasattr(self._mind, "train"):
             return self._mind.train(epochs=epochs, **kwargs)
+        try:
+            import torch  # noqa
+        except ImportError:
+            import warnings
+            warnings.warn(
+                "Mind.train() requires PyTorch (pip install torch) — install it to enable training",
+                RuntimeWarning, stacklevel=2,
+            )
         return {"status": "no_training_available", "epochs": 0}
 
     def benchmark(self, **kwargs) -> BenchmarkReport:
@@ -236,6 +250,14 @@ class Mind:
         self._ensure_loaded()
         if self._mind and hasattr(self._mind, "checkpoint"):
             return self._mind.checkpoint(name)
+        try:
+            import torch  # noqa
+        except ImportError:
+            import warnings
+            warnings.warn(
+                "Mind.checkpoint() requires PyTorch (pip install torch) — install it to enable checkpointing",
+                RuntimeWarning, stacklevel=2,
+            )
         return None
 
     def rollback(self, target: str = "last_good") -> dict:
@@ -245,6 +267,14 @@ class Mind:
                 return self._mind.rollback(target)
             except Exception as e:
                 return {"success": False, "error": str(e)}
+        try:
+            import torch  # noqa
+        except ImportError:
+            import warnings
+            warnings.warn(
+                "Mind.rollback() requires PyTorch (pip install torch) — install it to enable checkpoint rollback",
+                RuntimeWarning, stacklevel=2,
+            )
         return {"success": False, "error": "no_mind_loaded"}
 
     def share(self) -> int:
@@ -323,53 +353,63 @@ class _KGMind:
         self.problems = _COLD_START_PROBLEMS
 
     def solve(self, problem_text: str, data: Any = None):
-        return _rule_based_solve(problem_text, data)
+        text = problem_text.lower()
+        candidates = self.knowledge_graph.find_candidates(text)
+        result = _rule_based_solve(problem_text, data)
+        if result is not None and candidates:
+            result["kg_candidates"] = candidates
+        return result
 
 
 # ── Rule-based fallback (no torch) ─────────────────────────────
+
+def _has_word(text: str, word: str) -> bool:
+    return bool(re.search(rf"\b{re.escape(word)}\b", text))
+
+def _has_any_word(text: str, words: list[str]) -> bool:
+    return any(_has_word(text, w) for w in words)
 
 def _rule_based_solve(problem_text: str, data: Any) -> dict:
     """Solve using rule-based matching — no torch required, 14+ domains."""
     text = problem_text.lower()
 
     # ── Sort ──
-    if any(w in text for w in ["sort", "order", "arrange", "organize"]):
+    if _has_any_word(text, ["sort", "order", "arrange", "organize"]):
         if isinstance(data, list):
-            reverse = any(w in text for w in ["descending", "desc", "reverse"])
+            reverse = _has_any_word(text, ["descending", "desc", "reverse"])
             return _make_solution(sorted(data, reverse=reverse), "tim_sort", "O(n log n)", "divide_conquer")
 
     # ── Search ──
-    if any(w in text for w in ["find target", "search", "binary search", "find index", "locate"]):
+    if _has_any_word(text, ["search", "locate"]) or "find target" in text or "binary search" in text or "find index" in text:
         if isinstance(data, dict):
             nums = data.get("nums", data.get("arr", []))
             target = data.get("target", data.get("value", None))
             if nums and target is not None:
                 try:
                     import bisect
-                    if nums == sorted(nums):
-                        idx = bisect.bisect_left(nums, target)
-                        if idx < len(nums) and nums[idx] == target:
-                            return _make_solution(idx, "binary_search", "O(log n)", "divide_conquer")
+                    idx = bisect.bisect_left(nums, target)
+                    if idx < len(nums) and nums[idx] == target:
+                        return _make_solution(idx, "binary_search", "O(log n)", "divide_conquer")
                     idx = nums.index(target)
                     return _make_solution(idx, "linear_search", "O(n)", "exhaustive")
                 except ValueError:
                     pass
 
     # ── GCD / LCM ──
-    if "gcd" in text or "greatest common" in text:
+    if "gcd" in text or _has_word(text, "greatest") and _has_word(text, "common"):
         if isinstance(data, dict):
             a, b = data.get("a", 0), data.get("b", 0)
             import math
             return _make_solution(math.gcd(a, b), "euclidean_gcd", "O(log min(a,b))", "optimal_substructure")
 
-    if "lcm" in text or "least common" in text:
+    if "lcm" in text or _has_word(text, "least") and _has_word(text, "common"):
         if isinstance(data, dict):
             a, b = data.get("a", 0), data.get("b", 0)
             import math
             return _make_solution(a * b // math.gcd(a, b), "lcm_via_gcd", "O(log min(a,b))", "optimal_substructure")
 
     # ── Pathfinding ──
-    if any(w in text for w in ["path", "route", "navigate", "shortest", "distance"]):
+    if _has_any_word(text, ["path", "route", "navigate", "shortest", "distance"]):
         if isinstance(data, dict) and "graph" in data:
             try:
                 import networkx as nx
@@ -385,7 +425,7 @@ def _rule_based_solve(problem_text: str, data: Any) -> dict:
                 pass
 
     # ── Two Sum ──
-    if "two" in text and "sum" in text:
+    if _has_word(text, "two") and _has_word(text, "sum"):
         if isinstance(data, dict):
             nums = data.get("nums", [])
             target = data.get("target", 0)
@@ -396,7 +436,7 @@ def _rule_based_solve(problem_text: str, data: Any) -> dict:
                 seen[n] = i
 
     # ── Max Subarray ──
-    if ("maximum" in text and "subarray" in text) or "kadane" in text:
+    if (_has_word(text, "maximum") and _has_word(text, "subarray")) or _has_word(text, "kadane"):
         if isinstance(data, list):
             best = curr = data[0]
             for x in data[1:]:
@@ -405,7 +445,7 @@ def _rule_based_solve(problem_text: str, data: Any) -> dict:
             return _make_solution(best, "kadane", "O(n)", "dynamic_programming")
 
     # ── Knapsack ──
-    if any(w in text for w in ["knapsack", "maximize value", "capacity"]):
+    if _has_any_word(text, ["knapsack", "capacity"]):
         if isinstance(data, dict):
             items = data.get("items", data.get("elements", []))
             capacity = data.get("capacity", data.get("cap", None))
@@ -419,105 +459,101 @@ def _rule_based_solve(problem_text: str, data: Any) -> dict:
                 except Exception:
                     pass
 
-    # ── Scheduling ──
-    if any(w in text for w in ["schedule", "timetable", "assign", "deadline"]):
-        if isinstance(data, list) and len(data) > 0:
-            try:
-                def _deadline_key(x):
-                    if isinstance(x, dict):
-                        return x.get("deadline", x.get("due", x.get("time", 0)))
-                    if isinstance(x, (list, tuple)) and len(x) > 1:
-                        return x[1]
-                    return 0
-                sorted_tasks = sorted(data, key=_deadline_key)
-                return _make_solution(sorted_tasks, "earliest_deadline", "O(n log n)", "greedy_exchange")
-            except Exception:
-                pass
-
-    # ── Clustering ──
-    if any(w in text for w in ["cluster", "group", "kmeans", "dbscan"]):
-        if isinstance(data, list) and len(data) > 0:
-            try:
-                from sklearn.cluster import KMeans
-                import numpy as np
-                X = np.array(data)
-                n = min(8, max(1, len(X) // 2))
-                kmeans = KMeans(n_clusters=n, n_init="auto", random_state=42)
-                labels = kmeans.fit_predict(X)
-                return _make_solution(
-                    {"labels": labels.tolist(), "centers": kmeans.cluster_centers_.tolist(), "n_clusters": n},
-                    "kmeans", "O(n*k*d)", "expectation_maximization"
-                )
-            except Exception:
-                pass
-
-    # ── Classification ──
-    if any(w in text for w in ["classify", "knn", "svm", "predict class"]):
+    # ── Fibonacci ──
+    if _has_any_word(text, ["fibonacci", "fib"]):
         if isinstance(data, dict):
-            X_train = data.get("X_train", data.get("train_x", []))
-            y_train = data.get("y_train", data.get("train_y", []))
-            X_test = data.get("X_test", data.get("test_x", X_train))
-            if len(X_train) > 0 and len(y_train) > 0:
-                try:
-                    from sklearn.neighbors import KNeighborsClassifier
-                    import numpy as np
-                    n = min(len(X_train), max(1, int(np.sqrt(len(X_train)))))
-                    knn = KNeighborsClassifier(n_neighbors=n)
-                    knn.fit(np.array(X_train), np.array(y_train))
-                    preds = knn.predict(np.array(X_test))
-                    return _make_solution(preds.tolist(), "knn_classifier", "O(n*d)", "lazy_learning")
-                except Exception:
-                    pass
+            n = data.get("n", data.get("num", None))
+            if n is not None:
+                import math as m
+                phi = (1 + m.sqrt(5)) / 2
+                return _make_solution(round(phi ** int(n) / m.sqrt(5)), "fibonacci_binet", "O(1)", "optimal_substructure")
 
-    # ── Regression ──
-    if any(w in text for w in ["predict", "regress", "forecast", "linear regression"]):
+    # ── Prime ──
+    if _has_any_word(text, ["prime", "primality"]):
         if isinstance(data, dict):
-            X_train = data.get("X_train", data.get("train_x", []))
-            y_train = data.get("y_train", data.get("train_y", []))
-            X_test = data.get("X_test", data.get("test_x", X_train))
-            if len(X_train) > 0 and len(y_train) > 0:
-                try:
-                    from sklearn.linear_model import LinearRegression
-                    import numpy as np
-                    lr = LinearRegression()
-                    lr.fit(np.array(X_train), np.array(y_train))
-                    preds = lr.predict(np.array(X_test))
-                    return _make_solution(preds.tolist(), "linear_regression", "O(n*d^2)", "least_squares")
-                except Exception:
-                    pass
-
-    # ── String Matching ──
-    if any(w in text for w in ["string match", "pattern", "substring", "find text"]):
-        if isinstance(data, dict):
-            text_str = data.get("text", data.get("string", data.get("str", "")))
-            pattern = data.get("pattern", data.get("sub", data.get("substring", "")))
-            if text_str and pattern:
-                idx = text_str.find(pattern)
-                return _make_solution(idx, "naive_string_match", "O(n*m)", "exhaustive")
-
-    # ── Image Processing ──
-    if any(w in text for w in ["blur", "denoise", "edge", "image"]):
-        if isinstance(data, dict) or hasattr(data, 'shape'):
-            try:
-                from scipy.ndimage import gaussian_filter
-                import numpy as np
-                img = np.array(data.get("image", data) if isinstance(data, dict) else data, dtype=float)
-                result = gaussian_filter(img, sigma=1.0)
-                return _make_solution(result, "gaussian_blur", "O(n)", "convolution")
-            except Exception:
-                pass
-
-    # ── Primes ──
-    if any(w in text for w in ["prime", "is prime", "factor"]):
-        if isinstance(data, dict):
-            n = data.get("n", data.get("num", data.get("number", 0)))
-            if isinstance(n, (int, float)) and n > 1:
-                import math
+            n = data.get("n", data.get("num", None))
+            if n is not None:
                 n = int(n)
-                for i in range(2, int(math.isqrt(n)) + 1):
+                if n < 2:
+                    return _make_solution(False, "trial_division", "O(√n)", "primality_testing")
+                import math as m
+                for i in range(2, int(m.sqrt(n)) + 1):
                     if n % i == 0:
-                        return _make_solution(False, "trial_division", "O(sqrt(n))", "exhaustive")
-                return _make_solution(True, "trial_division", "O(sqrt(n))", "exhaustive")
+                        return _make_solution(False, "trial_division", "O(√n)", "primality_testing")
+                return _make_solution(True, "trial_division", "O(√n)", "primality_testing")
+
+    # ── Palindrome ──
+    if _has_any_word(text, ["palindrome", "palindromic"]):
+        if isinstance(data, (str, list)):
+            return _make_solution(data == data[::-1], "two_pointer", "O(n)", "two_pointer")
+
+    # ── Anagram ──
+    if _has_any_word(text, ["anagram", "anagrams"]):
+        if isinstance(data, dict) and "s" in data and "t" in data:
+            from collections import Counter
+            s, t = data["s"], data["t"]
+            return _make_solution(Counter(s) == Counter(t), "frequency_counter", "O(n)", "hash_table")
+
+    # ── Graph Cycle ──
+    if _has_any_word(text, ["cycle detection", "has cycle", "detect cycle"]):
+        if isinstance(data, dict) and "graph" in data:
+            try:
+                import networkx as nx
+                G = data["graph"]
+                if not isinstance(G, nx.Graph):
+                    G = nx.Graph(G)
+                try:
+                    cycle = nx.find_cycle(G)
+                    return _make_solution(True, "dfs_cycle_detection", "O(V+E)", "graph_traversal")
+                except nx.NetworkXNoCycle:
+                    return _make_solution(False, "dfs_cycle_detection", "O(V+E)", "graph_traversal")
+            except Exception:
+                pass
+
+    # ── Topological Sort ──
+    if _has_any_word(text, ["topological", "topo sort", "dependency order"]):
+        if isinstance(data, dict) and "graph" in data:
+            try:
+                import networkx as nx
+                G = data["graph"]
+                if not isinstance(G, nx.DiGraph):
+                    G = nx.DiGraph(G)
+                order = list(nx.topological_sort(G))
+                return _make_solution(order, "topological_sort", "O(V+E)", "graph_traversal")
+            except Exception:
+                pass
+
+    # ── LCS ──
+    if _has_any_word(text, ["longest common subsequence", "lcs"]):
+        if isinstance(data, dict) and "a" in data and "b" in data:
+            a, b = data["a"], data["b"]
+            m, n = len(a), len(b)
+            dp = [[0] * (n + 1) for _ in range(m + 1)]
+            for i in range(1, m + 1):
+                for j in range(1, n + 1):
+                    if a[i - 1] == b[j - 1]:
+                        dp[i][j] = dp[i - 1][j - 1] + 1
+                    else:
+                        dp[i][j] = max(dp[i - 1][j], dp[i][j - 1])
+            return _make_solution(dp[m][n], "dp_lcs", "O(mn)", "optimal_substructure")
+
+    # ── Edit Distance ──
+    if _has_any_word(text, ["edit distance", "levenshtein"]):
+        if isinstance(data, dict) and "a" in data and "b" in data:
+            a, b = data["a"], data["b"]
+            m, n = len(a), len(b)
+            dp = [[0] * (n + 1) for _ in range(m + 1)]
+            for i in range(m + 1):
+                for j in range(n + 1):
+                    if i == 0:
+                        dp[i][j] = j
+                    elif j == 0:
+                        dp[i][j] = i
+                    elif a[i - 1] == b[j - 1]:
+                        dp[i][j] = dp[i - 1][j - 1]
+                    else:
+                        dp[i][j] = 1 + min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1])
+            return _make_solution(dp[m][n], "dp_edit_distance", "O(mn)", "optimal_substructure")
 
     return None
 
