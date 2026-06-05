@@ -1,7 +1,7 @@
 import time
 import random
 import os
-from core.smart_solver import SmartSolver
+from aalgoi.core.smart_solver import SmartSolver
 
 def test_sustained_load_no_degradation():
     solver = SmartSolver()

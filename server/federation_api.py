@@ -11,7 +11,7 @@ from typing import List, Optional
 import hashlib
 import json
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from server.database import get_db
@@ -73,7 +73,7 @@ async def ingest_metric(
         """, (
             metric.algorithm, metric.problem_type, metric.success,
             metric.execution_time_ms, metric.data_size,
-            metric.user_id_hash, datetime.utcnow()
+            metric.user_id_hash, datetime.now(timezone.utc)
         ))
         db.commit()
         return {"status": "accepted", "id": cursor.lastrowid}
@@ -97,7 +97,7 @@ async def get_aggregate(
             FROM metrics
             WHERE algorithm = ?
               AND timestamp > ?
-        """, (algorithm, datetime.utcnow() - timedelta(days=days)))
+        """, (algorithm, datetime.now(timezone.utc) - timedelta(days=days)))
         row = cursor.fetchone()
         return {
             "algorithm": algorithm,
@@ -134,7 +134,7 @@ async def submit_algorithm(
         """, (
             sub.name, sub.code, json.dumps(sub.metadata),
             json.dumps(sub.embedding), sub.submitted_by,
-            sub.code_hash, datetime.utcnow()
+            sub.code_hash, datetime.now(timezone.utc)
         ))
         db.commit()
         queue_id = cursor.lastrowid
@@ -185,14 +185,14 @@ async def get_sync_state():
         cursor.execute(
             "SELECT COUNT(*) FROM algorithm_queue "
             "WHERE status = 'passed' AND promoted_at > ?",
-            (datetime.utcnow() - timedelta(hours=1),)
+            (datetime.now(timezone.utc) - timedelta(hours=1),)
         )
         new_count = cursor.fetchone()[0]
 
         return {
             "global_version": version,
             "new_algorithms_last_hour": new_count,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
     finally:
         db.close()

@@ -1,8 +1,8 @@
 import time
 import threading
 import statistics
-from core.rl.agents.selection_agent import PPOAgent
-from core.smart_solver import SmartSolver
+from aalgoi.core.rl.agents.selection_agent import PPOAgent
+from aalgoi.core.smart_solver import SmartSolver
 
 def test_cold_start_under_concurrent_load():
     PPOAgent._clear_cache()

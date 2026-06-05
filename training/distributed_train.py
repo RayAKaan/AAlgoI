@@ -39,7 +39,7 @@ def train_distributed(rank: int, world_size: int):
     setup_distributed(rank, world_size)
     logger.info("Rank %d / %d: online", rank, world_size)
 
-    from core.rl.agents.selection_agent import PPOAgent
+    from aalgoi.core.rl.agents.selection_agent import PPOAgent
 
     agent = PPOAgent(state_dim=200, num_actions=20)
     device = torch.device(f"cuda:{rank}" if torch.cuda.is_available() else "cpu")

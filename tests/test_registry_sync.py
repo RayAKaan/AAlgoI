@@ -5,8 +5,8 @@ from unittest.mock import patch, MagicMock, ANY
 
 import pytest
 
-from core.registry_sync import GitHubRegistrySync, _load_registry_config
-from core.token_manager import TokenManager
+from aalgoi.core.registry_sync import GitHubRegistrySync, _load_registry_config
+from aalgoi.core.token_manager import TokenManager
 
 
 # ── Fixtures ─────────────────────────────────────────────────────────────────
@@ -14,13 +14,13 @@ from core.token_manager import TokenManager
 
 @pytest.fixture
 def registry():
-    from core.registry_manager import DynamicRegistry
+    from aalgoi.core.registry_manager import DynamicRegistry
     return DynamicRegistry(None)
 
 
 @pytest.fixture
 def embedder():
-    from core.algorithm_embedder import AlgorithmEmbedder
+    from aalgoi.core.algorithm_embedder import AlgorithmEmbedder
     return AlgorithmEmbedder()
 
 

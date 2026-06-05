@@ -96,7 +96,7 @@ def distance(graph: dict, start: str, end: str) -> float | None:
 def knapsack(items: list[dict], capacity: int | float, *, fast: bool = False) -> dict:
     """Solve 0/1 knapsack."""
     try:
-        from algorithms.optimization.optimization_algos import GreedyKnapsack
+        from aalgoi.algorithms.optimization.optimization_algos import GreedyKnapsack
         result = GreedyKnapsack().process(items, capacity)
         return result
     except Exception as e:

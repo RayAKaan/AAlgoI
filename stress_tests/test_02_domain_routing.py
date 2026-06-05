@@ -1,6 +1,6 @@
 import random
 import string
-from core.smart_solver import SmartSolver
+from aalgoi.core.smart_solver import SmartSolver
 
 DOMAIN_TEST_CASES = [
     {

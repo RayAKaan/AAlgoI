@@ -1,5 +1,5 @@
 import random
-from core.smart_solver import SmartSolver
+from aalgoi.core.smart_solver import SmartSolver
 
 EDGE_CASES = [
     ("sort empty list",         [],                    True),

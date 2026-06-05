@@ -26,7 +26,7 @@ class TestStateBridge:
     @pytest.fixture
     def bridge(self):
         from aalgoi.sandbox.state_bridge import StateBridge
-        from core.smart_solver import SmartSolver
+        from aalgoi.core.smart_solver import SmartSolver
         return StateBridge(SmartSolver().solver.registry)
 
     def test_state_vector_shape(self, bridge):

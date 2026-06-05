@@ -1,10 +1,10 @@
 import hashlib
 from unittest.mock import patch, MagicMock
-from core.registry_sync import GitHubRegistrySync
+from aalgoi.core.registry_sync import GitHubRegistrySync
 
 def test_registry_sync_rejects_tampered_algorithms():
-    from core.registry_manager import DynamicRegistry
-    from core.algorithm_embedder import AlgorithmEmbedder
+    from aalgoi.core.registry_manager import DynamicRegistry
+    from aalgoi.core.algorithm_embedder import AlgorithmEmbedder
 
     registry = DynamicRegistry(None)
     embedder = AlgorithmEmbedder()

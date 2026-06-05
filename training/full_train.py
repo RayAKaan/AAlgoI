@@ -14,13 +14,13 @@ import time
 import logging
 from typing import Any, Dict, Optional, Tuple
 
-from core.rl.agents.selection_agent import PPOAgent
-from core.rl.powerhouse_agent import WorldModel
-from core.problem_spec import ProblemSpec, ProblemType
+from aalgoi.core.rl.agents.selection_agent import PPOAgent
+from aalgoi.core.rl.powerhouse_agent import WorldModel
+from aalgoi.core.problem_spec import ProblemSpec, ProblemType
 from training.curriculum import CurriculumScheduler
 from training.self_play import SelfPlayEngine
-from core.federated_sync import FederatedKnowledgeSync
-from core.knowledge_base import VectorKnowledgeBase
+from aalgoi.core.federated_sync import FederatedKnowledgeSync
+from aalgoi.core.knowledge_base import VectorKnowledgeBase
 
 logger = logging.getLogger(__name__)
 

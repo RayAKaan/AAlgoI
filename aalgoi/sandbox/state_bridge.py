@@ -32,7 +32,7 @@ class StateBridge:
 
         self._context_engine = None
         try:
-            from core.context_engine import ContextEngine
+            from aalgoi.core.context_engine import ContextEngine
             self._context_engine = ContextEngine()
         except Exception:
             pass

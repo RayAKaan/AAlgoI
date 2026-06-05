@@ -10,8 +10,8 @@ Usage:
 
 import torch
 import logging
-from core.rl.agents.selection_agent import PPOAgent
-from core.rl.powerhouse_agent import WorldModel
+from aalgoi.core.rl.agents.selection_agent import PPOAgent
+from aalgoi.core.rl.powerhouse_agent import WorldModel
 from training.self_play import SelfPlayEngine
 
 logger = logging.getLogger(__name__)

@@ -1,5 +1,5 @@
-from pipeline import UniversalSolver
-from algorithms.base import Algorithm
+from aalgoi.pipeline import UniversalSolver
+from aalgoi.algorithms.base import Algorithm
 
 solver = UniversalSolver()
 agent  = solver.meta_controller.rl_agent

@@ -66,7 +66,7 @@ class SandboxRL:
         auto_learn:    bool  = False,
         domains:       Optional[List[str]] = None,
     ):
-        from core.smart_solver import SmartSolver
+        from aalgoi.core.smart_solver import SmartSolver
         self._smart_solver = SmartSolver()
         self._bridge  = StateBridge(self._smart_solver.solver.registry)
         self._reward  = RewardBridge()
@@ -269,7 +269,7 @@ class SandboxRL:
             agent.epsilon = epsilon
 
         instance = cls.__new__(cls)
-        from core.smart_solver import SmartSolver
+        from aalgoi.core.smart_solver import SmartSolver
         instance._smart_solver = SmartSolver()
         instance._bridge    = StateBridge(instance._smart_solver.solver.registry)
         instance._reward    = RewardBridge()
@@ -298,7 +298,7 @@ class SandboxRL:
 
     def fork(self, new_name: Optional[str] = None) -> "SandboxRL":
         forked = SandboxRL.__new__(SandboxRL)
-        from core.smart_solver import SmartSolver
+        from aalgoi.core.smart_solver import SmartSolver
         forked._smart_solver = SmartSolver()
         forked._bridge    = StateBridge(forked._smart_solver.solver.registry)
         forked._reward    = RewardBridge()

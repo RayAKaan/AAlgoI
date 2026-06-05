@@ -1,6 +1,6 @@
 """Stress test: AST optimizer correctness and speedup."""
 import time
-from core.ast_optimizer import ASTOptimizer
+from aalgoi.core.ast_optimizer import ASTOptimizer
 
 
 def test_ast_optimizer_fibonacci_speedup():

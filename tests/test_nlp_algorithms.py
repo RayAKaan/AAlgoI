@@ -45,7 +45,7 @@ class TestWord2VecTrainer:
     def test_trains_on_corpus(self, legal_corpus):
         if not _has_gensim:
             pytest.skip("gensim not installed")
-        from algorithms.nlp import Word2VecTrainer
+        from aalgoi.algorithms.nlp import Word2VecTrainer
 
         tokenized = [s.lower().split() for s in legal_corpus]
 
@@ -65,7 +65,7 @@ class TestWord2VecTrainer:
     def test_get_vector_after_training(self, legal_corpus):
         if not _has_gensim:
             pytest.skip("gensim not installed")
-        from algorithms.nlp import Word2VecTrainer
+        from aalgoi.algorithms.nlp import Word2VecTrainer
 
         tokenized = [s.lower().split() for s in legal_corpus]
 
@@ -79,7 +79,7 @@ class TestWord2VecTrainer:
     def test_get_similar_words(self, legal_corpus):
         if not _has_gensim:
             pytest.skip("gensim not installed")
-        from algorithms.nlp import Word2VecTrainer
+        from aalgoi.algorithms.nlp import Word2VecTrainer
 
         tokenized = [s.lower().split() for s in legal_corpus]
 
@@ -90,7 +90,7 @@ class TestWord2VecTrainer:
         assert len(similar) > 0
 
     def test_empty_corpus_returns_error(self):
-        from algorithms.nlp import Word2VecTrainer
+        from aalgoi.algorithms.nlp import Word2VecTrainer
 
         algo = Word2VecTrainer()
         result = algo.process({"corpus": []})
@@ -100,7 +100,7 @@ class TestWord2VecTrainer:
     def test_string_corpus_tokenizes(self):
         if not _has_gensim:
             pytest.skip("gensim not installed")
-        from algorithms.nlp import Word2VecTrainer
+        from aalgoi.algorithms.nlp import Word2VecTrainer
 
         algo = Word2VecTrainer()
         result = algo.process({
@@ -115,7 +115,7 @@ class TestWord2VecTrainer:
 class TestFrequencyArithmetic:
 
     def test_basic_arithmetic(self):
-        from algorithms.nlp import FrequencyVectorArithmetic
+        from aalgoi.algorithms.nlp import FrequencyVectorArithmetic
 
         algo = FrequencyVectorArithmetic()
         result = algo.process({
@@ -134,7 +134,7 @@ class TestFrequencyArithmetic:
         assert "queen" in result["closest_words"]
 
     def test_removes_stopwords_when_requested(self):
-        from algorithms.nlp import FrequencyVectorArithmetic
+        from aalgoi.algorithms.nlp import FrequencyVectorArithmetic
 
         algo = FrequencyVectorArithmetic()
         result = algo.process({
@@ -147,7 +147,7 @@ class TestFrequencyArithmetic:
         assert "a" not in result["vocabulary"]
 
     def test_handles_missing_words(self):
-        from algorithms.nlp import FrequencyVectorArithmetic
+        from aalgoi.algorithms.nlp import FrequencyVectorArithmetic
 
         algo = FrequencyVectorArithmetic()
         result = algo.process({
@@ -159,7 +159,7 @@ class TestFrequencyArithmetic:
         assert "not in vocabulary" in result["error"]
 
     def test_empty_corpus(self):
-        from algorithms.nlp import FrequencyVectorArithmetic
+        from aalgoi.algorithms.nlp import FrequencyVectorArithmetic
 
         algo = FrequencyVectorArithmetic()
         result = algo.process({"corpus": [], "operation": "king"})
@@ -170,7 +170,7 @@ class TestFrequencyArithmetic:
 class TestEmbeddingVisualization:
 
     def test_pca_visualization(self):
-        from algorithms.nlp import EmbeddingVisualization
+        from aalgoi.algorithms.nlp import EmbeddingVisualization
 
         algo = EmbeddingVisualization()
         result = algo.process({
@@ -185,7 +185,7 @@ class TestEmbeddingVisualization:
         assert result["explained_variance"] is not None
 
     def test_tsne_visualization(self):
-        from algorithms.nlp import EmbeddingVisualization
+        from aalgoi.algorithms.nlp import EmbeddingVisualization
 
         algo = EmbeddingVisualization()
         result = algo.process({
@@ -198,7 +198,7 @@ class TestEmbeddingVisualization:
         assert len(result["coordinates"]) == 4
 
     def test_computes_distances(self):
-        from algorithms.nlp import EmbeddingVisualization
+        from aalgoi.algorithms.nlp import EmbeddingVisualization
 
         algo = EmbeddingVisualization()
         result = algo.process({
@@ -210,7 +210,7 @@ class TestEmbeddingVisualization:
         assert "distances" in result
 
     def test_no_words_returns_error(self):
-        from algorithms.nlp import EmbeddingVisualization
+        from aalgoi.algorithms.nlp import EmbeddingVisualization
 
         algo = EmbeddingVisualization()
         result = algo.process({"words": [], "method": "pca"})
@@ -221,7 +221,7 @@ class TestEmbeddingVisualization:
 class TestSentimentAnalyzer:
 
     def test_available_even_without_transformers(self):
-        from algorithms.nlp import SentimentAnalyzer
+        from aalgoi.algorithms.nlp import SentimentAnalyzer
 
         algo = SentimentAnalyzer()
         result = algo.process({"texts": ["hello"]})
@@ -232,7 +232,7 @@ class TestSentimentAnalyzer:
 class TestTextSummarizer:
 
     def test_available_even_without_transformers(self):
-        from algorithms.nlp import TextSummarizer
+        from aalgoi.algorithms.nlp import TextSummarizer
 
         algo = TextSummarizer()
         result = algo.process({"text": "hello world"})
@@ -243,7 +243,7 @@ class TestTextSummarizer:
 class TestRAGRetriever:
 
     def test_available_even_without_sentence_transformers(self):
-        from algorithms.nlp import RAGRetriever
+        from aalgoi.algorithms.nlp import RAGRetriever
 
         algo = RAGRetriever()
         result = algo.process({
@@ -257,7 +257,7 @@ class TestRAGRetriever:
 class TestSemanticSearcher:
 
     def test_available_even_without_sentence_transformers(self):
-        from algorithms.nlp import SemanticSearcher
+        from aalgoi.algorithms.nlp import SemanticSearcher
 
         algo = SemanticSearcher()
         result = algo.process({
@@ -271,7 +271,7 @@ class TestSemanticSearcher:
 class TestPromptEnricher:
 
     def test_enriches_prompt_with_fallback(self):
-        from algorithms.nlp import PromptEnricher
+        from aalgoi.algorithms.nlp import PromptEnricher
 
         algo = PromptEnricher()
         result = algo.process({
@@ -284,7 +284,7 @@ class TestPromptEnricher:
         assert "defendant" in result["enriched_prompt"]
 
     def test_different_styles(self):
-        from algorithms.nlp import PromptEnricher
+        from aalgoi.algorithms.nlp import PromptEnricher
 
         algo = PromptEnricher()
 
@@ -302,7 +302,7 @@ class TestPromptEnricher:
         assert formal["enriched_prompt"] != casual["enriched_prompt"]
 
     def test_no_seed_word_extracts_from_prompt(self):
-        from algorithms.nlp import PromptEnricher
+        from aalgoi.algorithms.nlp import PromptEnricher
 
         algo = PromptEnricher()
         result = algo.process({
@@ -313,7 +313,7 @@ class TestPromptEnricher:
         assert result["valid"] is True
 
     def test_empty_prompt_returns_error(self):
-        from algorithms.nlp import PromptEnricher
+        from aalgoi.algorithms.nlp import PromptEnricher
 
         algo = PromptEnricher()
         result = algo.process({"prompt": ""})
@@ -324,7 +324,7 @@ class TestPromptEnricher:
 class TestCreativeSentenceGenerator:
 
     def test_generates_sentences(self):
-        from algorithms.nlp import CreativeSentenceGenerator
+        from aalgoi.algorithms.nlp import CreativeSentenceGenerator
 
         algo = CreativeSentenceGenerator()
         result = algo.process({
@@ -336,7 +336,7 @@ class TestCreativeSentenceGenerator:
         assert len(result["sentences"]) == 4
 
     def test_different_styles(self):
-        from algorithms.nlp import CreativeSentenceGenerator
+        from aalgoi.algorithms.nlp import CreativeSentenceGenerator
 
         algo = CreativeSentenceGenerator()
 
@@ -347,7 +347,7 @@ class TestCreativeSentenceGenerator:
         assert poem["valid"] is True
 
     def test_empty_seed_returns_error(self):
-        from algorithms.nlp import CreativeSentenceGenerator
+        from aalgoi.algorithms.nlp import CreativeSentenceGenerator
 
         algo = CreativeSentenceGenerator()
         result = algo.process({"seed_word": ""})
@@ -358,7 +358,7 @@ class TestCreativeSentenceGenerator:
 class TestWordExpander:
 
     def test_expands_word(self):
-        from algorithms.nlp import WordExpander
+        from aalgoi.algorithms.nlp import WordExpander
 
         algo = WordExpander()
         result = algo.process({
@@ -371,7 +371,7 @@ class TestWordExpander:
         assert "level_1" in result["expanded"]
 
     def test_empty_word_returns_error(self):
-        from algorithms.nlp import WordExpander
+        from aalgoi.algorithms.nlp import WordExpander
 
         algo = WordExpander()
         result = algo.process({"word": ""})
@@ -382,7 +382,7 @@ class TestWordExpander:
 class TestNLPRegistry:
 
     def test_all_nlp_algos_in_registry(self):
-        from pipeline import UniversalSolver
+        from aalgoi.pipeline import UniversalSolver
 
         solver = UniversalSolver()
 
@@ -404,7 +404,7 @@ class TestNLPRegistry:
             assert name in solver.registry, "%s not in registry" % name
 
     def test_registry_count_increased(self):
-        from pipeline import UniversalSolver
+        from aalgoi.pipeline import UniversalSolver
 
         solver = UniversalSolver()
 
@@ -455,7 +455,7 @@ class TestMetadataPropagation:
 
     @pytest.mark.parametrize("cls", [
         pytest.param(cls, id=cls.__name__)
-        for cls in __import__("algorithms.nlp", fromlist=["NLP_CLASSES"]).NLP_CLASSES
+        for cls in __import__("aalgoi.algorithms.nlp", fromlist=["NLP_CLASSES"]).NLP_CLASSES
     ])
     def test_metadata_has_required_fields(self, cls):
         algo = cls()
@@ -475,7 +475,7 @@ class TestMetadataPropagation:
 
     @pytest.mark.parametrize("cls", [
         pytest.param(cls, id=cls.__name__)
-        for cls in __import__("algorithms.nlp", fromlist=["NLP_CLASSES"]).NLP_CLASSES
+        for cls in __import__("aalgoi.algorithms.nlp", fromlist=["NLP_CLASSES"]).NLP_CLASSES
     ])
     def test_describe_aliases_metadata(self, cls):
         algo = cls()

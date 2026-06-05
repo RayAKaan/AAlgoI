@@ -5,8 +5,8 @@ import random
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from core.problem_spec import ProblemSpec, ProblemType
-from pipeline import UniversalSolver
+from aalgoi.core.problem_spec import ProblemSpec, ProblemType
+from aalgoi.pipeline import UniversalSolver
 
 
 def generate_supply_chain_data(n_packages=50, n_cities=10, n_items=20):

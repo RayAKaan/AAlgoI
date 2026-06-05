@@ -2,10 +2,24 @@ import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from typing import Optional
-from core.problem_spec import ProblemSpec
-from pipeline import UniversalSolver
+import ast
+from typing import Any, Optional
+from aalgoi.core.problem_spec import ProblemSpec
+from aalgoi.pipeline import UniversalSolver
 from interface.nl_parser import parse_description, extract_data_from_description
+
+
+def _parse_data_input(raw: str) -> Any:
+    stripped = raw.strip()
+    if not stripped:
+        return None
+    try:
+        parsed = ast.literal_eval(stripped)
+        if isinstance(parsed, (list, dict, int, float, str)):
+            return parsed
+        return stripped
+    except (ValueError, SyntaxError):
+        return stripped
 
 _GRADIO_AVAILABLE = False
 try:
@@ -29,11 +43,9 @@ def create_interface(solver: Optional[UniversalSolver] = None):
         spec = parse_description(description)
         data = extract_data_from_description(description)
 
-        if data_input.strip():
-            try:
-                data = eval(data_input.strip())
-            except Exception:
-                pass
+        parsed = _parse_data_input(data_input)
+        if parsed is not None:
+            data = parsed
 
         if data is None:
             data = [3, 1, 4, 1, 5]
@@ -71,10 +83,7 @@ def create_interface(solver: Optional[UniversalSolver] = None):
         except Exception as e:
             return f"Invalid JSON: {e}", "", "", "", "", ""
 
-        try:
-            data = eval(data_input.strip()) if data_input.strip() else [3, 1, 2]
-        except Exception:
-            data = [3, 1, 2]
+        data = _parse_data_input(data_input) or [3, 1, 2]
 
         result = solver.solve(spec, data)
         output_str = str(result.get("result", ""))

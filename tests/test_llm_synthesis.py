@@ -5,12 +5,12 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from core.algorithm_synthesizer import LLMAlgorithmSynthesizer
-from core.llm_client import OllamaClient
-from core.sandboxed_executor import (
+from aalgoi.core.algorithm_synthesizer import LLMAlgorithmSynthesizer
+from aalgoi.core.llm_client import OllamaClient
+from aalgoi.core.sandboxed_executor import (
     create_sandboxed_module, execute_sandboxed, benchmark_sandboxed,
 )
-from core.problem_spec import ProblemSpec, ProblemType
+from aalgoi.core.problem_spec import ProblemSpec, ProblemType
 
 
 # ── Fixtures ──────────────────────────────────────────────────────────────
@@ -45,7 +45,7 @@ def sort_spec():
 
 def test_ollama_connection_refused():
     """Ollama client raises RuntimeError if Ollama is unreachable."""
-    with patch('core.llm_client.requests.get') as mock_get:
+    with patch('aalgoi.core.llm_client.requests.get') as mock_get:
         mock_get.side_effect = ConnectionError("refused")
         with pytest.raises(RuntimeError, match="Ollama not found"):
             OllamaClient(base_url="http://localhost:19999")
@@ -54,7 +54,7 @@ def test_ollama_connection_refused():
 def test_ollama_generate_failure():
     """Ollama client raises RuntimeError on generation failure."""
     with patch.object(OllamaClient, '_test_connection', return_value=None):
-        with patch('core.llm_client.requests.post') as mock_post:
+        with patch('aalgoi.core.llm_client.requests.post') as mock_post:
             mock_post.side_effect = RuntimeError("API error")
             client = OllamaClient()
             with pytest.raises(RuntimeError, match="Ollama generation failed"):
@@ -68,7 +68,7 @@ def test_ollama_generate_success():
     mock_resp.json.return_value = {"response": "def process(data): pass"}
 
     with patch.object(OllamaClient, '_test_connection', return_value=None):
-        with patch('core.llm_client.requests.post') as mock_post:
+        with patch('aalgoi.core.llm_client.requests.post') as mock_post:
             mock_post.return_value = mock_resp
             client = OllamaClient()
             code = client.generate("write code")
@@ -84,7 +84,7 @@ def test_ollama_model_available():
     }
 
     with patch.object(OllamaClient, '_test_connection', return_value=None):
-        with patch('core.llm_client.requests.get') as mock_get:
+        with patch('aalgoi.core.llm_client.requests.get') as mock_get:
             mock_get.return_value = mock_resp
             client = OllamaClient()
             assert client.is_model_available("llama2") is True
@@ -184,7 +184,7 @@ def process(data):
     algo = synth.synthesize(sort_spec, data)
     assert algo is not None
 
-    from core.knowledge_graph import AlgorithmKnowledgeGraph
+    from aalgoi.core.knowledge_graph import AlgorithmKnowledgeGraph
     kg = AlgorithmKnowledgeGraph()
     kg.add_algorithm(algo.name, {
         "time_complexity": algo.time_complexity,

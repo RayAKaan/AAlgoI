@@ -4,10 +4,10 @@
 import time
 from pprint import pprint
 
-from algorithms.sorting import QuickSort, MergeSort
-from algorithms.pathfinding import Dijkstra, AStar, BFSPathfinder
-from algorithms.optimization import GreedyKnapsack, SimulatedAnnealing
-from core.problem_spec import ProblemSpec, ProblemType, Objective
+from aalgoi.algorithms.sorting import QuickSort, MergeSort
+from aalgoi.algorithms.pathfinding import Dijkstra, AStar, BFSPathfinder
+from aalgoi.algorithms.optimization import GreedyKnapsack, SimulatedAnnealing
+from aalgoi.core.problem_spec import ProblemSpec, ProblemType, Objective
 
 
 def demo_sorting():
@@ -78,7 +78,7 @@ def demo_universal_solver():
 
     import sys, os
     sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-    from pipeline import UniversalSolver
+    from aalgoi.pipeline import UniversalSolver
     solver = UniversalSolver()
 
     spec = ProblemSpec(name="sort numbers", problem_type=ProblemType.TRANSFORMATION)

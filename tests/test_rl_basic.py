@@ -1,11 +1,11 @@
 import sys
 import numpy as np
-from algorithms.primitives import PRIMITIVES
-from core.problem_spec import ProblemSpec, ProblemType
+from aalgoi.algorithms.primitives import PRIMITIVES
+from aalgoi.core.problem_spec import ProblemSpec, ProblemType
 
 
 def test_replay_buffer():
-    from core.rl.replay_buffer import ReplayBuffer, EpisodeBuffer
+    from aalgoi.core.rl.replay_buffer import ReplayBuffer, EpisodeBuffer
     buf = ReplayBuffer(capacity=100)
     buf.push(np.zeros(10), 0, 1.0, np.ones(10), False)
     buf.push(np.zeros(10), 1, 0.5, np.ones(10), True)
@@ -27,7 +27,7 @@ def test_replay_buffer():
 
 
 def test_reward_shaper():
-    from core.rl.reward_shaper import RewardShaper, AdaptiveRewardShaper
+    from aalgoi.core.rl.reward_shaper import RewardShaper, AdaptiveRewardShaper
     shaper = RewardShaper()
 
     reward = shaper.compute_reward(
@@ -50,7 +50,7 @@ def test_reward_shaper():
 
 
 def test_attention_actor_critic():
-    from core.rl.agents.selection_agent import AttentionActorCritic
+    from aalgoi.core.rl.agents.selection_agent import AttentionActorCritic
     import torch
     net = AttentionActorCritic(state_dim=38, algo_dim=32, hidden_dim=128)
     state = torch.randn(1, 38)
@@ -67,7 +67,7 @@ def test_attention_actor_critic():
 
 
 def test_ppo_agent():
-    from core.rl.agents.selection_agent import PPOAgent
+    from aalgoi.core.rl.agents.selection_agent import PPOAgent
     import torch
     agent = PPOAgent(state_dim=38)
     embeddings = torch.randn(5, 32)
@@ -82,7 +82,7 @@ def test_ppo_agent():
 
 
 def test_environment_reset():
-    from core.rl.environment import AAlgoIEnv
+    from aalgoi.core.rl.environment import AAlgoIEnv
     env = AAlgoIEnv(algorithm_registry=PRIMITIVES, config={"state_dim": 200})
     state, info = env.reset()
     assert state.shape == (200,)
@@ -91,7 +91,7 @@ def test_environment_reset():
 
 
 def test_environment_step():
-    from core.rl.environment import AAlgoIEnv
+    from aalgoi.core.rl.environment import AAlgoIEnv
     env = AAlgoIEnv(algorithm_registry=PRIMITIVES, config={"state_dim": 200})
     state, _ = env.reset()
     action = 0
@@ -104,7 +104,7 @@ def test_environment_step():
 
 
 def test_full_training_loop():
-    from core.rl.agents.selection_agent import PPOAgent
+    from aalgoi.core.rl.agents.selection_agent import PPOAgent
     import torch
     import numpy as np
 
@@ -131,6 +131,6 @@ def test_full_training_loop():
 
 
 def test_meta_controller_rl_agent_created():
-    from core.meta_controller import UniversalMetaController
+    from aalgoi.core.meta_controller import UniversalMetaController
     mc = UniversalMetaController(config={"rl": {"state_dim": 200}})
     assert mc.rl_agent is not None

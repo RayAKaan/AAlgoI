@@ -1,11 +1,11 @@
 import random
-from core.smart_solver import SmartSolver
+from aalgoi.core.smart_solver import SmartSolver
 
 def _measure_selection_quality(solver, data_type, trials=50):
     optimal_map = {
         "nearly_sorted": "timsort",
         "random":        "quicksort",
-        "reverse":       "heapsort",
+        "reverse":       "heap_sort",
     }
     optimal = optimal_map[data_type]
     correct = 0

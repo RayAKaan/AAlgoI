@@ -25,7 +25,7 @@ def debug():
 def visualize(problem, data, json_flag):
     """Visualize how AAlgoI solves a problem."""
     import json as json_module
-    from core.smart_solver import SmartSolver
+    from aalgoi.core.smart_solver import SmartSolver
 
     solver = SmartSolver()
 

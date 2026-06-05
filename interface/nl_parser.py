@@ -1,6 +1,6 @@
 import re
 from typing import Dict, List, Optional, Tuple
-from core.problem_spec import ProblemSpec, ProblemType, Objective, Constraint
+from aalgoi.core.problem_spec import ProblemSpec, ProblemType, Objective, Constraint
 
 PATTERNS: List[Dict] = [
     {

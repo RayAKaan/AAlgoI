@@ -2,10 +2,10 @@ from setuptools import setup, find_packages
 
 setup(
     name="aalgoi",
-    version="1.4.0",
+    version="2.1.0",
     description="Artificial Algorithm Intelligence with RL - Self-Adaptive Algorithm Selection",
-    packages=find_packages(include=["core*", "algorithms*", "interface*", "domains*", "utils*", "aalgoi*"]),
-    py_modules=["pipeline"],
+    packages=find_packages(include=["aalgoi*"]),
+    # py_modules moved under aalgoi/ namespace
     install_requires=[
         "numpy>=1.20.0",
         "networkx>=3.0",

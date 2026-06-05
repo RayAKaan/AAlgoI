@@ -9,7 +9,7 @@ from interface.nl_parser import (
     parse_description, extract_data_from_description,
     parse_solve_input, PATTERNS
 )
-from core.problem_spec import ProblemSpec, ProblemType
+from aalgoi.core.problem_spec import ProblemSpec, ProblemType
 
 
 class TestNLParseSorting(unittest.TestCase):

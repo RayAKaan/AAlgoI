@@ -1,6 +1,6 @@
 import pytest
 
-from core.sandboxed_executor import (
+from aalgoi.core.sandboxed_executor import (
     SandboxValidator,
     create_sandboxed_module,
     execute_sandboxed,

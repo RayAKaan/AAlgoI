@@ -1,5 +1,5 @@
 import pytest
-from algorithms.optimization import GreedyKnapsack, SimulatedAnnealing
+from aalgoi.algorithms.optimization import GreedyKnapsack, SimulatedAnnealing
 
 
 ITEMS = [
@@ -66,12 +66,12 @@ def test_simulated_annealing_tags():
 
 
 def test_optimization_auto_detect_from_tuple():
-    from core.problem_spec import ProblemSpec, ProblemType
+    from aalgoi.core.problem_spec import ProblemSpec, ProblemType
     data = ProblemSpec._infer_from_data_shape((ITEMS, 50))
     assert data == ProblemType.OPTIMIZATION
 
 
 def test_optimization_auto_detect_from_dict():
-    from core.problem_spec import ProblemSpec, ProblemType
+    from aalgoi.core.problem_spec import ProblemSpec, ProblemType
     data = ProblemSpec._infer_from_data_shape({"items": ITEMS, "capacity": 50})
     assert data == ProblemType.OPTIMIZATION

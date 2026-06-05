@@ -8,8 +8,8 @@ import numpy as np
 import logging
 from typing import Dict, Tuple, Optional
 
-from core.rl.powerhouse_agent import WorldModel, MultiTaskAgent
-from core.rl.agents.selection_agent import PPOAgent
+from aalgoi.core.rl.powerhouse_agent import WorldModel, MultiTaskAgent
+from aalgoi.core.rl.agents.selection_agent import PPOAgent
 
 logger = logging.getLogger(__name__)
 

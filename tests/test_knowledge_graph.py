@@ -1,5 +1,5 @@
 import pytest
-from core.knowledge_graph import AlgorithmKnowledgeGraph
+from aalgoi.core.knowledge_graph import AlgorithmKnowledgeGraph
 
 
 # ---------- Construction ----------

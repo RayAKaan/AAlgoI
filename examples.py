@@ -7,7 +7,7 @@ Demonstrates all new features: vector KB, validation, bandit, drift detection,
 DAG pipelines, LLM advisor, decision audit log, and genetic evolution.
 """
 
-from pipeline import AAlgoI
+from aalgoi.pipeline import AAlgoI
 import random
 import time
 import numpy as np

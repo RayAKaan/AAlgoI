@@ -4,8 +4,8 @@ import os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from core.problem_spec import ProblemSpec, ProblemType
-from pipeline import UniversalSolver
+from aalgoi.core.problem_spec import ProblemSpec, ProblemType
+from aalgoi.pipeline import UniversalSolver
 
 
 class TestNeverFail:
@@ -84,7 +84,7 @@ class TestNeverFail:
         assert result["success"] is True
 
     def test_context_engine_fallback_for_unknown(self, solver):
-        from core.context_engine import ContextEngine
+        from aalgoi.core.context_engine import ContextEngine
         engine = ContextEngine()
         context = engine.analyze([1, 2, 3], task_type="unknown")
         assert context["task_type"] == "safety"

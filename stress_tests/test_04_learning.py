@@ -1,6 +1,6 @@
 import time
 import random
-from core.smart_solver import SmartSolver
+from aalgoi.core.smart_solver import SmartSolver
 
 def test_system_learns_over_time():
     solver = SmartSolver()
@@ -27,7 +27,7 @@ def test_system_learns_over_time():
     optimal_map = {
         "nearly_sorted": "timsort",
         "random":        "quicksort",
-        "reverse":       "heapsort",
+        "reverse":       "heap_sort",
     }
 
     first_50_optimal = 0

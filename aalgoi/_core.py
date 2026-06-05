@@ -293,7 +293,7 @@ def session(path: str | Path | None = None):
 def _create_mind(path: Path):
     """Create a mind — with or without torch."""
     if _torch_available():
-        create_fn = _try_import("core.mind.rl_mind", "create_mind")
+        create_fn = _try_import("aalgoi.core.mind.rl_mind", "create_mind")
         if create_fn:
             try:
                 return create_fn(str(path))
@@ -301,7 +301,7 @@ def _create_mind(path: Path):
                 pass
 
     # No-torch fallback: try KG-only mind
-    create_fn = _try_import("core.knowledge_graph", "AlgorithmKnowledgeGraph")
+    create_fn = _try_import("aalgoi.core.knowledge_graph", "AlgorithmKnowledgeGraph")
     if create_fn:
         try:
             kg = create_fn()
@@ -411,7 +411,7 @@ def _rule_based_solve(problem_text: str, data: Any) -> dict:
             capacity = data.get("capacity", data.get("cap", None))
             if items and capacity is not None:
                 try:
-                    from algorithms.optimization.optimization_algos import GreedyKnapsack
+                    from aalgoi.algorithms.optimization.optimization_algos import GreedyKnapsack
                     solver = GreedyKnapsack()
                     result = solver.solve({"items": items, "capacity": capacity})
                     if result.get("valid"):

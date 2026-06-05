@@ -22,8 +22,8 @@ class RewardBridge:
     def __init__(self):
         self._shaper = None
         for cls_path in [
-            "core.rl.reward_shaper.AdaptiveRewardShaper",
-            "core.rl.reward_shaper.RewardShaper",
+            "aalgoi.core.rl.reward_shaper.AdaptiveRewardShaper",
+            "aalgoi.core.rl.reward_shaper.RewardShaper",
         ]:
             try:
                 module_path, cls_name = cls_path.rsplit(".", 1)

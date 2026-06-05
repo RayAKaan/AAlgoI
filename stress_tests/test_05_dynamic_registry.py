@@ -1,6 +1,6 @@
 import time
-from algorithms.base import Algorithm
-from core.smart_solver import SmartSolver
+from aalgoi.algorithms.base import Algorithm
+from aalgoi.core.smart_solver import SmartSolver
 
 class PerfectSorter(Algorithm):
     name = "PerfectSorter"

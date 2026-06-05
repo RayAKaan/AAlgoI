@@ -72,7 +72,7 @@ def _load_data(data_arg) -> Any:
 
 
 @click.group(cls=AliasedGroup)
-@click.version_option("1.2.0", prog_name="aalgoi")
+@click.version_option("1.4.0", prog_name="aalgoi")
 def main():
     """
     AAlgoI — Self-adaptive algorithm intelligence.
@@ -141,7 +141,7 @@ def cmd_explain(algorithm, detail):
         aalgoi explain quicksort
         aalgoi e timsort --detail detailed
     """
-    from core.explainer import Explainer
+    from aalgoi.core.explainer import Explainer
 
     explainer = Explainer()
     exp = explainer.explain(algorithm, detail=detail)
@@ -210,7 +210,7 @@ def cmd_benchmark(problem, n, runs):
 @main.command("stats")
 def cmd_stats():
     """Show solver performance statistics."""
-    from core.smart_solver import SmartSolver
+    from aalgoi.core.smart_solver import SmartSolver
 
     solver = SmartSolver()
     stats = solver.solver.get_stats()
@@ -262,8 +262,8 @@ def marketplace():
 @marketplace.command("list")
 def list_marketplace():
     """List all registered algorithms."""
-    from core.registry_manager import DynamicRegistry
-    from core.smart_solver import SmartSolver
+    from aalgoi.core.registry_manager import DynamicRegistry
+    from aalgoi.core.smart_solver import SmartSolver
 
     solver = SmartSolver()
     registry = DynamicRegistry(solver.solver.registry)
@@ -278,7 +278,7 @@ def list_marketplace():
 @click.argument("query")
 def search_marketplace(query):
     """Search for algorithms by keyword."""
-    from core.algorithm_marketplace import AlgorithmMarketplace
+    from aalgoi.core.algorithm_marketplace import AlgorithmMarketplace
 
     mkt = AlgorithmMarketplace()
     results = mkt.find_by_use_case(query)
@@ -321,7 +321,7 @@ def checkpoint_list(json_output):
         aalgoi checkpoint list
         aalgoi checkpoint list --json-output
     """
-    from core.checkpoint_manager import CheckpointManager
+    from aalgoi.core.checkpoint_manager import CheckpointManager
 
     manager     = CheckpointManager()
     checkpoints = manager.list_checkpoints()
@@ -391,7 +391,7 @@ def checkpoint_rollback(version, dry_run):
         aalgoi checkpoint rollback --version 3  # specific version
         aalgoi checkpoint rollback --dry-run    # preview only
     """
-    from core.checkpoint_manager import CheckpointManager
+    from aalgoi.core.checkpoint_manager import CheckpointManager
 
     manager  = CheckpointManager()
     manifest = manager._load_manifest()
@@ -474,7 +474,7 @@ def checkpoint_reset(confirm):
         aalgoi checkpoint reset
         aalgoi checkpoint reset --confirm   # no prompt
     """
-    from core.checkpoint_manager import CheckpointManager
+    from aalgoi.core.checkpoint_manager import CheckpointManager
 
     manager  = CheckpointManager()
     manifest = manager._load_manifest()
@@ -510,7 +510,7 @@ def checkpoint_info():
         aalgoi checkpoint info
     """
     from pathlib import Path
-    from core.checkpoint_manager import CheckpointManager
+    from aalgoi.core.checkpoint_manager import CheckpointManager
 
     manager     = CheckpointManager()
     manifest    = manager._load_manifest()
@@ -588,7 +588,7 @@ def sync_group():
 @sync_group.command("status")
 def sync_status():
     """Show registry sync status, backoff state, and queue depth."""
-    from core.registry_sync import GitHubRegistrySync, _load_registry_config
+    from aalgoi.core.registry_sync import GitHubRegistrySync, _load_registry_config
 
     cfg = _load_registry_config()
     url = cfg.get("base_url", "https://raw.githubusercontent.com/aalgoi/algorithm-registry/main")
@@ -615,7 +615,7 @@ def sync_status():
     click.echo(f"  Registered algos   : {count}")
 
     # Check token
-    from core.token_manager import TokenManager
+    from aalgoi.core.token_manager import TokenManager
     token = TokenManager.get_token()
     if token:
         click.echo(f"  Auth token         : {click.style('set', fg='green')} ({token[:8]}...)")
@@ -634,9 +634,9 @@ def sync_status():
 @sync_group.command("pull")
 def sync_pull():
     """Force a registry sync pull now."""
-    from core.registry_manager import DynamicRegistry
-    from core.algorithm_embedder import AlgorithmEmbedder
-    from core.registry_sync import GitHubRegistrySync
+    from aalgoi.core.registry_manager import DynamicRegistry
+    from aalgoi.core.algorithm_embedder import AlgorithmEmbedder
+    from aalgoi.core.registry_sync import GitHubRegistrySync
 
     registry = DynamicRegistry(None)
     embedder = AlgorithmEmbedder()
@@ -673,9 +673,9 @@ def sync_pull():
 @click.option("--dry-run", is_flag=True, help="Validate without pushing")
 def sync_push(algorithm_name, token, dry_run):
     """Push a discovered algorithm upstream to GitHub."""
-    from core.registry_manager import DynamicRegistry
-    from core.algorithm_embedder import AlgorithmEmbedder
-    from core.registry_sync import GitHubRegistrySync
+    from aalgoi.core.registry_manager import DynamicRegistry
+    from aalgoi.core.algorithm_embedder import AlgorithmEmbedder
+    from aalgoi.core.registry_sync import GitHubRegistrySync
 
     registry = DynamicRegistry(None)
     embedder = AlgorithmEmbedder()

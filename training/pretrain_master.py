@@ -22,9 +22,9 @@ from typing import Any, Dict, List, Optional, Tuple
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from core.rl.agents.selection_agent import PPOAgent
-from core.rl.powerhouse_agent import WorldModel
-from core.problem_spec import ProblemSpec, ProblemType
+from aalgoi.core.rl.agents.selection_agent import PPOAgent
+from aalgoi.core.rl.powerhouse_agent import WorldModel
+from aalgoi.core.problem_spec import ProblemSpec, ProblemType
 from training.curriculum import CurriculumScheduler
 from training.self_play import SelfPlayEngine
 from training.data_generator import SyntheticDataGenerator
@@ -49,7 +49,7 @@ class PreTrainer:
         self.idx_to_algo = {i: name for name, i in self.algo_to_idx.items()}
         self.save_path = save_path
 
-        from core.algorithm_embedder import AlgorithmEmbedder
+        from aalgoi.core.algorithm_embedder import AlgorithmEmbedder
         self.embedder = embedder or AlgorithmEmbedder()
         self.embedder.embed_all(registry)
         all_embeds = self.embedder.get_all_embeddings(registry)
@@ -310,7 +310,7 @@ class PreTrainer:
             elif patterns.get("is_sorted"):
                 name = self._find_algo("timsort")
             else:
-                name = self._find_algo("quicksort", "merge_sort", "heapsort")
+                name = self._find_algo("quicksort", "merge_sort", "heap_sort")
 
         elif pt == ProblemType.PATHFINDING:
             name = self._find_algo("a_star", "dijkstra")
@@ -512,8 +512,8 @@ if __name__ == "__main__":
         format="%(asctime)s - %(levelname)s - %(message)s",
     )
 
-    from pipeline import UniversalSolver
-    from core.algorithm_embedder import AlgorithmEmbedder
+    from aalgoi.pipeline import UniversalSolver
+    from aalgoi.core.algorithm_embedder import AlgorithmEmbedder
 
     solver = UniversalSolver()
     agent = solver.meta_controller.rl_agent

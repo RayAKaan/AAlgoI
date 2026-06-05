@@ -1,7 +1,7 @@
 """Unit tests for cross-domain knowledge graph routing."""
 import pytest
-from core.knowledge_graph import AlgorithmKnowledgeGraph
-from core.meta_controller import UniversalMetaController
+from aalgoi.core.knowledge_graph import AlgorithmKnowledgeGraph
+from aalgoi.core.meta_controller import UniversalMetaController
 
 
 # ── Helper: build a minimal KG with cross-domain edges ──────────────────────
@@ -141,7 +141,7 @@ class TestIntegrationWithMetaController:
 
         # Use sorting with 100 elements (no SmallN constraint)
         mc._cross_domain_pool = []
-        from core.problem_spec import ProblemSpec, ProblemType
+        from aalgoi.core.problem_spec import ProblemSpec, ProblemType
         spec = ProblemSpec(name="test", problem_type=ProblemType.SORTING)
         context = {"data": list(range(100, 0, -1)), "data_profile": {"size": 100}}
 

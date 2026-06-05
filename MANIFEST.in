@@ -1,13 +1,13 @@
 # Include essential source
-include pipeline.py
+# include pipeline.py  -- moved under aalgoi/
 include pyproject.toml
 include README.md
 include LICENSE
 
 # Include packages
 recursive-include aalgoi *.py
-recursive-include core *.py
-recursive-include algorithms *.py
+recursive-include aalgoi/core *.py
+recursive-include aalgoi/algorithms *.py
 recursive-include interface *.py
 
 # Exclude everything else

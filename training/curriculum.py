@@ -6,7 +6,7 @@ Starts easy, increases difficulty as agent improves.
 import logging
 from typing import Tuple, Any
 
-from core.problem_spec import ProblemSpec, ProblemType
+from aalgoi.core.problem_spec import ProblemSpec, ProblemType
 from training.data_generator import SyntheticDataGenerator
 
 logger = logging.getLogger(__name__)

@@ -2,7 +2,7 @@
 import ast
 import time
 
-from core.ast_optimizer import ASTOptimizer
+from aalgoi.core.ast_optimizer import ASTOptimizer
 
 
 # ── Baseline: no change tests ───────────────────────────────────────────

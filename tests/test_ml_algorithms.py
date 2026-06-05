@@ -57,7 +57,7 @@ def high_dim_data():
 class TestMLAlgorithmBase:
 
     def test_extract_data_dict(self):
-        from algorithms.ml.base import MLAlgorithm
+        from aalgoi.algorithms.ml.base import MLAlgorithm
         from sklearn.linear_model import LinearRegression
 
         algo = MLAlgorithm(LinearRegression, name="test")
@@ -73,7 +73,7 @@ class TestMLAlgorithmBase:
         assert np.array_equal(X_test, X)
 
     def test_extract_data_tuple(self):
-        from algorithms.ml.base import MLAlgorithm
+        from aalgoi.algorithms.ml.base import MLAlgorithm
         from sklearn.linear_model import LinearRegression
 
         algo = MLAlgorithm(LinearRegression, name="test")
@@ -87,7 +87,7 @@ class TestMLAlgorithmBase:
         assert X_test is None
 
     def test_extract_data_bare_array(self):
-        from algorithms.ml.base import MLAlgorithm
+        from aalgoi.algorithms.ml.base import MLAlgorithm
         from sklearn.linear_model import LinearRegression
 
         algo = MLAlgorithm(LinearRegression, name="test")
@@ -100,7 +100,7 @@ class TestMLAlgorithmBase:
         assert X_test is None
 
     def test_process_returns_dict(self, classification_data):
-        from algorithms.ml.classical import LogisticRegressionAlgo
+        from aalgoi.algorithms.ml.classical import LogisticRegressionAlgo
 
         algo = LogisticRegressionAlgo()
         result = algo.process(classification_data)
@@ -110,7 +110,7 @@ class TestMLAlgorithmBase:
         assert "algorithm" in result
 
     def test_validate_output_true_on_success(self, classification_data):
-        from algorithms.ml.classical import LogisticRegressionAlgo
+        from aalgoi.algorithms.ml.classical import LogisticRegressionAlgo
 
         algo = LogisticRegressionAlgo()
         result = algo.process(classification_data)
@@ -118,7 +118,7 @@ class TestMLAlgorithmBase:
         assert algo.validate_output(classification_data, result) is True
 
     def test_validate_output_false_on_failure(self):
-        from algorithms.ml.classical import LogisticRegressionAlgo
+        from aalgoi.algorithms.ml.classical import LogisticRegressionAlgo
 
         algo = LogisticRegressionAlgo()
         result = {"trained": False, "error": "bad data"}
@@ -126,7 +126,7 @@ class TestMLAlgorithmBase:
         assert algo.validate_output(None, result) is False
 
     def test_describe_returns_metadata(self):
-        from algorithms.ml.classical import LogisticRegressionAlgo
+        from aalgoi.algorithms.ml.classical import LogisticRegressionAlgo
 
         algo = LogisticRegressionAlgo()
         meta = algo.describe()
@@ -139,7 +139,7 @@ class TestMLAlgorithmBase:
 class TestLinearRegression:
 
     def test_process_fits_model(self, regression_data):
-        from algorithms.ml import LinearRegressionAlgo
+        from aalgoi.algorithms.ml import LinearRegressionAlgo
 
         algo = LinearRegressionAlgo()
         result = algo.process(regression_data)
@@ -148,7 +148,7 @@ class TestLinearRegression:
         assert result["algorithm"] == "linear_regression"
 
     def test_returns_r2_score(self, regression_data):
-        from algorithms.ml import LinearRegressionAlgo
+        from aalgoi.algorithms.ml import LinearRegressionAlgo
 
         algo = LinearRegressionAlgo()
         result = algo.process(regression_data)
@@ -157,7 +157,7 @@ class TestLinearRegression:
         assert 0.0 <= result["r2_score"] <= 1.0
 
     def test_predicts_on_test_data(self, regression_data):
-        from algorithms.ml import LinearRegressionAlgo
+        from aalgoi.algorithms.ml import LinearRegressionAlgo
 
         algo = LinearRegressionAlgo()
         X_test = np.random.rand(10, 3)
@@ -168,7 +168,7 @@ class TestLinearRegression:
         assert len(result["predictions"]) == 10
 
     def test_tags_include_regression(self):
-        from algorithms.ml import LinearRegressionAlgo
+        from aalgoi.algorithms.ml import LinearRegressionAlgo
 
         algo = LinearRegressionAlgo()
         assert "regression" in algo.tags
@@ -178,7 +178,7 @@ class TestLinearRegression:
 class TestRidge:
 
     def test_process_fits_model(self, regression_data):
-        from algorithms.ml import RidgeAlgo
+        from aalgoi.algorithms.ml import RidgeAlgo
 
         algo = RidgeAlgo()
         result = algo.process(regression_data)
@@ -187,7 +187,7 @@ class TestRidge:
         assert result["algorithm"] == "ridge"
 
     def test_handles_multicollinearity(self):
-        from algorithms.ml import RidgeAlgo
+        from aalgoi.algorithms.ml import RidgeAlgo
 
         np.random.seed(42)
         X = np.random.rand(100, 2)
@@ -203,7 +203,7 @@ class TestRidge:
 class TestLasso:
 
     def test_process_fits_model(self, regression_data):
-        from algorithms.ml import LassoAlgo
+        from aalgoi.algorithms.ml import LassoAlgo
 
         algo = LassoAlgo()
         result = algo.process(regression_data)
@@ -212,7 +212,7 @@ class TestLasso:
         assert result["algorithm"] == "lasso"
 
     def test_feature_selection(self):
-        from algorithms.ml import LassoAlgo
+        from aalgoi.algorithms.ml import LassoAlgo
 
         np.random.seed(42)
         X = np.random.rand(100, 10)
@@ -229,7 +229,7 @@ class TestLasso:
 class TestLogisticRegression:
 
     def test_process_fits_model(self, classification_data):
-        from algorithms.ml import LogisticRegressionAlgo
+        from aalgoi.algorithms.ml import LogisticRegressionAlgo
 
         algo = LogisticRegressionAlgo()
         result = algo.process(classification_data)
@@ -239,7 +239,7 @@ class TestLogisticRegression:
         assert result["accuracy"] > 0.8
 
     def test_predicts_on_test_data(self, classification_data):
-        from algorithms.ml import LogisticRegressionAlgo
+        from aalgoi.algorithms.ml import LogisticRegressionAlgo
 
         algo = LogisticRegressionAlgo()
         X_test = np.random.rand(10, 5)
@@ -253,7 +253,7 @@ class TestLogisticRegression:
 class TestKNN:
 
     def test_process_fits_model(self, classification_data):
-        from algorithms.ml import KNNAlgo
+        from aalgoi.algorithms.ml import KNNAlgo
 
         algo = KNNAlgo()
         result = algo.process(classification_data)
@@ -262,7 +262,7 @@ class TestKNN:
         assert "accuracy" in result
 
     def test_small_data_works(self):
-        from algorithms.ml import KNNAlgo
+        from aalgoi.algorithms.ml import KNNAlgo
 
         np.random.seed(42)
         X = np.random.rand(20, 2)
@@ -277,7 +277,7 @@ class TestKNN:
 class TestSVM:
 
     def test_process_fits_model(self, classification_data):
-        from algorithms.ml import SVMAlgo
+        from aalgoi.algorithms.ml import SVMAlgo
 
         algo = SVMAlgo()
         result = algo.process(classification_data)
@@ -286,7 +286,7 @@ class TestSVM:
         assert "accuracy" in result
 
     def test_n_support_reported(self, classification_data):
-        from algorithms.ml import SVMAlgo
+        from aalgoi.algorithms.ml import SVMAlgo
 
         algo = SVMAlgo()
         result = algo.process(classification_data)
@@ -298,7 +298,7 @@ class TestSVM:
 class TestGaussianNB:
 
     def test_process_fits_model(self, classification_data):
-        from algorithms.ml import GaussianNBAlgo
+        from aalgoi.algorithms.ml import GaussianNBAlgo
 
         algo = GaussianNBAlgo()
         result = algo.process(classification_data)
@@ -308,7 +308,7 @@ class TestGaussianNB:
 
     def test_fast_training(self, classification_data):
         import time
-        from algorithms.ml import GaussianNBAlgo
+        from aalgoi.algorithms.ml import GaussianNBAlgo
 
         algo = GaussianNBAlgo()
 
@@ -322,7 +322,7 @@ class TestGaussianNB:
 class TestRandomForest:
 
     def test_classification_mode(self, classification_data):
-        from algorithms.ml.ensemble import RandomForestAlgo
+        from aalgoi.algorithms.ml.ensemble import RandomForestAlgo
 
         algo = RandomForestAlgo(task="classification")
         result = algo.process(classification_data)
@@ -332,7 +332,7 @@ class TestRandomForest:
         assert result["accuracy"] > 0.8
 
     def test_regression_mode(self, regression_data):
-        from algorithms.ml.ensemble import RandomForestAlgo
+        from aalgoi.algorithms.ml.ensemble import RandomForestAlgo
 
         algo = RandomForestAlgo(task="regression")
         result = algo.process(regression_data)
@@ -341,7 +341,7 @@ class TestRandomForest:
         assert "r2_score" in result
 
     def test_tags_correct(self):
-        from algorithms.ml.ensemble import RandomForestAlgo
+        from aalgoi.algorithms.ml.ensemble import RandomForestAlgo
 
         algo = RandomForestAlgo(task="classification")
         assert "ensemble" in algo.tags
@@ -351,13 +351,13 @@ class TestRandomForest:
 class TestXGBoost:
 
     def test_available_check(self):
-        from algorithms.ml.ensemble import XGBoostAlgo
+        from aalgoi.algorithms.ml.ensemble import XGBoostAlgo
 
         algo = XGBoostAlgo(task="classification")
         assert isinstance(algo._available, bool)
 
     def test_raises_if_unavailable(self, classification_data):
-        from algorithms.ml.ensemble import XGBoostAlgo
+        from aalgoi.algorithms.ml.ensemble import XGBoostAlgo
 
         algo = XGBoostAlgo(task="classification")
 
@@ -369,7 +369,7 @@ class TestXGBoost:
             assert result["trained"] is True
 
     def test_classification_if_available(self, classification_data):
-        from algorithms.ml.ensemble import XGBoostAlgo
+        from aalgoi.algorithms.ml.ensemble import XGBoostAlgo
 
         algo = XGBoostAlgo(task="classification")
 
@@ -382,13 +382,13 @@ class TestXGBoost:
 class TestLightGBM:
 
     def test_available_check(self):
-        from algorithms.ml.ensemble import LightGBMAlgo
+        from aalgoi.algorithms.ml.ensemble import LightGBMAlgo
 
         algo = LightGBMAlgo(task="classification")
         assert isinstance(algo._available, bool)
 
     def test_raises_if_unavailable(self, classification_data):
-        from algorithms.ml.ensemble import LightGBMAlgo
+        from aalgoi.algorithms.ml.ensemble import LightGBMAlgo
 
         algo = LightGBMAlgo(task="classification")
 
@@ -403,7 +403,7 @@ class TestLightGBM:
 class TestKMeans:
 
     def test_clusters_data(self, clustering_data):
-        from algorithms.ml import KMeansClustering
+        from aalgoi.algorithms.ml import KMeansClustering
 
         algo = KMeansClustering()
         result = algo.process(clustering_data)
@@ -413,7 +413,7 @@ class TestKMeans:
         assert len(result["labels"]) == 90
 
     def test_returns_cluster_centers(self, clustering_data):
-        from algorithms.ml import KMeansClustering
+        from aalgoi.algorithms.ml import KMeansClustering
 
         algo = KMeansClustering()
         result = algo.process(clustering_data)
@@ -425,7 +425,7 @@ class TestKMeans:
 class TestDBSCAN:
 
     def test_clusters_data(self, clustering_data):
-        from algorithms.ml import DBSCANClustering
+        from aalgoi.algorithms.ml import DBSCANClustering
 
         algo = DBSCANClustering()
         result = algo.process(clustering_data)
@@ -434,7 +434,7 @@ class TestDBSCAN:
         assert "labels" in result
 
     def test_detects_noise(self):
-        from algorithms.ml import DBSCANClustering
+        from aalgoi.algorithms.ml import DBSCANClustering
 
         np.random.seed(42)
         X = np.vstack([
@@ -451,7 +451,7 @@ class TestDBSCAN:
 class TestGMM:
 
     def test_clusters_data(self, clustering_data):
-        from algorithms.ml.clustering import GMMAlgo
+        from aalgoi.algorithms.ml.clustering import GMMAlgo
 
         algo = GMMAlgo()
         result = algo.process(clustering_data)
@@ -460,7 +460,7 @@ class TestGMM:
         assert "labels" in result
 
     def test_returns_weights(self, clustering_data):
-        from algorithms.ml.clustering import GMMAlgo
+        from aalgoi.algorithms.ml.clustering import GMMAlgo
 
         algo = GMMAlgo()
         result = algo.process(clustering_data)
@@ -472,7 +472,7 @@ class TestGMM:
 class TestPCA:
 
     def test_reduces_dimensionality(self, high_dim_data):
-        from algorithms.ml.clustering import PCAReductionAlgo
+        from aalgoi.algorithms.ml.clustering import PCAReductionAlgo
 
         algo = PCAReductionAlgo()
         result = algo.process(high_dim_data)
@@ -483,7 +483,7 @@ class TestPCA:
         assert len(result["transformed"][0]) == 2
 
     def test_explained_variance(self, high_dim_data):
-        from algorithms.ml.clustering import PCAReductionAlgo
+        from aalgoi.algorithms.ml.clustering import PCAReductionAlgo
 
         algo = PCAReductionAlgo()
         result = algo.process(high_dim_data)
@@ -535,7 +535,7 @@ class TestSolveRouting:
 class TestRewardShaperML:
 
     def test_accuracy_increases_reward(self):
-        from core.rl.reward_shaper import RewardShaper
+        from aalgoi.core.rl.reward_shaper import RewardShaper
 
         shaper = RewardShaper()
 
@@ -552,7 +552,7 @@ class TestRewardShaperML:
         assert reward_high > reward_low
 
     def test_r2_score_increases_reward(self):
-        from core.rl.reward_shaper import RewardShaper
+        from aalgoi.core.rl.reward_shaper import RewardShaper
 
         shaper = RewardShaper()
 
@@ -569,7 +569,7 @@ class TestRewardShaperML:
         assert reward_high > reward_low
 
     def test_no_metrics_same_as_before(self):
-        from core.rl.reward_shaper import RewardShaper
+        from aalgoi.core.rl.reward_shaper import RewardShaper
 
         shaper = RewardShaper()
         reward = shaper.compute(
@@ -583,7 +583,7 @@ class TestRewardShaperML:
 class TestContextEngineML:
 
     def test_profiles_classification_data(self, classification_data):
-        from core.context_engine import ContextEngine
+        from aalgoi.core.context_engine import ContextEngine
 
         engine = ContextEngine()
         profile = engine._analyze_ml_data(classification_data)
@@ -595,7 +595,7 @@ class TestContextEngineML:
         assert profile["n_classes"] == 2
 
     def test_profiles_regression_data(self, regression_data):
-        from core.context_engine import ContextEngine
+        from aalgoi.core.context_engine import ContextEngine
 
         engine = ContextEngine()
         profile = engine._analyze_ml_data(regression_data)
@@ -607,7 +607,7 @@ class TestContextEngineML:
         assert "target_mean" in profile
 
     def test_profiles_bare_array(self):
-        from core.context_engine import ContextEngine
+        from aalgoi.core.context_engine import ContextEngine
 
         engine = ContextEngine()
         X = np.random.rand(50, 10)
@@ -618,7 +618,7 @@ class TestContextEngineML:
         assert profile["n_features"] == 10
 
     def test_samples_per_feature(self):
-        from core.context_engine import ContextEngine
+        from aalgoi.core.context_engine import ContextEngine
 
         engine = ContextEngine()
         X = np.random.rand(100, 5)
@@ -627,7 +627,7 @@ class TestContextEngineML:
         assert profile["samples_per_feature"] == 20.0
 
     def test_imbalance_ratio(self):
-        from core.context_engine import ContextEngine
+        from aalgoi.core.context_engine import ContextEngine
 
         engine = ContextEngine()
         X = np.random.rand(100, 5)
@@ -680,7 +680,7 @@ class TestExplainerML:
 class TestRegistryML:
 
     def test_all_ml_algos_in_registry(self):
-        from pipeline import UniversalSolver
+        from aalgoi.pipeline import UniversalSolver
 
         solver = UniversalSolver()
 
@@ -696,7 +696,7 @@ class TestRegistryML:
             assert name in solver.registry, f"{name} not in registry"
 
     def test_registry_count_increased(self):
-        from pipeline import UniversalSolver
+        from aalgoi.pipeline import UniversalSolver
 
         solver = UniversalSolver()
 
@@ -706,7 +706,7 @@ class TestRegistryML:
 class TestMLEdgeCases:
 
     def test_single_sample(self):
-        from algorithms.ml import GaussianNBAlgo
+        from aalgoi.algorithms.ml import GaussianNBAlgo
 
         algo = GaussianNBAlgo()
         X = np.array([[1, 2, 3]])
@@ -717,7 +717,7 @@ class TestMLEdgeCases:
         assert "trained" in result
 
     def test_very_large_n_features(self):
-        from algorithms.ml import GaussianNBAlgo
+        from aalgoi.algorithms.ml import GaussianNBAlgo
 
         np.random.seed(42)
         X = np.random.rand(50, 1000)
@@ -729,7 +729,7 @@ class TestMLEdgeCases:
         assert result["trained"] is True
 
     def test_predict_without_fit_fails(self):
-        from algorithms.ml import LogisticRegressionAlgo
+        from aalgoi.algorithms.ml import LogisticRegressionAlgo
 
         algo = LogisticRegressionAlgo()
         assert algo.model is None

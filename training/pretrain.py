@@ -9,11 +9,11 @@ from tqdm import tqdm
 from collections import defaultdict, deque
 from typing import Dict, List, Tuple, Any
 
-from core.rl.agents.selection_agent import PPOAgent
-from core.context_engine import ContextEngine
-from core.problem_spec import ProblemSpec, ProblemType
-from core.validator import LearningValidator
-from pipeline import UniversalSolver
+from aalgoi.core.rl.agents.selection_agent import PPOAgent
+from aalgoi.core.context_engine import ContextEngine
+from aalgoi.core.problem_spec import ProblemSpec, ProblemType
+from aalgoi.core.validator import LearningValidator
+from aalgoi.pipeline import UniversalSolver
 from training.data_generator import SyntheticDataGenerator, CurriculumLevel
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')

@@ -3,7 +3,7 @@ import numpy as np
 import logging
 from typing import Any, Dict, Tuple
 
-from core.problem_spec import ProblemSpec, ProblemType
+from aalgoi.core.problem_spec import ProblemSpec, ProblemType
 
 logger = logging.getLogger(__name__)
 

@@ -6,9 +6,9 @@ from typing import Dict, Any, List, Tuple, Optional
 
 import numpy as np
 
-from core.algorithm_marketplace import AlgorithmMarketplace, AlgorithmMetadata
-from core.rl.agents.selection_agent import PPOAgent
-from core.problem_spec import ProblemSpec, ProblemType
+from aalgoi.core.algorithm_marketplace import AlgorithmMarketplace, AlgorithmMetadata
+from aalgoi.core.rl.agents.selection_agent import PPOAgent
+from aalgoi.core.problem_spec import ProblemSpec, ProblemType
 from training.data_generator import SyntheticDataGenerator
 
 logger = logging.getLogger(__name__)
@@ -93,7 +93,7 @@ class AlgorithmDiscoveryEngine:
 
     def _synthesize_candidate(self, problem: ProblemSpec):
         """Synthesize a candidate algorithm for the given problem."""
-        from algorithms.base import Algorithm
+        from aalgoi.algorithms.base import Algorithm
 
         ptype = problem.problem_type
 

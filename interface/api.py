@@ -6,8 +6,8 @@ from pydantic import BaseModel
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from core.problem_spec import ProblemSpec
-from pipeline import UniversalSolver
+from aalgoi.core.problem_spec import ProblemSpec
+from aalgoi.pipeline import UniversalSolver
 from interface.nl_parser import parse_description, extract_data_from_description
 
 _FASTAPI_AVAILABLE = False
@@ -120,7 +120,7 @@ def create_app(solver: Optional[UniversalSolver] = None):
 
     @app.post("/explain")
     async def explain_algorithm(request: ExplainRequest):
-        from core.explainer import Explainer
+        from aalgoi.core.explainer import Explainer
         explainer = Explainer()
         exp = explainer.explain(request.algorithm_name, detail=request.detail)
         return {

@@ -1,449 +1,437 @@
-# AAlgoI — Adaptive Algorithm Intelligence
+# aalgoi — Algorithmic AI
 
-**Artificial Algorithm Intelligence** — a self-adaptive system that automatically selects, executes, and learns from the best algorithm for any given problem. Combining reinforcement learning, a semantic knowledge graph, and a growing registry of 20+ algorithms across sorting, pathfinding, optimization, and machine learning domains.
+[![PyPI version](https://img.shields.io/pypi/v/aalgoi.svg)](https://pypi.org/project/aalgoi/)
+[![Python 3.11+](https://img.shields.io/pypi/pyversions/aalgoi.svg)](https://pypi.org/project/aalgoi/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![MIT License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-365%20passing-brightgreen.svg)](tests/)
+**An algorithmic mind that learns, reasons, and discovers.**
 
----
+aalgoi solves algorithmic problems from natural language descriptions. It doesn't look up answers — it reasons about problems, selects strategies, generates code, proves correctness, and learns from experience. Over time, it discovers new algorithms.
 
-## Features
+```python
+import aalgoi
 
-- **Algorithm Selector** — PPO-based RL agent picks the optimal algorithm from 20+ candidates based on problem type and data patterns
-- **Semantic Knowledge Graph** — NetworkX-powered graph encoding relationships (Problem → Algorithm → Pattern → Constraint) that constrains RL choices and provides fallback alternatives
-- **Pre-Trained Model** — 3-stage pipeline (supervised + RL curriculum + self-play) produces a 0.72 MB model with ~0.6 ms inference, validated on sorting, pathfinding, and domain routing (100% accuracy)
-- **Self-Learning** — Every execution records feedback (quality, timing, success) to personalize the model via fine-tuning and bandit updates
-- **Algorithm Marketplace** — Discover, register, benchmark, and share custom algorithms across instances
-- **Natural Language Interface** — `question_parser.py` converts English descriptions into structured problem specs
-- **Federated Learning** — Optional P2P or central-server mode for cross-instance knowledge sharing
-- **Rich CLI** — `solve`, `benchmark`, `marketplace`, `ml`, `debug`, and more
-- **365 Passing Tests** — CI-verified test suite
+result = aalgoi.solve("sort the array", [3, 1, 4, 1, 5])
+print(result)          # [1, 1, 3, 4, 5]
+print(result.algorithm)  # tim_sort
+print(result.complexity) # O(n log n)
+result.explain()       # full reasoning trace
+```
 
----
+## Install
+
+```bash
+pip install aalgoi
+```
+
+Requires Python 3.11+, PyTorch 2.0+, and NetworkX 3.0+. All CPU — no GPU needed.
+
+Optional data format support:
+
+```bash
+pip install aalgoi[data]     # numpy, pandas
+pip install aalgoi[all]      # numpy, pandas, polars, scipy, scikit-learn, Pillow, pyarrow, pydantic
+```
 
 ## Quick Start
 
+### One-liner solve
+
+```python
+import aalgoi
+
+# Sort
+aalgoi.solve("sort the array", [5, 2, 8, 1, 9])
+# → [1, 2, 5, 8, 9]
+
+# Search
+aalgoi.solve("find target in sorted array", {"nums": [1,3,5,7,9], "target": 7})
+# → 3
+
+# GCD
+aalgoi.solve("find gcd", {"a": 48, "b": 18})
+# → 6
+
+# Two sum
+aalgoi.solve("find two numbers that sum to target",
+             {"nums": [2, 7, 11, 15], "target": 9})
+# → [0, 1]
+
+# Maximum subarray
+aalgoi.solve("find maximum sum subarray", [-2, 1, -3, 4, -1, 2, 1, -5, 4])
+# → 6
+```
+
+### Any data format
+
+```python
+import numpy as np
+import pandas as pd
+
+# NumPy
+aalgoi.solve("find peaks", np.array([1, 3, 2, 5, 4]))
+
+# Pandas DataFrame
+aalgoi.solve("predict revenue", pd.read_csv("sales.csv"))
+
+# Files — pass a path, it reads it
+aalgoi.solve("analyze", "data/metrics.json")
+
+# Tuples, sets, generators — all work
+aalgoi.solve("sort", (3, 1, 2))           # tuple → [1, 2, 3]
+aalgoi.solve("sort", {5, 3, 1})           # set → [1, 3, 5]
+aalgoi.solve("sort", range(5, 0, -1))     # range → [1, 2, 3, 4, 5]
+
+# Complex numbers, Decimals, datetimes, dataclasses — all normalized
+from decimal import Decimal
+aalgoi.normalize(Decimal("3.14"))          # → 3.14 (float)
+
+from datetime import datetime
+aalgoi.normalize(datetime(2024, 1, 15))    # → "2024-01-15T00:00:00" (ISO string)
+```
+
+### The result is transparent
+
+```python
+result = aalgoi.solve("sort the array", [3, 1, 4, 1, 5])
+
+# Use it like the raw output
+print(result)         # [1, 1, 3, 4, 5]
+result[0]             # 1
+len(result)           # 5
+for x in result: ...  # iterates over [1, 1, 3, 4, 5]
+result == [1,1,3,4,5] # True
+
+# Or access metadata
+result.algorithm      # "tim_sort"
+result.complexity     # "O(n log n)"
+result.confidence     # 0.95
+result.time_ms        # 142.3
+result.is_novel       # False
+result.code           # "def solve(data):\n    return sorted(data)"
+result.explain()      # Full reasoning trace
+```
+
+### Session context
+
+```python
+with aalgoi.session() as m:
+    m.solve("sort", [3, 1, 2])
+    m.solve("find gcd", {"a": 12, "b": 8})
+    m.learn("sort", [5, 4, 3], expected=[3, 4, 5])
+    print(m.status())
+```
+
+## Persistent Mind
+
+```python
+mind = aalgoi.Mind("~/my_mind")
+
+# Solve — accumulates experience
+mind.solve("sort the array", [3, 1, 4, 1, 5])
+mind.solve("find shortest path", graph_data)
+
+# Train — bootstrap from expert demonstrations
+mind.train(epochs=10)
+
+# Benchmark — 50-problem suite
+report = mind.benchmark()
+print(report)
+# 📊 Benchmark
+# ╔══════════════════════════════════════╗
+# ║ Accuracy: 42/50 (84%)               ║
+# ║ ──────────────────────────────────── ║
+# ║ integers        8/10  ██████████░░ 80% ║
+# ║ pathfinding     5/5   ████████████ 100%║
+# ║ dynamic_prog    6/8   ███████████░ 75% ║
+# ╚══════════════════════════════════════╝
+
+# Checkpoint — save a safe state
+mind.checkpoint()
+
+# Rollback — revert to last known-good state
+mind.rollback("last_good")
+
+# Inspect knowledge
+mind.algorithms    # {"tim_sort": AlgorithmInfo(...), "dijkstra": AlgorithmInfo(...), ...}
+mind.principles    # ["optimal_substructure", "greedy_exchange", "divide_conquer", ...]
+mind.problems      # ["SORTING", "PATHFINDING", "DYNAMIC_PROGRAMMING", ...]
+
+# Federated learning — share discoveries
+mind.share()       # export updates
+mind.receive()     # import updates from other minds
+
+# Status
+print(mind.status())
+# 🧠 Algorithmic Mind
+# ╔══════════════════════════════════════╗
+# ║ Algorithms:  42                      ║
+# ║ Principles:  18                      ║
+# ║ Problems:    24                      ║
+# ║ Discovered:  3                       ║
+# ║ Solved:      127                     ║
+# ║ Success rate: 89%                    ║
+# ║ Avg time:     98.3ms                 ║
+# ╚══════════════════════════════════════╝
+```
+
+## Algorithm Coverage
+
+aalgoi knows and can reason about algorithms across these domains:
+
+| Domain | Algorithms |
+|--------|-----------|
+| **Sorting** | tim_sort, quick_sort, merge_sort, heap_sort, radix_sort, bubble_sort, counting_sort |
+| **Searching** | binary_search, linear_search, hash_complement, two_pointer |
+| **Pathfinding** | dijkstra, bfs, dfs, a_star, bellman_ford, floyd_warshall |
+| **Dynamic Programming** | knapsack_01, coin_change, lcs, lis, edit_distance, matrix_chain |
+| **Graph** | kruskal, prim, topological_sort, strongly_connected, bridges, articulation |
+| **Flow** | edmonds_karp, ford_fulkerson, dinic |
+| **String** | rabin_karp, kmp, boyer_moore, z_algorithm, suffix_array |
+| **Math** | sieve_of_eratosthenes, euclidean_gcd, fast_exponentiation, matrix_multiply |
+| **Optimization** | gradient_descent, simulated_annealing, genetic_algorithm |
+| **ML** | random_forest, kmeans, linear_regression, logistic_regression, text_classifier |
+| **NLP** | word_embeddings, text_analysis, generation, retrieval |
+| **Image** | edge_detection, segmentation, feature_extraction |
+
+It also **discovers** new algorithms through reasoning and reinforcement learning — these show up with `is_novel=True`.
+
+## How It Works
+
+```
+Problem text + Data
+       │
+       ▼
+  ┌─────────────┐
+  │  Normalize   │  ← numpy/pandas/torch/files → plain Python
+  └─────┬───────┘
+        │
+        ▼
+  ┌─────────────┐
+  │  Understand  │  ← NLP comprehension of problem intent
+  └─────┬───────┘
+        │
+        ▼
+  ┌─────────────┐
+  │  Reason      │  ← Knowledge graph: 42 algorithms, 18 principles
+  └─────┬───────┘
+        │
+        ▼
+  ┌─────────────┐
+  │  Select      │  ← Meta-controller: cold-start bootstrap → UCB exploration
+  └─────┬───────┘
+        │
+        ▼
+  ┌─────────────┐
+  │  Synthesize  │  ← Code generation with principle application
+  └─────┬───────┘
+        │
+        ▼
+  ┌─────────────┐
+  │  Prove       │  ← Correctness proof with confidence score
+  └─────┬───────┘
+        │
+        ▼
+  ┌─────────────┐
+  │  Execute     │  ← Run code, return result
+  └─────┬───────┘
+        │
+        ▼
+  ┌─────────────┐
+  │  Learn       │  ← PPO training on trajectory, update KG
+  └─────────────┘
+```
+
+The knowledge graph connects **algorithms** to **mathematical principles** (optimal substructure, greedy exchange, divide and conquer, etc.) and **problem types**. When the mind encounters a new problem, it reasons about which principles apply, selects or synthesizes an algorithm, proves correctness, and learns from the outcome.
+
+## CLI
+
 ```bash
-# Install
-pip install aalgoi
+# Solve
+aalgoi solve "sort the array" --data '[3,1,4,1,5]'
+aalgoi solve "find gcd" --data '{"a": 48, "b": 18}'
+aalgoi solve "analyze" --file data.csv --explain --code
 
-# Solve a problem by description
-aalgoi solve "sort this list of numbers" --data 3,1,4,1,5,9,2,6,5,3,5
+# Status
+aalgoi status
 
-# Solve with explicit spec
-aalgoi solve-spec --type sorting --data 5,2,8,1,9
+# Train
+aalgoi train --epochs 10
+
+# Benchmark
+aalgoi benchmark
+
+# Checkpoints
+aalgoi checkpoint save
+aalgoi checkpoint list
+
+# Rollback
+aalgoi rollback --target last_good
+
+# Federation
+aalgoi share
+aalgoi receive
+
+# Version
+aalgoi version
 ```
 
----
+## Data Normalization
 
-## Python API
-
-After `pip install aalgoi`, the simplest usage is one line:
+aalgoi accepts any data format and normalizes it internally:
 
 ```python
-from aalgoi import solve
+from aalgoi import normalize, detect_type
 
-result = solve("sort ascending", [3, 1, 4, 1, 5])
-print(result["result"])       # [1, 1, 3, 4, 5]
-print(result["algorithm"])    # "insertion_sort"
-print(result["time_ms"])      # 1.2
-print(result["success"])      # True
+# Primitives — pass through
+normalize(42)              # 42
+normalize(3.14)            # 3.14
+normalize("hello")         # "hello"
+
+# Containers — convert to plain Python
+normalize((1, 2, 3))       # [1, 2, 3]       (tuple → list)
+normalize({3, 1, 2})       # [1, 2, 3]       (set → sorted list)
+normalize({"a": 1})        # {"a": 1}        (dict stays dict)
+
+# Standard library types
+from decimal import Decimal
+from fractions import Fraction
+from datetime import datetime, timedelta
+from enum import Enum
+
+normalize(Decimal("3.14"))           # 3.14           (→ float)
+normalize(Fraction(22, 7))           # 3.142857...    (→ float)
+normalize(datetime(2024, 1, 15))     # "2024-01-15T00:00:00"
+normalize(timedelta(hours=2))        # 7200.0         (→ seconds)
+normalize(complex(3, 4))             # {"real": 3.0, "imag": 4.0}
+normalize(range(5))                  # {"start": 0, "stop": 5, "step": 1}
+
+# Enums
+class Color(Enum):
+    RED = 1
+normalize(Color.RED)                 # 1              (→ value)
+
+# Dataclasses
+from dataclasses import dataclass
+@dataclass
+class Point:
+    x: float
+    y: float
+normalize(Point(1.0, 2.0))           # {"x": 1.0, "y": 2.0}
+
+# Bytes — JSON, CSV, or raw
+normalize(b'{"key": 42}')            # {"key": 42}    (JSON decode)
+normalize(b'a,b\n1,2\n3,4')         # {"columns": [...], "rows": [...]}  (CSV parse)
+
+# Generators — materialized (capped at 10,000)
+normalize(i**2 for i in range(5))    # [0, 1, 4, 9, 16]
+
+# NumPy, Pandas, Torch — if installed
+import numpy as np
+normalize(np.array([1, 2, 3]))       # [1, 2, 3]
+
+# Type detection
+detect_type([1, 2, 3])               # "list(3)"
+detect_type({"a": 1})                # "dict(1 keys)"
+detect_type(42)                      # "int"
 ```
 
-The `result` dict always has these keys: `result`, `algorithm`, `time_ms`, `success`, `answer` (a human-readable summary from SmartSolver).
+**Idempotent:** `normalize(normalize(x)) == normalize(x)` for all inputs.
 
-### Sorting
+## AlgorithmInfo
 
 ```python
-from aalgoi import solve
+mind = aalgoi.Mind("~/my_mind")
+info = mind.algorithms["dijkstra"]
 
-# Basic sort
-solve("sort these numbers", [5, 3, 8, 1, 2])
-# → algorithm picks insertion_sort, quicksort, timsort, etc.
+info.name              # "dijkstra"
+info.time_complexity   # "O((V+E) log V)"
+info.space_complexity  # "O(V)"
+info.principles        # ["greedy_exchange", "optimal_substructure"]
+info.best_for          # ["shortest_path", "weighted_graph", "single_source"]
+info.discovered_by     # "bootstrap" or "mind" (if discovered by reasoning)
+info.times_used        # 47
+info.times_succeeded   # 44
+info.performance       # 0.93
 
-# With priority on speed
-solve("sort as fast as possible", [5, 3, 8, 1, 2])
-# → parser detects "fast" → adds objective minimize execution_time
-
-# Large data
-solve("sort this list", list(range(10000, 0, -1)))
-# → RL agent picks quicksort or timsort for large reverse-sorted data
-
-# Already-sorted data (adaptive handling)
-solve("sort this", [1, 2, 3, 4, 5])
-# → context_engine detects is_sorted=True, RL picks timsort (O(n))
+print(info.display())
+# 📋 dijkstra
+# ╔══════════════════════════════════════╗
+# ║ Name:        dijkstra                ║
+# ║ Time:        O((V+E) log V)          ║
+# ║ Space:       O(V)                    ║
+# ║ Principles:  greedy_exchange, ...    ║
+# ║ Best for:    shortest_path, ...      ║
+# ║ Used:        47x (44 succeeded)      ║
+# ║ Performance: 0.93                    ║
+# ╚══════════════════════════════════════╝
 ```
 
-### Pathfinding
+## SolveResult API
 
 ```python
-from aalgoi import solve
+result = aalgoi.solve("sort", [3, 1, 2])
 
-graph = {
-    "A": {"B": 5, "C": 2},
-    "B": {"D": 4},
-    "C": {"B": 1, "D": 7},
-    "D": {}
-}
+# Transparent — use like the raw output
+str(result)             # "[1, 2, 3]"
+bool(result)            # True
+result == [1, 2, 3]     # True
+result[0]               # 1
+len(result)             # 3
+list(result)            # [1, 2, 3]
+2 in result             # True
+result + [4]            # [1, 2, 3, 4]
+int(result)             # TypeError (it's a list)
+hash(result)            # hash of output
 
-# Auto-detects PATHFINDING from data shape
-result = solve("find shortest path from A to D", graph)
-print(result["algorithm"])    # "dijkstra" or "a_star"
-print(result["result"])       # ['A', 'C', 'B', 'D']  (shortest path)
+# Metadata
+result.ok               # True (output is not None, no error)
+result.output           # [1, 2, 3]
+result.algorithm        # "tim_sort"
+result.complexity       # "O(n log n)"
+result.principle        # "divide_conquer"
+result.confidence       # 0.95
+result.time_ms          # 142.3
+result.is_novel         # False
+result.code             # "def solve(data):\n    return sorted(data)"
+result.iterations       # 7
+result.error            # None
 
-# Explicit question
-result = solve("shortest path from A to D", graph)
-print(result["algorithm"])    # "dijkstra"
+# Explanation
+result.explain()        # Multi-line reasoning trace
+
+# Pretty print
+repr(result)            # Boxed display with metadata
 ```
-
-### Optimization (Knapsack)
-
-```python
-from aalgoi import solve
-
-items = [
-    {"value": 60, "weight": 10},
-    {"value": 100, "weight": 20},
-    {"value": 120, "weight": 30},
-]
-
-result = solve("maximize value within capacity 50", {
-    "items": items,
-    "capacity": 50
-})
-print(result["algorithm"])              # "greedy_knapsack"
-print(result["result"]["selected"])      # [1, 2]
-print(result["result"]["value"])         # 220
-```
-
-### Using ProblemSpec
-
-```python
-from aalgoi import solve_spec, ProblemSpec, ProblemType
-
-spec = ProblemSpec(
-    name="custom_sort",
-    problem_type=ProblemType.SORTING,
-)
-
-result = solve_spec(spec, [3, 1, 2])
-print(result["result"])  # [1, 2, 3]
-```
-
-### SmartSolver (with explanation)
-
-```python
-from aalgoi import SmartSolver
-
-solver = SmartSolver()
-result = solver.ask("sort this list quickly", [4, 2, 7, 1])
-
-print(result["answer"])
-# "Solved using timsort in 0.57ms."
-
-print(result["algorithm"])  # "timsort"
-print(result["time_ms"])    # 0.57
-```
-
-### Explaining an algorithm
-
-```python
-from aalgoi import explain, solve
-
-result = solve("sort these", [3, 1, 2])
-exp = explain(result)          # extracts algorithm name from result
-print(exp.summary)
-# "Timsort is a stable hybrid sorting algorithm..."
-
-# Direct by name
-exp = explain("quicksort")
-print(exp.complexity)   # "O(n log n) average, O(n²) worst case"
-print(exp.steps)        # ["Choose a pivot...", "Partition...", "Recursively apply..."]
-```
-
-### Benchmarking
-
-```python
-from aalgoi import benchmark, ProblemSpec, ProblemType
-
-spec = ProblemSpec(name="test", problem_type=ProblemType.SORTING)
-bm = benchmark(spec, [5, 3, 1, 4, 2])
-print(bm["winner"])            # "Baseline" (or "AAlgoI")
-print(bm["aalgoi_algorithm"])  # "insertion_sort"
-```
-
-### Registering a custom algorithm
-
-```python
-from aalgoi import UniversalSolver
-from algorithms.base import Algorithm
-
-class MySorter(Algorithm):
-    def __init__(self):
-        super().__init__()
-        self.name = "my_sorter"
-        self.time_complexity = "O(n log n)"
-
-    def process(self, data):
-        return sorted(data)
-
-    def validate_output(self, input_data, output_data):
-        return all(output_data[i] <= output_data[i+1]
-                   for i in range(len(output_data)-1))
-
-solver = UniversalSolver()
-solver.register_algorithm(MySorter())
-
-# RL agent now considers it alongside the 20 built-in algorithms
-result = solver.solve(ProblemSpec(name="x", problem_type=ProblemType.SORTING), [3, 1, 2])
-```
-
-### Quick reference — problem type detection
-
-Each call auto-detects the problem type from the data + question text, selects the optimal algorithm via the PPO policy, executes it, stores the experience for online RL training (every 20 solves), and returns the result.
-
-```python
-from aalgoi import solve
-
-sorting       = solve("sort this", [3, 1, 2])
-pathfinding   = solve("find path from A to B", {"A": {"B": 1}, "B": {}})
-optimization  = solve("maximize value", {"items": [...], "capacity": 10})
-clustering    = solve("cluster this data", [[1, 2], [5, 8], [1.5, 1.8]])
-word2vec      = solve("train word2vec on medical corpus with 200 dimensions",
-                      {"corpus": ["heart disease treatment", "lung cancer diagnosis"]})
-image_blur    = solve("blur this image", image_array)
-```
-
----
-
-## Installation
-
-### From PyPI
-
-```bash
-pip install aalgoi
-```
-
-For optional features:
-
-```bash
-pip install aalgoi[rl]       # Reinforcement learning (PyTorch)
-pip install aalgoi[llm]      # LLM integration (Ollama)
-```
-
-### From Source
-
-```bash
-git clone https://github.com/RayAKaan/AAlgoI.git
-cd AAlgoI
-pip install -e .
-```
-
-### Dependencies
-
-Core: numpy, scikit-learn, networkx, chromadb, click, psutil
-RL (optional): torch>=2.0.0
-
----
 
 ## Architecture
 
-```
-User Input (CLI)
-        │
-        ▼
-┌───────────────────┐
-│   SmartSolver     │  Natural language → ProblemSpec
-│ question_parser   │  Zero-shot + keyword fallback
-└─────────┬─────────┘
-          │
-          ▼
-┌────────────────────────────────────────────┐
-│        UniversalMetaController             │
-│                                            │
-│  ┌──────────┐   ┌──────────────────┐       │
-│  │ RL Agent │   │ Knowledge Graph   │       │
-│  │ (PPO)    │   │ (read-only filter)│       │
-│  │ 20-action│   │ Problem→Algorithm │       │
-│  │ softmax  │   │ Algorithm→Pattern │       │
-│  └────┬─────┘   │ Algorithm→Complex │       │
-│       │         └────────┬─────────┘       │
-│       └─────────┬────────┘                  │
-│                 ▼                           │
-│         Selected Algorithm                  │
-│                 │                           │
-│  ┌──────────────▼──────────────┐            │
-│  │   Algorithm Registry        │            │
-│  │   20 algorithms (growing)   │            │
-│  └──────────────┬──────────────┘            │
-│                 │                           │
-│  ┌──────────────▼──────────────┐            │
-│  │   Execution + Feedback      │            │
-│  │   quality, timing, success  │            │
-│  └──────────────┬──────────────┘            │
-│                 │                           │
-│  ┌──────────────▼──────────────┐            │
-│  │   Knowledge Base (ChromaDB) │            │
-│  │   Pattern Store + Metrics   │            │
-│  └─────────────────────────────┘            │
-└────────────────────────────────────────────┘
-```
+aalgoi ships three packages:
 
-### Pipeline Flow
+| Package | Purpose |
+|---------|---------|
+| `aalgoi/` | Public API — solve, session, Mind, normalize, CLI |
+| `core/` | Mind engine — RL agent, knowledge graph, synthesis, training, federation, correctness prover |
+| `algorithms/` | Algorithm implementations — sorting, pathfinding, ML, NLP, optimization, image processing |
 
-1. **Input** — CLI command or natural language
-2. **Parsing** — `SmartSolver` / `question_parser` extract problem type and data
-3. **State Encoding** — 42-dimensional vector: data statistics + problem type one-hot (16 types) + environment info + constraint flags
-4. **RL Selection** — PPO agent outputs action probabilities over 20 algorithms
-5. **KG Validation** — Knowledge graph constrains the action to semantically valid candidates
-6. **Execution** — Algorithm runs on the data; quality, timing, and success are recorded
-7. **Feedback** — Results update the bandit, knowledge base, and optionally fine-tune the RL model
+Key components:
+- **Knowledge Graph** — 42+ algorithms, 18 mathematical principles, 24 problem types, connected by applicability relations
+- **Meta-Controller** — cold-start bootstrap table (maps domains to best-known algorithms) → UCB exploration as experience accumulates
+- **Algorithm Synthesizer** — generates new algorithms by composing principles
+- **Correctness Prover** — attempts proof of correctness with confidence scoring
+- **PPO Training** — online reinforcement learning from solve trajectories
+- **Bootstrap Trainer** — learns from expert demonstrations
+- **Federated Sync** — share and receive algorithm discoveries between minds
 
----
+## Requirements
 
-## Pre-Trained Model
+- Python 3.11+
+- PyTorch 2.0+
+- NetworkX 3.0+
 
-AAlgoI ships with `pretrained_v1.pt` — a 3-stage pre-trained model:
-
- | Stage | Default Iterations | Description |
- |-------|------------------|-------------|
- | 1. Supervised Bootstrapping | 20,000 | Textbook rules via CrossEntropy on raw logits |
- | 2. RL Curriculum (optional) | 5,000 | PPO refinement with curriculum-based difficulty |
- | 3. Self-Play (optional) | 0 | Adversarial WorldModel (disabled by default) |
-
-### Guarantees
-
-| Check | Requirement | Actual |
-|-------|-------------|--------|
-| Sorting Accuracy | 100% | 100% |
-| Pathfinding Accuracy | 100% | 100% |
-| Domain Routing | 100% | 100% |
-| Inference Time | < 5 ms | ~0.8 ms |
-| Model Size | < 10 MB | 0.41 MB |
-
-Generate your own:
-
-```bash
-python training/pretrain_master.py
-```
-
-### 42-Dimensional State Vector
-
-The RL agent's state vector encodes all information needed to choose an algorithm:
-
-| Slots | Feature | Description |
-|-------|---------|-------------|
-| `[0]` | Data size | `log10(n+1) / 7` normalized |
-| `[1..3]` | Pattern flags | is_sorted, is_nearly_sorted, is_reverse |
-| `[4..6]` | Uniqueness | unique_ratio, has_duplicates, has_negatives |
-| `[8..9]` | Distribution | tanh(mean/std), std/mean ratio |
-| `[14..15]` | System state | cpu_free, mem_ratio |
-| `[18..33]` | Problem type | 16-way one-hot (SORTING, PATHFINDING, OPTIMIZATION, CLUSTERING, CLASSIFICATION, REGRESSION, ML, IMAGE_PROCESSING, SEARCH, NLP, ROUTING, TRANSFORMATION, GENERATION, DECISION, SCHEDULING, COMPUTER_VISION) |
-| `[34..39]` | Constraints | speed priority, memory limit, accuracy, scalability, stability, interpretability |
-| `[40..41]` | Size flags | large (>100k), small (<100) |
-
-### Attention Head
-
-Instead of a linear policy head, the agent uses **Scaled Dot-Product Attention** to select algorithms:
-
-```
-Q = W_q · state       # Query: what kind of algorithm do I need?
-K = W_k · algo_emb    # Keys: what does each algorithm offer?
-scores = Q · K^T / √d # Affinities: match query to each key
-π(a) = softmax(scores)# Policy: probability distribution
-```
-
-The attention head learns **relative relationships** — algorithms with embeddings similar to the query vector get higher probability. This naturally generalizes to new algorithms: register a new algorithm and it receives a learnable embedding, then attention compares it against the same query derived from the state. No retraining needed for unseen algorithms; the attention head handles variable-size action spaces.
-
-Each algorithm embedding `eᵢ ∈ ℝ⁶⁴` is learned end-to-end during pre-training and fine-tuned via PPO gradients during RL.
-
----
-
-## CLI Reference
-
-| Command | Description |
-|---------|-------------|
-| `aalgoi solve` | Solve a problem from natural language description |
-| `aalgoi solve-spec` | Solve a structured problem (type, data, constraints) |
-| `aalgoi explain` | Explain why a specific algorithm was chosen |
-| `aalgoi stats` | Show performance statistics per algorithm |
-| `aalgoi benchmark` | Run benchmarks across algorithms |
-| `aalgoi marketplace list` | List registered algorithms |
-| `aalgoi marketplace search` | Search algorithms by name/pattern |
-| `aalgoi ml train-word2vec` | Train a Word2Vec model |
-| `aalgoi ml similar-words` | Find similar words in a trained model |
-| `aalgoi ml visualize-embeddings` | Visualize word embeddings |
-| `aalgoi debug visualize` | Visualize internal state / decision boundaries |
-
----
-
-## Adding Algorithms
-
-See the **Registering a custom algorithm** section under [Python API](#python-api) above.
-
-For persistent registration, add your algorithm to `algorithms/` and register it in `pipeline.py`.
-
----
-
-## Training
-
-```bash
-# Pre-train the model
-python training/pretrain_master.py
-```
-
----
-
-## Tests
-
-```bash
-pytest tests/ -v
-# 365 passed
-```
-
----
-
-## Project Structure
-
-```
-AAlgoI/
-├── algorithms/         # Algorithm implementations by domain
-│   ├── sorting/        # quicksort, timsort, heapsort, etc.
-│   ├── pathfinding/    # dijkstra, a_star, bfs_path
-│   ├── optimization/   # greedy_knapsack, simulated_annealing
-│   └── ml/             # word2vec, pca, tsne, semantic
-├── core/               # Core engine
-│   ├── rl/             # PPO agent, WorldModel, reward shaper
-│   ├── meta_controller.py  # Central orchestration
-│   ├── knowledge_graph.py  # Semantic relationship graph
-│   ├── knowledge_base.py   # Vector performance store
-│   ├── pipeline_graph.py   # Execution pipeline
-│   └── problem_spec.py     # Problem type system
-├── interface/          # User interfaces
-│   ├── cli.py          # Click CLI
-│   ├── cli_ml.py       # ML subcommands
-│   ├── cli_debug.py    # Debug subcommands
-│   └── nl_parser.py    # Natural language parsing
-├── training/           # Training pipelines
-│   ├── pretrain_master.py  # 3-stage pre-training
-│   ├── self_play.py        # Adversarial self-play
-│   ├── curriculum.py       # Difficulty scheduler
-│   └── data_generator.py   # Synthetic problem generator
-├── tests/              # 226 test cases
-├── checkpoints/        # Pretrained model files
-└── pipeline.py         # UniversalSolver entry point
-```
-
----
+Optional (for data format support):
+- numpy, pandas, polars, scipy, scikit-learn, Pillow, pyarrow, pydantic
 
 ## License
 
-MIT License — see [LICENSE](LICENSE).
-
----
-
-## Links
-
-- GitHub: [https://github.com/RayAKaan/AAlgoI](https://github.com/RayAKaan/AAlgoI)
-- Issues: [https://github.com/RayAKaan/AAlgoI/issues](https://github.com/RayAKaan/AAlgoI/issues)
+MIT

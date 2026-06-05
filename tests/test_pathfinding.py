@@ -1,5 +1,5 @@
 import pytest
-from algorithms.pathfinding import Dijkstra, AStar, BFSPathfinder
+from aalgoi.algorithms.pathfinding import Dijkstra, AStar, BFSPathfinder
 
 
 SIMPLE_GRAPH = {"A": {"B": 1, "C": 4}, "B": {"C": 2, "D": 5}, "C": {"D": 1}, "D": {}}
@@ -78,13 +78,13 @@ def test_bfs_tags():
 
 
 def test_data_auto_wrap_from_tuple():
-    from core.problem_spec import ProblemSpec, ProblemType
+    from aalgoi.core.problem_spec import ProblemSpec, ProblemType
     ps = ProblemSpec(name="test", problem_type=ProblemType.PATHFINDING)
     data = ps._infer_from_data_shape((SIMPLE_GRAPH, "A", "D"))
     assert data == ProblemType.PATHFINDING
 
 
 def test_data_auto_wrap_from_dict_key():
-    from core.problem_spec import ProblemSpec, ProblemType
+    from aalgoi.core.problem_spec import ProblemSpec, ProblemType
     data = ProblemSpec._infer_from_data_shape({"graph": SIMPLE_GRAPH, "start": "A", "end": "D"})
     assert data == ProblemType.PATHFINDING

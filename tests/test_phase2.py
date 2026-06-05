@@ -4,11 +4,11 @@ import os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from core.problem_spec import ProblemSpec, ProblemType, Objective
-from core.algorithm_synthesizer import AlgorithmSynthesizer, SynthesisResult
-from core.explainer import Explainer, Explanation
-from core.problem_library import ProblemLibrary
-from algorithms.primitives import (
+from aalgoi.core.problem_spec import ProblemSpec, ProblemType, Objective
+from aalgoi.core.algorithm_synthesizer import AlgorithmSynthesizer, SynthesisResult
+from aalgoi.core.explainer import Explainer, Explanation
+from aalgoi.core.problem_library import ProblemLibrary
+from aalgoi.algorithms.primitives import (
     PRIMITIVES,
     QuickSortPrimitive, MergeSortPrimitive, HeapSortPrimitive,
     BFSPrimitive, DFSPrimitive, InterpolationSearchPrimitive,

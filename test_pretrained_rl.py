@@ -3,10 +3,10 @@ sys.path.insert(0, ".")
 import numpy as np
 import torch
 
-from core.rl import PPOAgent
-from core.context_engine import ContextEngine
-from core.problem_spec import ProblemSpec, ProblemType
-from pipeline import UniversalSolver
+from aalgoi.core.rl import PPOAgent
+from aalgoi.core.context_engine import ContextEngine
+from aalgoi.core.problem_spec import ProblemSpec, ProblemType
+from aalgoi.pipeline import UniversalSolver
 
 solver = UniversalSolver()
 context_engine = ContextEngine()

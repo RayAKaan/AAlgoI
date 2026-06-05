@@ -1,6 +1,6 @@
 import random
-from core.smart_solver import SmartSolver
-from core.checkpoint_manager import CheckpointManager
+from aalgoi.core.smart_solver import SmartSolver
+from aalgoi.core.checkpoint_manager import CheckpointManager
 
 def test_rollback_restores_exact_behavior():
     solver  = SmartSolver()

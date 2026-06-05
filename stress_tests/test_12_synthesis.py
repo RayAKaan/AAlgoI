@@ -1,14 +1,14 @@
 """Stress test: LLM + sandbox algorithm synthesis."""
 from unittest.mock import patch
 
-from core.algorithm_synthesizer import LLMAlgorithmSynthesizer
-from core.llm_client import OllamaClient
-from core.problem_spec import ProblemSpec, ProblemType
+from aalgoi.core.algorithm_synthesizer import LLMAlgorithmSynthesizer
+from aalgoi.core.llm_client import OllamaClient
+from aalgoi.core.problem_spec import ProblemSpec, ProblemType
 
 
 def test_synthesis_never_crashes_solver():
     """Synthesizer failure never propagates to solver."""
-    from core.smart_solver import SmartSolver
+    from aalgoi.core.smart_solver import SmartSolver
     solver = SmartSolver()
     result = solver.ask("sort this list", [5, 3, 1, 4, 2])
     assert result.get("success", False)

@@ -6,9 +6,9 @@ import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from core.problem_spec import ProblemSpec, ProblemType, Objective, Constraint
-from core.problem_library import ProblemLibrary
-from algorithms.primitives import (
+from aalgoi.core.problem_spec import ProblemSpec, ProblemType, Objective, Constraint
+from aalgoi.core.problem_library import ProblemLibrary
+from aalgoi.algorithms.primitives import (
     PRIMITIVES, IteratePrimitive, MapPrimitive, FilterPrimitive,
     ReducePrimitive, ScanPrimitive, PartitionPrimitive,
     BinarySearchPrimitive, LinearSearchPrimitive,

@@ -17,7 +17,7 @@ import time
 import json
 from typing import List, Dict, Any
 
-from pipeline import AAlgoI
+from aalgoi.pipeline import AAlgoI
 
 def generate_test_data(size: int, pattern: str = "random") -> List[int]:
     if pattern == "random":
