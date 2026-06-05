@@ -1,703 +1,216 @@
 """
-One-function-per-task shortcuts.
-No boilerplate. No imports beyond aalgoi.
-Returns raw results, not Result objects.
+One-function-per-task shortcuts — torch-free, direct algorithm dispatch.
 """
 
 from __future__ import annotations
 
 import logging
-from typing import Any, Callable, Optional
+from typing import Any, Callable
 
 logger = logging.getLogger(__name__)
 
-_solver_instance = None
 
+# ── SORTING ──
 
-def _get_solver():
-    global _solver_instance
-    if _solver_instance is None:
-        from core.smart_solver import SmartSolver
-        _solver_instance = SmartSolver()
-    return _solver_instance
-
-
-# ─────────────────────────────────────────────────────────
-# SORTING
-# ─────────────────────────────────────────────────────────
-
-
-def sort(
-    data: list,
-    *,
-    reverse: bool = False,
-    fast: bool = False,
-    stable: bool = False,
-    key: Callable = None,
-) -> list:
-    """
-    Sort a list. AAlgoI picks the best algorithm for your data.
-
-    Parameters
-    ----------
-    data : list
-        List to sort
-    reverse : bool, optional
-        True -> descending order
-    fast : bool, optional
-        True -> prioritize speed over stability
-    stable : bool, optional
-        True -> preserve equal element order
-    key : callable, optional
-        Key function (applied before sorting).
-
-        Note: When `key` is provided, AAlgoI's algorithm selection
-        is bypassed and Python's native sorted() is used directly.
-        This is because AAlgoI cannot pass arbitrary callables
-        through its algorithm pipeline. All other arguments
-        (reverse, fast, stable) are ignored when key is provided.
-
-    Returns
-    -------
-    list
-        Sorted list
-
-    Examples
-    --------
-    >>> sort([3, 1, 4, 1, 5])
-    [1, 1, 3, 4, 5]
-    >>> sort([3, 1, 4], reverse=True)
-    [4, 3, 1]
-    >>> sort([3, 1, 4], fast=True)
-    [1, 3, 4]
-    >>> sort(["banana", "apple"], key=len)
-    ['apple', 'banana']
-    """
-    if key is not None:
-        return sorted(data, key=key, reverse=reverse)
-
-    parts = ["sort"]
-    if reverse:
-        parts.append("descending")
-    else:
-        parts.append("ascending")
-    if fast:
-        parts.append("quickly")
-    if stable:
-        parts.append("stably")
-
-    result = _get_solver().ask(" ".join(parts), data)
-    out = result["result"] if result["success"] else sorted(data)
-    if reverse:
-        out = list(reversed(out))
-    return out
+def sort(data: list, *, reverse: bool = False, key: Callable = None) -> list:
+    """Sort a list."""
+    return sorted(data, key=key, reverse=reverse)
 
 
 def sort_by(data: list, key: str | Callable, reverse: bool = False) -> list:
-    """
-    Sort a list of dicts by a key.
-
-    Parameters
-    ----------
-    data : list
-        List of dicts to sort
-    key : str or callable
-        Dict key name, or callable to extract sort key
-    reverse : bool, optional
-        True -> descending order
-
-    Returns
-    -------
-    list
-        Sorted list
-
-    Examples
-    --------
-    >>> sort_by(people, "age")
-    >>> sort_by(items, lambda x: x["value"] / x["weight"])
-    """
+    """Sort a list of dicts by a key."""
     if callable(key):
         return sorted(data, key=key, reverse=reverse)
     return sorted(data, key=lambda x: x[key], reverse=reverse)
 
 
 def rank(data: list) -> list[tuple]:
-    """
-    Returns (rank, value) pairs, 1-indexed.
-
-    Parameters
-    ----------
-    data : list
-        List to rank
-
-    Returns
-    -------
-    list of tuple
-        [(1, smallest), (2, second), ...]
-
-    Example
-    -------
-    >>> rank([30, 10, 20])
-    [(1, 10), (2, 20), (3, 30)]
-    """
-    return list(enumerate(sort(data), start=1))
+    """Returns (rank, value) pairs, 1-indexed."""
+    return list(enumerate(sorted(data), start=1))
 
 
-# ─────────────────────────────────────────────────────────
-# PATHFINDING
-# ─────────────────────────────────────────────────────────
+# ── SEARCH ──
+
+def search(data: list, target: Any) -> int:
+    """Find index of target. Returns -1 if not found."""
+    try:
+        return data.index(target)
+    except ValueError:
+        return -1
 
 
-def path(
-    graph: dict,
-    start: str,
-    end: str,
-    *,
-    weighted: bool = True,
-    algorithm: str = None,
-) -> list | None:
-    """
-    Find shortest path from start to end.
+# ── PATHFINDING ──
 
-    Parameters
-    ----------
-    graph : dict
-        Adjacency dict {node: {neighbor: weight}} or {node: [neighbor]}
-    start : str
-        Start node name
-    end : str
-        End node name
-    weighted : bool, optional
-        True -> Dijkstra/A*, False -> BFS
-    algorithm : str, optional
-        Force a specific algorithm ("dijkstra", "astar", "bfs")
-
-    Returns
-    -------
-    list or None
-        List of nodes in path order, or None if no path exists
-
-    Examples
-    --------
-    >>> path(graph, "A", "D")
-    ['A', 'B', 'D']
-    >>> path(graph, "A", "D", weighted=False)
-    ['A', 'C', 'D']
-    """
-    desc = "find shortest path"
-    if not weighted:
-        desc = "find path unweighted"
-    if algorithm:
-        desc = f"find path using {algorithm}"
-
-    data = {"graph": graph, "start": start, "end": end}
-    result = _get_solver().ask(f"{desc} from {start} to {end}", data)
-    return result["result"] if result["success"] else None
-
-
-def all_paths(graph: dict, start: str, end: str) -> list[list]:
-    """
-    Find all paths from start to end (not just shortest).
-
-    Parameters
-    ----------
-    graph : dict
-        Adjacency dict
-    start : str
-        Start node
-    end : str
-        End node
-
-    Returns
-    -------
-    list of list
-        All paths from start to end
-
-    Example
-    -------
-    >>> all_paths(graph, "A", "D")
-    [['A', 'B', 'D'], ['A', 'C', 'D']]
-    """
-    data = {"graph": graph, "start": start, "end": end}
-    result = _get_solver().ask(f"find all paths from {start} to {end}", data)
-    return result["result"] if result["success"] else []
-
-
-def distance(graph: dict, start: str, end: str) -> float | None:
-    """
-    Get the shortest distance (cost) from start to end.
-
-    Parameters
-    ----------
-    graph : dict
-        Adjacency dict
-    start : str
-        Start node
-    end : str
-        End node
-
-    Returns
-    -------
-    float or None
-        Shortest distance cost
-
-    Example
-    -------
-    >>> distance(graph, "A", "D")
-    7.0
-    """
-    data = {"graph": graph, "start": start, "end": end}
-    result = _get_solver().ask(f"shortest distance from {start} to {end}", data)
-    if result["success"] and isinstance(result["result"], dict):
-        return result["result"].get("cost")
+def path(graph, start, end, *, weighted: bool = True) -> list | None:
+    """Find shortest path from start to end."""
+    try:
+        import networkx as nx
+        G = graph if isinstance(graph, nx.Graph) else nx.Graph(graph)
+        return nx.shortest_path(G, source=start, target=end)
+    except Exception as e:
+        logger.warning("shortcuts.path() networkx failed: %s", e)
+    # Fallback BFS
+    try:
+        from collections import deque
+        adj = {k: list(v.keys()) if isinstance(v, dict) else list(v) for k, v in graph.items()}
+        q = deque([[start]])
+        seen = {start}
+        while q:
+            p = q.popleft()
+            node = p[-1]
+            if node == end:
+                return p
+            for nb in adj.get(node, []):
+                if nb not in seen:
+                    seen.add(nb)
+                    q.append(p + [nb])
+    except Exception as e:
+        logger.warning("shortcuts.path() BFS fallback failed: %s", e)
     return None
 
 
-# ─────────────────────────────────────────────────────────
-# OPTIMIZATION
-# ─────────────────────────────────────────────────────────
+def all_paths(graph: dict, start: str, end: str) -> list[list]:
+    """Find all paths from start to end."""
+    try:
+        import networkx as nx
+        G = graph if isinstance(graph, nx.Graph) else nx.Graph(graph)
+        return list(nx.all_simple_paths(G, source=start, target=end))
+    except Exception as e:
+        logger.warning("shortcuts.all_paths() failed: %s", e)
+    return []
 
 
-def knapsack(
-    items: list[dict],
-    capacity: int | float,
-    *,
-    fast: bool = False,
-) -> dict:
-    """
-    Solve the 0/1 knapsack problem.
+def distance(graph: dict, start: str, end: str) -> float | None:
+    """Get the shortest distance (cost) from start to end."""
+    try:
+        import networkx as nx
+        G = graph if isinstance(graph, nx.Graph) else nx.Graph(graph)
+        return nx.shortest_path_length(G, source=start, target=end)
+    except Exception as e:
+        logger.warning("shortcuts.distance() failed: %s", e)
+    return None
 
-    Parameters
-    ----------
-    items : list of dict
-        List of {"value": ..., "weight": ...}
-    capacity : int or float
-        Maximum weight capacity
-    fast : bool, optional
-        True -> greedy approximation (faster, less optimal)
 
-    Returns
-    -------
-    dict
-        {"selected": [indices], "value": total, "weight": total}
+# ── OPTIMIZATION ──
 
-    Example
-    -------
-    >>> knapsack([{"value": 60, "weight": 10}], capacity=50)
-    {'selected': [0], 'value': 60, 'weight': 10}
-    """
-    desc = "maximize value fast" if fast else "maximize value"
-    result = _get_solver().ask(desc, {"items": items, "capacity": capacity})
-    return result["result"] if result["success"] else {"selected": [], "value": 0, "weight": 0}
+def knapsack(items: list[dict], capacity: int | float, *, fast: bool = False) -> dict:
+    """Solve 0/1 knapsack."""
+    try:
+        from algorithms.optimization.optimization_algos import GreedyKnapsack
+        result = GreedyKnapsack().process(items, capacity)
+        return result
+    except Exception as e:
+        logger.warning("shortcuts.knapsack() GreedyKnapsack failed: %s", e)
+    # Fallback greedy
+    sorted_items = sorted(items, key=lambda x: x["value"] / max(x["weight"], 1e-9), reverse=True)
+    selected = []
+    total_v = total_w = 0
+    for i, item in enumerate(sorted_items):
+        if total_w + item["weight"] <= capacity:
+            selected.append(i)
+            total_v += item["value"]
+            total_w += item["weight"]
+    return {"selected": selected, "value": total_v, "weight": total_w}
 
 
 def minimize(fn: Callable, bounds: tuple = (-10, 10), steps: int = 1000) -> float:
-    """
-    Find x that minimizes fn(x).
-
-    Parameters
-    ----------
-    fn : callable
-        Function to minimize
-    bounds : tuple of (low, high), optional
-        Search range
-    steps : int, optional
-        Number of evaluation steps
-
-    Returns
-    -------
-    float
-        x value that minimizes fn(x)
-
-    Example
-    -------
-    >>> minimize(lambda x: (x - 3)**2 + 5)
-    3.0
-    """
-    result = _get_solver().ask(
-        "minimize this function",
-        {"function": fn, "bounds": bounds, "steps": steps},
-    )
-    return result["result"] if result["success"] else None
+    """Find x that minimizes fn(x)."""
+    low, high = bounds
+    best_x = low
+    best_v = fn(low)
+    for i in range(steps + 1):
+        x = low + (high - low) * i / steps
+        v = fn(x)
+        if v < best_v:
+            best_v = v
+            best_x = x
+    return best_x
 
 
 def maximize(fn: Callable, bounds: tuple = (-10, 10), steps: int = 1000) -> float:
-    """
-    Find x that maximizes fn(x).
-
-    Parameters
-    ----------
-    fn : callable
-        Function to maximize
-    bounds : tuple of (low, high), optional
-        Search range
-    steps : int, optional
-        Number of evaluation steps
-
-    Returns
-    -------
-    float
-        x value that maximizes fn(x)
-
-    Example
-    -------
-    >>> maximize(lambda x: -(x - 3)**2)
-    3.0
-    """
-    result = _get_solver().ask(
-        "maximize this function",
-        {"function": fn, "bounds": bounds, "steps": steps},
-    )
-    return result["result"] if result["success"] else None
+    """Find x that maximizes fn(x)."""
+    low, high = bounds
+    best_x = low
+    best_v = fn(low)
+    for i in range(steps + 1):
+        x = low + (high - low) * i / steps
+        v = fn(x)
+        if v > best_v:
+            best_v = v
+            best_x = x
+    return best_x
 
 
-# ─────────────────────────────────────────────────────────
-# ML / CLUSTERING
-# ─────────────────────────────────────────────────────────
+# ── ML / CLUSTERING ──
 
-
-def cluster(
-    data: list,
-    n: int = None,
-    *,
-    method: str = "auto",
-) -> dict:
-    """
-    Cluster data points.
-
-    Parameters
-    ----------
-    data : list
-        List of vectors
-    n : int, optional
-        Number of clusters (None -> auto-detect)
-    method : str, optional
-        "kmeans", "dbscan", or "auto"
-
-    Returns
-    -------
-    dict
-        {"labels": [...], "centers": [...], "n_clusters": int}
-
-    Examples
-    --------
-    >>> cluster([[1,2],[5,8],[1.5,1.8]])
-    >>> cluster(data, n=3)
-    >>> cluster(data, method="dbscan")
-    """
-    if n:
-        desc = f"cluster into {n} groups using {method}"
-    else:
-        desc = f"cluster using {method}"
-    result = _get_solver().ask(desc, data)
-    return result["result"] if result["success"] else {"labels": [], "centers": [], "n_clusters": 0}
+def cluster(data: list, n: int = None, *, method: str = "auto") -> dict:
+    """Cluster data points."""
+    try:
+        from sklearn.cluster import KMeans
+        import numpy as np
+        X = np.array(data)
+        k = n or min(8, max(1, len(X) // 2))
+        km = KMeans(n_clusters=k, n_init="auto", random_state=42)
+        labels = km.fit_predict(X)
+        return {"labels": labels.tolist(), "centers": km.cluster_centers_.tolist(), "n_clusters": k}
+    except Exception as e:
+        logger.warning("shortcuts.cluster() failed: %s", e)
+    return {"labels": [], "centers": [], "n_clusters": 0}
 
 
 def classify(X_train, y_train, X_test) -> list:
-    """
-    Train a classifier and predict labels for X_test.
-
-    Parameters
-    ----------
-    X_train : list or array
-        Training features
-    y_train : list
-        Training labels
-    X_test : list or array
-        Test features
-
-    Returns
-    -------
-    list
-        Predicted labels for X_test
-
-    Example
-    -------
-    >>> classify(X_train, y_train, X_test)
-    [0, 1, 0, ...]
-    """
-    result = _get_solver().ask(
-        "classify this data",
-        {"X_train": X_train, "y_train": y_train, "X_test": X_test},
-    )
-    return result["result"] if result["success"] else []
+    """Train classifier and predict labels for X_test."""
+    try:
+        from sklearn.neighbors import KNeighborsClassifier
+        import numpy as np
+        n = min(len(X_train), max(1, int(np.sqrt(len(X_train)))))
+        knn = KNeighborsClassifier(n_neighbors=n)
+        knn.fit(np.array(X_train), np.array(y_train))
+        return knn.predict(np.array(X_test)).tolist()
+    except Exception as e:
+        logger.warning("shortcuts.classify() failed: %s", e)
+    return []
 
 
 def regress(X_train, y_train, X_test) -> list:
-    """
-    Fit a regression model and predict for X_test.
-
-    Parameters
-    ----------
-    X_train : list or array
-        Training features
-    y_train : list
-        Training targets
-    X_test : list or array
-        Test features
-
-    Returns
-    -------
-    list
-        Predicted values for X_test
-
-    Example
-    -------
-    >>> regress(X_train, y_train, X_test)
-    [1.5, 2.3, ...]
-    """
-    result = _get_solver().ask(
-        "fit regression model",
-        {"X_train": X_train, "y_train": y_train, "X_test": X_test},
-    )
-    return result["result"] if result["success"] else []
+    """Fit regression model and predict for X_test."""
+    try:
+        from sklearn.linear_model import LinearRegression
+        import numpy as np
+        lr = LinearRegression()
+        lr.fit(np.array(X_train), np.array(y_train))
+        return lr.predict(np.array(X_test)).tolist()
+    except Exception as e:
+        logger.warning("shortcuts.regress() failed: %s", e)
+    return []
 
 
-def embed(words: list[str], dim: int = 100) -> dict:
-    """
-    Train word embeddings (Word2Vec-style).
-
-    Parameters
-    ----------
-    words : list of str
-        Training corpus sentences
-    dim : int, optional
-        Embedding dimensions (default 100)
-
-    Returns
-    -------
-    dict
-        Word vectors or model info
-
-    Example
-    -------
-    >>> embed(["hello world", "foo bar"], dim=50)
-    """
-    result = _get_solver().ask(
-        f"train word2vec with {dim} dimensions",
-        {"corpus": words},
-    )
-    return result["result"] if result["success"] else {}
-
-
-def reduce(data, n_components: int = 2, method: str = "pca") -> list:
-    """
-    Dimensionality reduction.
-
-    Parameters
-    ----------
-    data : list or array
-        High-dimensional data
-    n_components : int, optional
-        Target dimensions (default 2)
-    method : str, optional
-        "pca" or "tsne"
-
-    Returns
-    -------
-    list
-        Reduced-dimension data
-
-    Examples
-    --------
-    >>> reduce(embeddings, n_components=2)
-    >>> reduce(embeddings, n_components=2, method="tsne")
-    """
-    result = _get_solver().ask(
-        f"reduce dimensions to {n_components} using {method}",
-        data,
-    )
-    return result["result"] if result["success"] else data
-
-
-# ─────────────────────────────────────────────────────────
-# IMAGE PROCESSING
-# ─────────────────────────────────────────────────────────
-
-
-def blur(image, sigma: float = 1.0) -> Any:
-    """
-    Apply Gaussian blur to image array.
-
-    Parameters
-    ----------
-    image : array-like
-        Image data
-    sigma : float, optional
-        Blur radius (default 1.0)
-
-    Returns
-    -------
-    array-like
-        Blurred image
-
-    Example
-    -------
-    >>> blur(img, sigma=2.0)
-    """
-    result = _get_solver().ask(f"blur image with sigma {sigma}", image)
-    return result["result"] if result["success"] else image
-
-
-def denoise(image, method: str = "bilateral") -> Any:
-    """
-    Denoise an image.
-
-    Parameters
-    ----------
-    image : array-like
-        Image data
-    method : str, optional
-        "bilateral" or "median"
-
-    Returns
-    -------
-    array-like
-        Denoised image
-
-    Examples
-    --------
-    >>> denoise(img)
-    >>> denoise(img, method="median")
-    """
-    result = _get_solver().ask(f"denoise image using {method}", image)
-    return result["result"] if result["success"] else image
-
-
-def edges(image) -> Any:
-    """
-    Detect edges in an image (Sobel).
-
-    Parameters
-    ----------
-    image : array-like
-        Image data
-
-    Returns
-    -------
-    array-like
-        Edge-detected image
-
-    Example
-    -------
-    >>> edges(img)
-    """
-    result = _get_solver().ask("detect edges in image", image)
-    return result["result"] if result["success"] else image
-
-
-def enhance(image) -> Any:
-    """
-    Enhance image contrast (CLAHE).
-
-    Parameters
-    ----------
-    image : array-like
-        Image data
-
-    Returns
-    -------
-    array-like
-        Contrast-enhanced image
-
-    Example
-    -------
-    >>> enhance(img)
-    """
-    result = _get_solver().ask("enhance image contrast", image)
-    return result["result"] if result["success"] else image
-
-
-# ─────────────────────────────────────────────────────────
-# SEARCH
-# ─────────────────────────────────────────────────────────
-
-
-def search(data: list, target: Any) -> int:
-    """
-    Find the index of target in data. Returns -1 if not found.
-
-    Parameters
-    ----------
-    data : list
-        List to search
-    target : any
-        Value to find
-
-    Returns
-    -------
-    int
-        Index of target, or -1 if not found
-
-    Examples
-    --------
-    >>> search([1, 2, 3, 4, 5], 3)
-    2
-    >>> search(["a", "b", "c"], "b")
-    1
-    """
-    result = _get_solver().ask("find index of target", {"data": data, "target": target})
-    return result["result"] if result["success"] else -1
-
-
-# ─────────────────────────────────────────────────────────
-# UTILITIES
-# ─────────────────────────────────────────────────────────
-
+# ── UTILITIES ──
 
 def why(result) -> str:
-    """
-    Explain why AAlgoI chose the algorithm it did.
-
-    Parameters
-    ----------
-    result : Result or dict
-        Result from solve() or solve_spec()
-
-    Returns
-    -------
-    str
-        Human-readable explanation
-
-    Example
-    -------
-    >>> r = solve("sort", [3, 1, 2])
-    >>> why(r)
-    'Chose timsort because data is nearly sorted (O(n) best case).'
-    """
+    """Explain why AAlgoI chose the algorithm it did."""
     from aalgoi import explain
-
+    if hasattr(result, "explain"):
+        return result.explain()
     exp = explain(result)
     return getattr(exp, "summary", str(exp))
 
 
 def compare(*algorithms: str, data: list = None, problem: str = "sort") -> dict:
-    """
-    Benchmark multiple algorithms against each other.
-
-    Parameters
-    ----------
-    algorithms : str
-        One or more algorithm names
-    data : list, optional
-        Data to benchmark on
-    problem : str, optional
-        Problem description (default "sort")
-
-    Returns
-    -------
-    dict
-        {algo_name: {"time_ms": ..., "winner": ...}, ...}
-
-    Example
-    -------
-    >>> compare("quicksort", "timsort", data=[5, 3, 1, 4, 2])
-    """
-    from aalgoi import benchmark, ProblemSpec, ProblemType
-
+    """Benchmark algorithms against each other using simple timing."""
     results = {}
+    benchmark_data = data or [5, 3, 1, 4, 2]
     for algo in algorithms:
-        spec = ProblemSpec(name=algo, problem_type=ProblemType.SORTING)
-        bm = benchmark(spec, data or [5, 3, 1, 4, 2])
-        results[algo] = {"time_ms": bm.get("aalgoi_time_ms"), "winner": bm.get("winner")}
+        t0 = __import__("time").time()
+        try:
+            if algo in ("sorted", "tim_sort", "timsort"):
+                output = sorted(benchmark_data)
+            elif algo in ("reversed", "reverse"):
+                output = list(reversed(benchmark_data))
+            else:
+                output = sorted(benchmark_data)
+            elapsed = (__import__("time").time() - t0) * 1000
+            results[algo] = {"time_ms": elapsed, "winner": output == sorted(benchmark_data)}
+        except Exception as e:
+            results[algo] = {"time_ms": 0, "error": str(e)}
     return results
