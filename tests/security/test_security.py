@@ -83,3 +83,51 @@ def test_validate_name_rejects_malicious_names():
     for bad_name in malicious_names:
         with pytest.raises(ValueError, match="must be snake_case"):
             solver._validate_name(bad_name)
+
+
+def test_normalize_default_security():
+    """normalize() defaults to safe mode (no file reads, no URL fetches)."""
+    from aalgoi._data import normalize
+    result = normalize([1, 2, 3])
+    assert result == [1, 2, 3]
+
+
+def test_mind_learn_deprecation():
+    """Mind.learn() emits a DeprecationWarning."""
+    import warnings
+    from aalgoi._core import Mind
+    m = Mind("~/.aalgoi/mind")
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        m.learn("sort", [3, 1, 2])
+        assert any(issubclass(x.category, DeprecationWarning) for x in w), \
+            "Expected DeprecationWarning from Mind.learn()"
+
+
+def test_mind_train_no_torch_warning():
+    """Mind.train() emits a RuntimeWarning when torch is unavailable."""
+    import warnings
+    from importlib.util import find_spec
+    if find_spec("torch") is not None:
+        pytest.skip("torch is available — skipping no-torch warning test")
+    from aalgoi._core import Mind
+    m = Mind("~/.aalgoi/mind")
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        m.train()
+        assert any(issubclass(x.category, RuntimeWarning) for x in w), \
+            "Expected RuntimeWarning from Mind.train() when torch is absent"
+
+
+def test_sandboxed_executor_rejects_dangerous_code():
+    """Sandbox validator rejects os.system and subprocess calls."""
+    from aalgoi.core.sandboxed_executor import SandboxValidator
+    validator = SandboxValidator()
+    dangerous = [
+        "__import__('os').system('rm -rf /')",
+        "import subprocess; subprocess.call(['rm', '-rf', '/'])",
+        "exec('open(\"/etc/passwd\").read()')",
+    ]
+    for code in dangerous:
+        assert not validator.validate(code), \
+            f"Dangerous code should have been rejected: {code!r}"

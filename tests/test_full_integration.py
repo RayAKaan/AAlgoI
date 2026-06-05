@@ -198,9 +198,8 @@ class TestPerformance:
         nodes = [str(i) for i in range(50)]
         graph = {n: {} for n in nodes}
         for i in range(50):
-            for j in range(i+1, min(i+3, 50)):
-                if random.random() < 0.3:
-                    graph[nodes[i]][nodes[j]] = random.randint(1, 10)
+            for j in range(i+1, 50):
+                graph[nodes[i]][nodes[j]] = j - i  # guaranteed path 0→49
 
         data = {'graph': graph, 'start': '0', 'end': '49'}
         spec = ProblemSpec(name="test", problem_type=ProblemType.PATHFINDING)

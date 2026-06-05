@@ -70,7 +70,7 @@ def normalize(data: Any, allow_file_read: bool = False, allow_url_fetch: bool = 
     if isinstance(data, complex):
         return {"real": data.real, "imag": data.imag}
     if isinstance(data, range):
-        return {"start": data.start, "stop": data.stop, "step": data.step}
+        return {"type": "range", "start": data.start, "stop": data.stop, "step": data.step}
     if isinstance(data, datetime):
         return data.isoformat()
     if isinstance(data, date):
@@ -87,6 +87,10 @@ def normalize(data: Any, allow_file_read: bool = False, allow_url_fetch: bool = 
     # ── Dataclass ─────────────────────────────────────────────────
     if _is_dataclass(data):
         return {f.name: normalize(getattr(data, f.name)) for f in dataclass_fields(data)}
+
+    # ── Pydantic (model_dump avoids iteration as field-name list) ─
+    if hasattr(data, "model_dump"):
+        return normalize(data.model_dump())
 
     # ── External libraries — BEFORE generic iterable ──────────────
     np = _try_import_numpy()
@@ -233,7 +237,10 @@ def _normalize_bytes(data: bytes) -> Any:
         text = data.decode("utf-8")
         if "," in text.split("\n", 1)[0]:
             reader = csv.DictReader(io.StringIO(text))
-            result = {"columns": reader.fieldnames or [], "rows": list(reader)}
+            rows = list(reader)
+            result = {"columns": reader.fieldnames or [], "rows": rows}
+            if rows:
+                result["shape"] = [len(rows), len(reader.fieldnames or [])]
             if result["columns"]:
                 return result
     except Exception:

@@ -1,4 +1,5 @@
 
+import time
 from typing import Any
 
 import numpy as np
@@ -16,7 +17,7 @@ class ContextEngine:
         self.history: list[dict] = []
         self._cache: dict[str, Any] = {}
 
-    def analyze(self, problem_text: str, data=None) -> dict:
+    def analyze(self, data: Any, task_type: str = "auto") -> dict:
         """Analyze a problem and return context."""
         data_profile = self._analyze_data(data) if data is not None else {}
         environment = self._analyze_environment()
@@ -46,7 +47,7 @@ class ContextEngine:
         try:
             cache_key = hash(frozenset(safe_features.items()))
         except TypeError:
-            cache_key = hash(problem_text)
+            cache_key = hash(repr(data))
 
         if cache_key in self._cache:
             return self._cache[cache_key]
@@ -56,7 +57,9 @@ class ContextEngine:
             "complexity": complexity,
             "features": features,
             "data_profile": data_profile,
-            "task_type": "unknown",
+            "environment": environment,
+            "constraints": constraints,
+            "task_type": task_type,
             "suggestions": self._get_suggestions(domain, complexity),
         }
 

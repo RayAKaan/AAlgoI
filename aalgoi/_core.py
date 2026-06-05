@@ -409,7 +409,7 @@ def _rule_based_solve(problem_text: str, data: Any) -> dict:
                 G = data["graph"]
                 start = data.get("start", data.get("source", None))
                 end = data.get("end", data.get("target", None))
-                if start and end:
+                if start is not None and end is not None:
                     if not isinstance(G, nx.Graph):
                         G = nx.Graph(G)
                     path = nx.shortest_path(G, source=start, target=end)
