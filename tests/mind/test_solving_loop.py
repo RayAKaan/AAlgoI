@@ -1,15 +1,22 @@
+from importlib.util import find_spec
 from pathlib import Path
 
 import pytest
 import torch
 
 from aalgoi.core.mind.cognitive_actions import ActionHandler
+
+torch_missing = pytest.mark.skipif(
+    find_spec("torch") is None,
+    reason="requires torch"
+)
 from aalgoi.core.mind.knowledge_graph import AlgorithmicKnowledgeGraph
 from aalgoi.core.mind.rl_mind import AlgorithmicMind
 from aalgoi.core.mind.safety_manager import MindSafetyManager
 from aalgoi.core.mind.solving_loop import MindSolvingLoop, ThinkingSession, UniversalSolution
 
 
+@torch_missing
 class TestThinkingSession:
     def test_initial_values(self):
         session = ThinkingSession(problem_text="test", data=None,
@@ -29,6 +36,7 @@ class TestThinkingSession:
         assert session.max_iterations == 50
 
 
+@torch_missing
 class TestMindSolvingLoop:
     @pytest.fixture
     def loop(self):

@@ -1,6 +1,14 @@
+from importlib.util import find_spec
+
 import numpy as np
+import pytest
 
 from aalgoi.algorithms.primitives import PRIMITIVES
+
+torch_missing = pytest.mark.skipif(
+    find_spec("torch") is None,
+    reason="requires torch"
+)
 
 
 def test_replay_buffer():
@@ -48,6 +56,7 @@ def test_reward_shaper():
     assert reward_speed > 0
 
 
+@torch_missing
 def test_attention_actor_critic():
     import torch
 
@@ -66,6 +75,7 @@ def test_attention_actor_critic():
     assert isinstance(v, float)
 
 
+@torch_missing
 def test_ppo_agent():
     import torch
 
@@ -104,6 +114,7 @@ def test_environment_step():
     assert "valid" in info
 
 
+@torch_missing
 def test_full_training_loop():
     import numpy as np
     import torch

@@ -1,9 +1,4 @@
-import os
-import sys
-
 import pytest
-
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from aalgoi.core.problem_spec import ProblemSpec, ProblemType
 from aalgoi.pipeline import UniversalSolver

@@ -1,8 +1,4 @@
-import os
-import sys
 import unittest
-
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from aalgoi.core.problem_spec import ProblemType
 from interface.nl_parser import PATTERNS, extract_data_from_description, parse_description, parse_solve_input

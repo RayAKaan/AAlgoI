@@ -1,13 +1,9 @@
 """Test the pre-trained RL model across all domains."""
 
-import os
 import random
-import sys
 import time
 
 import numpy as np
-
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from aalgoi.core.context_engine import ContextEngine
 from aalgoi.core.problem_spec import ProblemSpec, ProblemType

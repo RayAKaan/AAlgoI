@@ -1,6 +1,13 @@
+from importlib.util import find_spec
+
 import pytest
 
 from aalgoi.core.mind.cognitive_actions import ActionHandler, ActionParams, ActionResult, CognitiveAction
+
+torch_missing = pytest.mark.skipif(
+    find_spec("torch") is None,
+    reason="requires torch"
+)
 
 
 class TestCognitiveAction:
@@ -42,6 +49,7 @@ class TestCognitiveAction:
         assert result.error is None
 
 
+@torch_missing
 class TestActionHandler:
     @pytest.fixture
     def handler(self):

@@ -7,18 +7,17 @@ curriculum, persistence, forking, instance store, auto-learn mode.
 
 import os
 import tempfile
+from importlib.util import find_spec
 
 import numpy as np
 import pytest
 
-HAS_TORCH = False
-try:
-    import torch
-    HAS_TORCH = True
-except ImportError:
-    pass
+torch_missing = pytest.mark.skipif(
+    find_spec("torch") is None,
+    reason="requires torch"
+)
 
-pytestmark = pytest.mark.skipif(not HAS_TORCH, reason="PyTorch not installed")
+pytestmark = torch_missing
 
 
 # ── StateBridge ────────────────────────────────────────────────────────────

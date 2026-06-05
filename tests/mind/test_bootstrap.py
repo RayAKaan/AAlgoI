@@ -1,8 +1,15 @@
 
+from importlib.util import find_spec
+
 import pytest
 import torch
 
 from aalgoi.core.mind.knowledge_graph import AlgorithmicKnowledgeGraph
+
+torch_missing = pytest.mark.skipif(
+    find_spec("torch") is None,
+    reason="requires torch"
+)
 from aalgoi.core.mind.model_config import MindConfig
 from aalgoi.core.mind.rl_mind import AlgorithmicMind
 from aalgoi.core.mind.training.bootstrap_trainer import (
@@ -61,6 +68,7 @@ class TestIdealPaths:
             assert 3 <= path.expected_iterations <= 15
 
 
+@torch_missing
 class TestTrainingDataGeneration:
     def test_generate_produces_trajectories(self, kg, config):
         trajectories = generate_training_data(kg, config, n_augmentations=2)
@@ -128,6 +136,7 @@ class TestProblemGeneration:
         assert data0 != data1
 
 
+@torch_missing
 class TestBootstrapTraining:
     def test_train_runs(self, trainer):
         stats = trainer.train(n_epochs=2, n_augmentations=1, batch_size=4)
@@ -166,6 +175,7 @@ class TestBootstrapTraining:
         assert 0.0 <= results["accuracy"] <= 1.0
 
 
+@torch_missing
 class TestBehavioralCloningLoss:
     def test_loss_computation(self, trainer, kg, config):
         trajectories = generate_training_data(kg, config, n_augmentations=1)

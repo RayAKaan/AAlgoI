@@ -1,10 +1,18 @@
+from importlib.util import find_spec
+
 import pytest
 import torch
 
 from aalgoi.core.mind.cognitive_actions import ActionResult, CognitiveAction
 from aalgoi.core.mind.mind_state import MindState, build_data_profile
 
+torch_missing = pytest.mark.skipif(
+    find_spec("torch") is None,
+    reason="requires torch"
+)
 
+
+@torch_missing
 class TestBuildDataProfile:
     def test_none_input(self):
         prof = build_data_profile(None)
@@ -41,6 +49,7 @@ class TestBuildDataProfile:
         assert prof[16] <= 1.0
 
 
+@torch_missing
 class TestMindState:
     @pytest.fixture
     def state(self):

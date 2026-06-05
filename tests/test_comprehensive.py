@@ -1,10 +1,6 @@
 
-import os
 import random
-import sys
 import unittest
-
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from aalgoi.algorithms.sorting import HeapSort, InsertionSort, MergeSort, QuickSort, RadixSort, TimSort
 from aalgoi.core.bandit import UCB1Bandit

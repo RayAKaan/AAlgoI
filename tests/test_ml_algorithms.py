@@ -17,8 +17,15 @@ Plus integration tests for:
 """
 
 
+from importlib.util import find_spec
+
 import numpy as np
 import pytest
+
+sklearn_missing = pytest.mark.skipif(
+    find_spec("sklearn") is None,
+    reason="requires scikit-learn"
+)
 
 
 @pytest.fixture
@@ -54,6 +61,7 @@ def high_dim_data():
     return X
 
 
+@sklearn_missing
 class TestMLAlgorithmBase:
 
     def test_extract_data_dict(self):
@@ -139,6 +147,7 @@ class TestMLAlgorithmBase:
         assert "classification" in meta["tags"]
 
 
+@sklearn_missing
 class TestLinearRegression:
 
     def test_process_fits_model(self, regression_data):
@@ -178,6 +187,7 @@ class TestLinearRegression:
         assert "linear" in algo.tags
 
 
+@sklearn_missing
 class TestRidge:
 
     def test_process_fits_model(self, regression_data):
@@ -203,6 +213,7 @@ class TestRidge:
         assert result["trained"] is True
 
 
+@sklearn_missing
 class TestLasso:
 
     def test_process_fits_model(self, regression_data):
@@ -229,6 +240,7 @@ class TestLasso:
             assert result["n_features_used"] < 10
 
 
+@sklearn_missing
 class TestLogisticRegression:
 
     def test_process_fits_model(self, classification_data):
@@ -253,6 +265,7 @@ class TestLogisticRegression:
         assert all(p in [0, 1] for p in result["predictions"])
 
 
+@sklearn_missing
 class TestKNN:
 
     def test_process_fits_model(self, classification_data):
@@ -277,6 +290,7 @@ class TestKNN:
         assert result["trained"] is True
 
 
+@sklearn_missing
 class TestSVM:
 
     def test_process_fits_model(self, classification_data):
@@ -298,6 +312,7 @@ class TestSVM:
             assert result["n_support"] > 0
 
 
+@sklearn_missing
 class TestGaussianNB:
 
     def test_process_fits_model(self, classification_data):
@@ -323,6 +338,7 @@ class TestGaussianNB:
         assert elapsed < 0.1
 
 
+@sklearn_missing
 class TestRandomForest:
 
     def test_classification_mode(self, classification_data):
@@ -352,6 +368,7 @@ class TestRandomForest:
         assert "bagging" in algo.tags
 
 
+@sklearn_missing
 class TestXGBoost:
 
     def test_available_check(self):
@@ -383,6 +400,7 @@ class TestXGBoost:
             assert "accuracy" in result
 
 
+@sklearn_missing
 class TestLightGBM:
 
     def test_available_check(self):
@@ -404,6 +422,7 @@ class TestLightGBM:
             assert result["trained"] is True
 
 
+@sklearn_missing
 class TestKMeans:
 
     def test_clusters_data(self, clustering_data):
@@ -426,6 +445,7 @@ class TestKMeans:
         assert len(result["cluster_centers"]) == 3
 
 
+@sklearn_missing
 class TestDBSCAN:
 
     def test_clusters_data(self, clustering_data):
@@ -452,6 +472,7 @@ class TestDBSCAN:
         assert "n_noise" in result
 
 
+@sklearn_missing
 class TestGMM:
 
     def test_clusters_data(self, clustering_data):
@@ -473,6 +494,7 @@ class TestGMM:
             assert len(result["weights"]) == 3
 
 
+@sklearn_missing
 class TestPCA:
 
     def test_reduces_dimensionality(self, high_dim_data):
@@ -496,6 +518,7 @@ class TestPCA:
         assert result["explained_variance_ratio"][0] > result["explained_variance_ratio"][1]
 
 
+@sklearn_missing
 class TestSolveRouting:
 
     def test_classify_routes_to_classifier(self, classification_data):
@@ -536,6 +559,7 @@ class TestSolveRouting:
         assert result.algorithm in ["kmeans", "dbscan", "gmm"]
 
 
+@sklearn_missing
 class TestRewardShaperML:
 
     def test_accuracy_increases_reward(self):
@@ -584,6 +608,7 @@ class TestRewardShaperML:
         assert reward > 0
 
 
+@sklearn_missing
 class TestContextEngineML:
 
     def test_profiles_classification_data(self, classification_data):
@@ -643,6 +668,7 @@ class TestContextEngineML:
         assert abs(profile["majority_class_pct"] - 0.9) < 0.01
 
 
+@sklearn_missing
 class TestExplainerML:
 
     @pytest.mark.parametrize("algo_name", [
@@ -681,6 +707,7 @@ class TestExplainerML:
         assert "n\u00b2" in exp.complexity or "quadratic" in exp.complexity.lower()
 
 
+@sklearn_missing
 class TestRegistryML:
 
     def test_all_ml_algos_in_registry(self):
@@ -707,6 +734,7 @@ class TestRegistryML:
         assert len(solver.registry) >= 25
 
 
+@sklearn_missing
 class TestMLEdgeCases:
 
     def test_single_sample(self):
