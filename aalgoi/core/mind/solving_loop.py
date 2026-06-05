@@ -1,15 +1,22 @@
-from dataclasses import dataclass, field
-from typing import Any
-import time
 import hashlib
+import time
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING, Any
+
 import torch
 
-from aalgoi.core.mind.rl_mind import AlgorithmicMind
+if TYPE_CHECKING:
+    from aalgoi.core.reasoning.correctness_prover import CorrectnessProof
+
 from aalgoi.core.mind.cognitive_actions import (
-    CognitiveAction, ActionParams, ActionResult, ActionHandler,
+    ActionHandler,
+    ActionParams,
+    ActionResult,
+    CognitiveAction,
 )
-from aalgoi.core.mind.mind_state import MindState, build_data_profile
 from aalgoi.core.mind.knowledge_graph import AlgorithmicKnowledgeGraph
+from aalgoi.core.mind.mind_state import MindState, build_data_profile
+from aalgoi.core.mind.rl_mind import AlgorithmicMind
 from aalgoi.core.mind.safety_manager import MindSafetyManager
 
 

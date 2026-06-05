@@ -1,6 +1,6 @@
 import json
+
 import pytest
-from pathlib import Path
 
 from aalgoi.core.mind.federated_mind import FederatedMindSync, StructuralHasher
 

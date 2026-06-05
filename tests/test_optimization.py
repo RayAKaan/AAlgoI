@@ -1,6 +1,4 @@
-import pytest
 from aalgoi.algorithms.optimization import GreedyKnapsack, SimulatedAnnealing
-
 
 ITEMS = [
     {"value": 60, "weight": 10},

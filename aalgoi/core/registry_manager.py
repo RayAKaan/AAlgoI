@@ -4,9 +4,8 @@ Plugin system for runtime algorithm registration.
 """
 
 import importlib.util
-import os
 import logging
-from typing import Dict, List, Optional
+import os
 
 from aalgoi.algorithms.base import Algorithm
 
@@ -19,8 +18,8 @@ class DynamicRegistry:
     Users can register custom algorithms that behave like native ones.
     """
 
-    def __init__(self, base_registry: Optional[Dict[str, Algorithm]] = None):
-        self.algorithms: Dict[str, Algorithm] = base_registry or {}
+    def __init__(self, base_registry: dict[str, Algorithm] | None = None):
+        self.algorithms: dict[str, Algorithm] = base_registry or {}
 
     def register(self, algorithm: Algorithm) -> bool:
         """Register a new algorithm for the solver to use."""
@@ -67,7 +66,7 @@ class DynamicRegistry:
             except Exception:
                 pass
 
-    def register_from_file(self, file_path: str, class_name: Optional[str] = None) -> List[str]:
+    def register_from_file(self, file_path: str, class_name: str | None = None) -> list[str]:
         """
         Load an algorithm from a .py file.
         Useful for sharing algorithms without PyPI packages.
@@ -95,11 +94,11 @@ class DynamicRegistry:
 
         return registered
 
-    def list_algorithms(self) -> List[str]:
+    def list_algorithms(self) -> list[str]:
         """Return all registered algorithm names."""
         return list(self.algorithms.keys())
 
-    def get_algorithm(self, name: str) -> Optional[Algorithm]:
+    def get_algorithm(self, name: str) -> Algorithm | None:
         """Retrieve algorithm by name."""
         return self.algorithms.get(name)
 

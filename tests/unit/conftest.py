@@ -1,4 +1,5 @@
 import pytest
+
 from aalgoi.algorithms.base import Algorithm
 
 

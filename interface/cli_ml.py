@@ -26,7 +26,7 @@ def ml():
 @click.option("--output", type=click.Path(), help="Save model to file")
 def train_word2vec(corpus, domain, vector_size, epochs, output):
     """Train Word2Vec embeddings on domain-specific corpus."""
-    with open(corpus, "r", encoding="utf-8") as f:
+    with open(corpus, encoding="utf-8") as f:
         sentences = [line.strip() for line in f if line.strip()]
 
     if not sentences:

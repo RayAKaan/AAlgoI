@@ -1,10 +1,12 @@
 import hashlib
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
 from aalgoi.core.registry_sync import GitHubRegistrySync
 
+
 def test_registry_sync_rejects_tampered_algorithms():
-    from aalgoi.core.registry_manager import DynamicRegistry
     from aalgoi.core.algorithm_embedder import AlgorithmEmbedder
+    from aalgoi.core.registry_manager import DynamicRegistry
 
     registry = DynamicRegistry(None)
     embedder = AlgorithmEmbedder()
@@ -65,7 +67,7 @@ class TamperedAlgo:
     assert "TamperedAlgo" not in registered, \
         "FAIL: Tampered algorithm was registered despite checksum mismatch"
 
-    print(f"\nRegistry Integrity Test:")
+    print("\nRegistry Integrity Test:")
     print(f"  Tampered algorithm registered: "
           f"{'Yes' if 'TamperedAlgo' in registered else 'No'}")
     print(f"  Sync result: {result}")

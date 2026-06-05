@@ -1,20 +1,30 @@
 
-import unittest
-import sys
 import os
+import sys
+import unittest
+
 import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from aalgoi.core.problem_spec import ProblemSpec, ProblemType, Objective, Constraint
-from aalgoi.core.problem_library import ProblemLibrary
 from aalgoi.algorithms.primitives import (
-    PRIMITIVES, IteratePrimitive, MapPrimitive, FilterPrimitive,
-    ReducePrimitive, ScanPrimitive, PartitionPrimitive,
-    BinarySearchPrimitive, LinearSearchPrimitive,
-    GreedyPrimitive, DynamicProgrammingPrimitive,
-    GradientDescentPrimitive, compose_pipeline, get_composable_chain
+    PRIMITIVES,
+    BinarySearchPrimitive,
+    DynamicProgrammingPrimitive,
+    FilterPrimitive,
+    GradientDescentPrimitive,
+    GreedyPrimitive,
+    IteratePrimitive,
+    LinearSearchPrimitive,
+    MapPrimitive,
+    PartitionPrimitive,
+    ReducePrimitive,
+    ScanPrimitive,
+    compose_pipeline,
+    get_composable_chain,
 )
+from aalgoi.core.problem_library import ProblemLibrary
+from aalgoi.core.problem_spec import Objective, ProblemSpec, ProblemType
 
 
 class TestProblemSpecCreation(unittest.TestCase):
@@ -133,7 +143,7 @@ class TestProblemLibrary(unittest.TestCase):
         )
         self.library.store_solution(sorting, ["timsort"], {"score": 0.95})
 
-        similar = self.library.find_similar(sorting, top_k=1)
+        self.library.find_similar(sorting, top_k=1)
         self.assertEqual(len(self.library.problems), 1)
 
     def test_store_same_problem_updates(self):

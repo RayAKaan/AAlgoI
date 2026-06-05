@@ -1,5 +1,3 @@
-import pytest
-from pathlib import Path
 from aalgoi.core.mind import create_mind
 from aalgoi.core.mind.solving_loop import UniversalSolution
 

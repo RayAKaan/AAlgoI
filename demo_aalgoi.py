@@ -1,9 +1,19 @@
 """aalgoi 1.4.0 — real-world problem solver demo.
 Run:  pip install aalgoi  &&  python demo_aalgoi.py
 """
-from aalgoi import solve, solve_spec, sort, path, all_paths, distance
-from aalgoi import knapsack, cluster, explain, why, benchmark
-from aalgoi import ProblemSpec, ProblemType
+from aalgoi import (
+    ProblemSpec,
+    ProblemType,
+    benchmark,
+    cluster,
+    distance,
+    explain,
+    knapsack,
+    path,
+    solve,
+    solve_spec,
+    why,
+)
 
 print("=" * 60)
 print("  AAlgoI — Adaptive Algorithm Intelligence")
@@ -42,7 +52,7 @@ city_map = {
     "Gym":   {"Store": 6, "Park": 2},
 }
 
-print(f"\n  Map: Home → ... → Gym")
+print("\n  Map: Home → ... → Gym")
 best = path(city_map, "Home", "Gym")
 print(f"  Shortest: {' → '.join(best)}")
 
@@ -65,7 +75,7 @@ inventory = [
     {"name": "Charger",  "value": 120,  "weight": 0.2},
 ]
 
-print(f"\n  Capacity: 4 kg")
+print("\n  Capacity: 4 kg")
 result = knapsack(inventory, capacity=4)
 sel = result.get("selected", result.get("result", []))
 if sel and isinstance(sel[0], int):
@@ -103,13 +113,13 @@ print("  5. EXPLANATION  —  why did it pick that algorithm?")
 print("\u2500" * 60)
 
 e = explain("quicksort")
-print(f"\n  Algorithm: quicksort")
+print("\n  Algorithm: quicksort")
 print(f"  Summary:   {e.summary}")
 print(f"  Steps:     {e.complexity}")
 
 r = solve("sort these numbers", [3, 1, 4, 1, 5, 9, 2, 6])
 w = why(r)
-print(f"\n  Decision explanation:")
+print("\n  Decision explanation:")
 print(f"  {w}")
 
 # ── 6. Benchmark vs Standard Library ────────────────────────
@@ -139,7 +149,7 @@ queries = [
 for q in queries:
     r = solve(q, [3, 1, 4, 1, 5])
     print(f'\n  Question: "{q}"')
-    print(f"  Input:    [3, 1, 4, 1, 5]")
+    print("  Input:    [3, 1, 4, 1, 5]")
     print(f"  Output:   {r.result}")
 
 # ── 8. ProblemSpec (advanced API) ──────────────────────────
@@ -152,7 +162,7 @@ spec = ProblemSpec(
     problem_type=ProblemType.SORTING,
 )
 r = solve_spec(spec, [7, 2, 9, 1])
-print(f"\n  Input:  [7, 2, 9, 1]")
+print("\n  Input:  [7, 2, 9, 1]")
 print(f"  Output: {r.result}")
 print(f"  Via:    {r.algorithm}")
 

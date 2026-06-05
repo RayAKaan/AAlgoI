@@ -1,10 +1,10 @@
 import hashlib
 import json
-import os
 import logging
-from dataclasses import dataclass, field, asdict
+import os
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
-from typing import Dict, Any, Optional, List
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -15,13 +15,13 @@ class AlgorithmMetadata:
     name: str
     use_case: str
     problem_type: str
-    performance_metrics: Dict[str, float] = field(default_factory=dict)
+    performance_metrics: dict[str, float] = field(default_factory=dict)
     complexity: str = "Unknown"
     discovery_date: str = field(default_factory=lambda: datetime.now().isoformat())
     discovered_by: str = "RL-Agent"
     training_episodes: int = 0
     avg_reward: float = 0.0
-    tags: List[str] = field(default_factory=list)
+    tags: list[str] = field(default_factory=list)
     is_verified: bool = False
 
 
@@ -35,8 +35,8 @@ class AlgorithmMarketplace:
         self.storage_path = os.path.expanduser(storage_path)
         os.makedirs(self.storage_path, exist_ok=True)
 
-        self.algorithms: Dict[str, AlgorithmMetadata] = {}
-        self.code_cache: Dict[str, str] = {}
+        self.algorithms: dict[str, AlgorithmMetadata] = {}
+        self.code_cache: dict[str, str] = {}
 
         self._load_from_disk()
 
@@ -44,7 +44,7 @@ class AlgorithmMarketplace:
         index_path = os.path.join(self.storage_path, "index.json")
         if os.path.exists(index_path):
             try:
-                with open(index_path, "r") as f:
+                with open(index_path) as f:
                     data = json.load(f)
                     for name, meta_dict in data.items():
                         self.algorithms[name] = AlgorithmMetadata(**meta_dict)
@@ -55,7 +55,7 @@ class AlgorithmMarketplace:
             if filename.endswith(".py") and filename != "index.json":
                 name = filename[:-3]
                 try:
-                    with open(os.path.join(self.storage_path, filename), "r") as f:
+                    with open(os.path.join(self.storage_path, filename)) as f:
                         self.code_cache[name] = f.read()
                 except Exception as e:
                     logger.warning("Failed to load algorithm %s: %s", filename, e)
@@ -94,7 +94,7 @@ class AlgorithmMarketplace:
         )
         return full_name
 
-    def find_by_use_case(self, use_case: str) -> List[AlgorithmMetadata]:
+    def find_by_use_case(self, use_case: str) -> list[AlgorithmMetadata]:
         """Find algorithms by use case description (keyword match)."""
         matches = []
         use_case_lower = use_case.lower()
@@ -122,7 +122,7 @@ class AlgorithmMarketplace:
             return None
         return None
 
-    def list_algorithms(self) -> List[Dict[str, Any]]:
+    def list_algorithms(self) -> list[dict[str, Any]]:
         """List all registered algorithms with their metadata."""
         return [
             {

@@ -6,22 +6,15 @@ Public API: Mind, solve, session, AlgorithmInfo, BenchmarkReport
 
 from __future__ import annotations
 
-import json
-import os
+import importlib
 import re
 import time
-import hashlib
-import importlib
-import sys
-import shutil
-import tempfile
-from pathlib import Path
 from dataclasses import dataclass, field
-from typing import Any, Optional, Callable
+from pathlib import Path
+from typing import Any
 
+from aalgoi._data import normalize
 from aalgoi._result import SolveResult
-from aalgoi._data import normalize, detect_type
-
 
 # ── Lazy imports ────────────────────────────────────────────────
 
@@ -31,7 +24,7 @@ def _torch_available() -> bool:
     global _TORCH_AVAILABLE
     if _TORCH_AVAILABLE is None:
         try:
-            import torch
+            import torch  # noqa: F401
             _TORCH_AVAILABLE = True
         except ImportError:
             _TORCH_AVAILABLE = False
@@ -503,7 +496,7 @@ def _rule_based_solve(problem_text: str, data: Any) -> dict:
                 if not isinstance(G, nx.Graph):
                     G = nx.Graph(G)
                 try:
-                    cycle = nx.find_cycle(G)
+                    nx.find_cycle(G)
                     return _make_solution(True, "dfs_cycle_detection", "O(V+E)", "graph_traversal")
                 except nx.NetworkXNoCycle:
                     return _make_solution(False, "dfs_cycle_detection", "O(V+E)", "graph_traversal")

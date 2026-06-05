@@ -1,11 +1,13 @@
-import sys, os, json, time, random
+import random
+import sys
+import time
+
 sys.path.insert(0, ".")
 import numpy as np
-import torch
 
-from aalgoi.core.rl import PPOAgent
 from aalgoi.core.context_engine import ContextEngine
 from aalgoi.core.problem_spec import ProblemSpec, ProblemType
+from aalgoi.core.rl import PPOAgent
 from aalgoi.pipeline import UniversalSolver
 
 solver = UniversalSolver()
@@ -82,11 +84,11 @@ for label, ckpt_path in [
     agent = PPOAgent(state_dim=200, num_actions=len(algo_names), config={})
     agent.load(ckpt_path)
     agent.network.eval()
-    
+
     print(f"\n{'='*70}")
     print(f"  {label}")
     print(f"  {'='*70}")
-    
+
     run_domain_test("sorting", [
         (ProblemSpec(name="s", problem_type=ProblemType.TRANSFORMATION),
          [random.randint(0, 1000) for _ in range(100)], "100 random ints"),
@@ -99,7 +101,7 @@ for label, ckpt_path in [
         (ProblemSpec(name="s", problem_type=ProblemType.TRANSFORMATION),
          [random.randint(0, 100000) for _ in range(5000)], "5K random"),
     ])
-    
+
     run_domain_test("pathfinding", [
         (ProblemSpec(name="p", problem_type=ProblemType.PATHFINDING),
          generate_graph(10, 0.4), "10-node sparse graph"),
@@ -110,7 +112,7 @@ for label, ckpt_path in [
         (ProblemSpec(name="p", problem_type=ProblemType.PATHFINDING),
          generate_graph(20, 0.6), "20-node dense graph"),
     ])
-    
+
     run_domain_test("optimization", [
         (ProblemSpec(name="o", problem_type=ProblemType.OPTIMIZATION),
          generate_knapsack(10), "10-item knapsack"),

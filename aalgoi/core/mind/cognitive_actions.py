@@ -1,10 +1,16 @@
-from enum import IntEnum
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable, TYPE_CHECKING
+from enum import IntEnum
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
+    from aalgoi.core.mind.adapters.executor_adapter import ExecutorAdapter
+    from aalgoi.core.mind.adapters.prover_adapter import ProverAdapter
+    from aalgoi.core.mind.adapters.synthesizer_adapter import SynthesizerAdapter
+    from aalgoi.core.mind.knowledge_graph import AlgorithmicKnowledgeGraph
     from aalgoi.core.mind.mind_state import MindState
     from aalgoi.core.mind.solving_loop import ThinkingSession
+    from aalgoi.core.reasoning.comprehension_engine import DeepComprehensionEngine
 
 
 class CognitiveAction(IntEnum):
@@ -724,7 +730,6 @@ class ActionHandler:
             )
 
         import hashlib
-        import time
         algo_name = (
             f"discovered_"
             f"{hashlib.sha256(session.current_best_code.encode()).hexdigest()[:8]}"

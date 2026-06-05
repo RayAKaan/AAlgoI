@@ -1,9 +1,7 @@
 """aalgoi 1.4.0 — quick test script.
 Run:  pip install aalgoi  &&  python test_aalgoi.py
 """
-import time, json
-from aalgoi import solve, explain, benchmark, sort, path, knapsack, cluster, blur
-from aalgoi import ProblemSpec, ProblemType
+from aalgoi import ProblemSpec, ProblemType, benchmark, cluster, explain, knapsack, path, solve, sort
 
 ok = failed = 0
 def check(label, cond, detail=""):
@@ -65,6 +63,7 @@ print(f"  Winner: {bm.get('winner', '?')}")
 # ── 7. ProblemSpec with solve_spec ──
 print("\n=== 7. ProblemSpec solve ===")
 from aalgoi import solve_spec
+
 spec = ProblemSpec("spec_sort", problem_type=ProblemType.SORTING)
 r2 = solve_spec(spec, [5, 3, 1])
 check("solve_spec", r2.result == [1, 3, 5])

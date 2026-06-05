@@ -1,10 +1,10 @@
-import time
+import json
 import logging
-from typing import Any, Dict, List, Optional, Tuple
-from dataclasses import dataclass, field
+import time
+from dataclasses import dataclass
+from typing import Any
 
 from aalgoi.core.problem_spec import ProblemSpec
-from aalgoi.algorithms.primitives import PRIMITIVES
 
 logger = logging.getLogger(__name__)
 
@@ -496,7 +496,7 @@ class Explanation:
     algorithm_name: str
     summary: str
     complexity: str
-    steps: List[str]
+    steps: list[str]
     best_for: str
     source: str
     detail_level: str
@@ -504,15 +504,15 @@ class Explanation:
 
 
 class Explainer:
-    def __init__(self, llm_client: Optional[Any] = None,
+    def __init__(self, llm_client: Any | None = None,
                  default_detail: str = "short"):
         self.llm_client = llm_client
         self.default_detail = default_detail
 
     def explain(self, algorithm_name: str,
-                detail: Optional[str] = None,
-                problem_spec: Optional[ProblemSpec] = None,
-                context: Optional[Dict] = None) -> Explanation:
+                detail: str | None = None,
+                problem_spec: ProblemSpec | None = None,
+                context: dict | None = None) -> Explanation:
         start = time.perf_counter()
         detail = detail or self.default_detail
 
@@ -526,16 +526,16 @@ class Explainer:
         result.execution_time_ms = (time.perf_counter() - start) * 1000
         return result
 
-    def explain_pipeline(self, pipeline_names: List[str],
-                         detail: Optional[str] = None,
-                         problem_spec: Optional[ProblemSpec] = None) -> List[Explanation]:
+    def explain_pipeline(self, pipeline_names: list[str],
+                         detail: str | None = None,
+                         problem_spec: ProblemSpec | None = None) -> list[Explanation]:
         return [
             self.explain(name, detail=detail, problem_spec=problem_spec)
             for name in pipeline_names
         ]
 
     def _template_explain(self, algorithm_name: str,
-                          context: Optional[Dict] = None) -> Explanation:
+                          context: dict | None = None) -> Explanation:
         normalized = algorithm_name.lower().replace("_primitive", "").replace("_", "_")
         template = EXPLANATION_TEMPLATES.get(normalized)
 
@@ -569,8 +569,8 @@ class Explainer:
         return explanation
 
     def _llm_explain(self, algorithm_name: str,
-                     problem_spec: Optional[ProblemSpec] = None,
-                     context: Optional[Dict] = None) -> Explanation:
+                     problem_spec: ProblemSpec | None = None,
+                     context: dict | None = None) -> Explanation:
         if not self.llm_client:
             return self._template_explain(algorithm_name, context)
 
@@ -593,8 +593,8 @@ class Explainer:
             return self._template_explain(algorithm_name, context)
 
     def _build_explain_prompt(self, algorithm_name: str,
-                              problem_spec: Optional[ProblemSpec] = None,
-                              context: Optional[Dict] = None) -> str:
+                              problem_spec: ProblemSpec | None = None,
+                              context: dict | None = None) -> str:
         parts = [f"Explain the {algorithm_name} algorithm in detail."]
         if problem_spec:
             parts.append(f"Problem: {problem_spec.to_dict()}")
@@ -603,5 +603,5 @@ class Explainer:
         parts.append("Include: how it works, time/space complexity, and when to use it.")
         return "\n".join(parts)
 
-    def list_available_explanations(self) -> List[str]:
+    def list_available_explanations(self) -> list[str]:
         return sorted(EXPLANATION_TEMPLATES.keys())

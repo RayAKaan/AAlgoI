@@ -1,8 +1,9 @@
 import pytest
-from aalgoi.core.mind.synthesis.templates import TemplateRegistry
+
+from aalgoi.core.mind.adapters.synthesizer_adapter import SynthesizerAdapter
 from aalgoi.core.mind.synthesis.modifier import CodeModifier
 from aalgoi.core.mind.synthesis.optimizer import CodeOptimizer
-from aalgoi.core.mind.adapters.synthesizer_adapter import SynthesizerAdapter
+from aalgoi.core.mind.synthesis.templates import TemplateRegistry
 
 
 @pytest.fixture

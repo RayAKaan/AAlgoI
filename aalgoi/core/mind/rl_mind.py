@@ -1,12 +1,16 @@
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from aalgoi.core.mind.model_config import MindConfig, DEFAULT_CONFIG
-from aalgoi.core.mind.cognitive_actions import CognitiveAction, ActionParams
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+from aalgoi.core.mind.cognitive_actions import ActionParams, CognitiveAction
 from aalgoi.core.mind.mind_state import MindState
+from aalgoi.core.mind.model_config import DEFAULT_CONFIG, MindConfig
+
+if TYPE_CHECKING:
+    from aalgoi.core.mind.knowledge_graph import AlgorithmicKnowledgeGraph
 
 if TYPE_CHECKING:
     pass
@@ -113,7 +117,7 @@ class AlgorithmicMind(nn.Module):
         action_history: torch.Tensor,
         action_mask: torch.Tensor,
     ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        B = problem_tokens.shape[0]
+        problem_tokens.shape[0]
         device = problem_tokens.device
 
         positions = torch.arange(problem_tokens.shape[1], device=device)

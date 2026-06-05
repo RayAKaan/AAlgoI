@@ -12,16 +12,11 @@ Week 2: Full implementation with seeded data.
 
 import pickle
 import time
+from dataclasses import dataclass
 from pathlib import Path
-from dataclasses import dataclass, field
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import networkx as nx
-
-from aalgoi.core.mind.kg_similarity import (
-    compute_problem_similarity,
-    extract_signature_dict,
-)
 
 if TYPE_CHECKING:
     from aalgoi.core.mind.cognitive_actions import CognitiveAction

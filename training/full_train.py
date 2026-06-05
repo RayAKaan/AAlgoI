@@ -8,19 +8,19 @@ Usage:
     python training/full_train.py
 """
 
-import torch
-import numpy as np
-import time
 import logging
-from typing import Any, Dict, Optional, Tuple
+import time
+from typing import Any
 
-from aalgoi.core.rl.agents.selection_agent import PPOAgent
-from aalgoi.core.rl.powerhouse_agent import WorldModel
-from aalgoi.core.problem_spec import ProblemSpec, ProblemType
-from training.curriculum import CurriculumScheduler
-from training.self_play import SelfPlayEngine
+import numpy as np
+
 from aalgoi.core.federated_sync import FederatedKnowledgeSync
 from aalgoi.core.knowledge_base import VectorKnowledgeBase
+from aalgoi.core.problem_spec import ProblemSpec, ProblemType
+from aalgoi.core.rl.agents.selection_agent import PPOAgent
+from aalgoi.core.rl.powerhouse_agent import WorldModel
+from training.curriculum import CurriculumScheduler
+from training.self_play import SelfPlayEngine
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +33,7 @@ class FullTrainer:
       80-100% → Federated Sync
     """
 
-    def __init__(self, config: Optional[Dict] = None):
+    def __init__(self, config: dict | None = None):
         self.config = config or {}
 
         self.agent = PPOAgent(
@@ -53,7 +53,7 @@ class FullTrainer:
         self.iteration = 0
         self.total_iterations = self.config.get("total_iterations", 50000)
 
-    def train(self, total_iterations: Optional[int] = None):
+    def train(self, total_iterations: int | None = None):
         if total_iterations is not None:
             self.total_iterations = total_iterations
 
@@ -135,7 +135,7 @@ class FullTrainer:
         return state
 
     def _execute_and_verify(self, action: int, data: Any,
-                            spec: ProblemSpec) -> Tuple[float, bool]:
+                            spec: ProblemSpec) -> tuple[float, bool]:
         reward = float(np.random.uniform(0, 10))
         success = reward > 5.0
         return reward, success

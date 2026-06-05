@@ -169,7 +169,6 @@ class SolveResult:
 
     def explain(self) -> str:
         """Return a human-readable explanation of the solution."""
-        from aalgoi._status import box
 
         lines = []
 

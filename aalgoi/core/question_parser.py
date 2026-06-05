@@ -5,11 +5,11 @@ DistilBERT is NOT loaded at import time. It loads on first
 _detect_problem_type call that needs it (ambiguous queries only).
 """
 
-import re
 import logging
-from typing import Dict, Any, Optional, List, Tuple
+import re
+from typing import Any
 
-from aalgoi.core.problem_spec import ProblemSpec, ProblemType, Objective, Constraint
+from aalgoi.core.problem_spec import Constraint, Objective, ProblemSpec, ProblemType
 
 logger = logging.getLogger(__name__)
 
@@ -71,7 +71,7 @@ class QuestionParser:
         self._classifier = None
         self.keyword_patterns = self._load_keyword_patterns()
 
-    def _load_keyword_patterns(self) -> Dict[ProblemType, List[str]]:
+    def _load_keyword_patterns(self) -> dict[ProblemType, list[str]]:
         return {
             ProblemType.SORTING: ["sort", "order", "arrange", "organize", "rank", "ascending", "descending", "sorted"],
             ProblemType.PATHFINDING: ["path", "route", "navigate", "shortest", "distance", "graph", "shortest path", "bfs", "dijkstra", "astar"],
@@ -163,7 +163,7 @@ class QuestionParser:
 
         return spec
 
-    def _detect_problem_type(self, question: str) -> Tuple[ProblemType, float]:
+    def _detect_problem_type(self, question: str) -> tuple[ProblemType, float]:
         scores = {}
         for ptype, keywords in self.keyword_patterns.items():
             score = sum(1 for kw in keywords if kw in question)
@@ -192,7 +192,7 @@ class QuestionParser:
 
         return ProblemType.UNKNOWN, 0.0
 
-    def _extract_constraints(self, question: str) -> List[str]:
+    def _extract_constraints(self, question: str) -> list[str]:
         constraints = []
 
         time_match = re.search(r"under (\d+\.?\d*)\s*(second|ms|millisecond)", question)
@@ -208,7 +208,7 @@ class QuestionParser:
 
         return constraints
 
-    def _extract_objectives(self, question: str) -> List[Dict]:
+    def _extract_objectives(self, question: str) -> list[dict]:
         objectives = []
 
         if re.search(r"maximize\s+\w+", question):
@@ -227,7 +227,7 @@ class QuestionParser:
 
         return objectives
 
-    def _extract_parameters(self, question: str, problem_type: ProblemType) -> Dict:
+    def _extract_parameters(self, question: str, problem_type: ProblemType) -> dict:
         params = {}
 
         if problem_type in (ProblemType.ML, ProblemType.NLP):

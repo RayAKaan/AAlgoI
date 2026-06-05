@@ -1,9 +1,10 @@
 
 import json
 import time
-import numpy as np
-from typing import Dict, List, Any, Optional, Tuple
 from collections import defaultdict
+from typing import Any
+
+import numpy as np
 
 from aalgoi.core.problem_spec import ProblemSpec
 
@@ -11,7 +12,7 @@ from aalgoi.core.problem_spec import ProblemSpec
 class ProblemLibrary:
     def __init__(self, collection_name: str = "aalgoi_problems"):
         self.collection_name = collection_name
-        self.problems: Dict[str, Dict] = {}
+        self.problems: dict[str, dict] = {}
         self._embedding_dim = 128
         self._chroma_collection = None
         self._chroma_client = None
@@ -45,7 +46,7 @@ class ProblemLibrary:
             pass
 
     def find_similar(self, problem_spec: ProblemSpec, top_k: int = 5,
-                     min_similarity: float = 0.0) -> List[Dict]:
+                     min_similarity: float = 0.0) -> list[dict]:
         if not self.problems:
             return []
 
@@ -64,8 +65,8 @@ class ProblemLibrary:
 
         return self._fallback_search(query_vec, top_k, min_similarity)
 
-    def store_solution(self, problem_spec: ProblemSpec, algorithm_names: List[str],
-                       performance: Dict):
+    def store_solution(self, problem_spec: ProblemSpec, algorithm_names: list[str],
+                       performance: dict):
         signature = problem_spec.get_signature()
         problem_id = f"{signature}_{int(time.time())}"
 
@@ -124,7 +125,7 @@ class ProblemLibrary:
         except Exception:
             return False
 
-    def get_best_algorithms(self, problem_spec: ProblemSpec, top_k: int = 3) -> List[Tuple[str, float]]:
+    def get_best_algorithms(self, problem_spec: ProblemSpec, top_k: int = 3) -> list[tuple[str, float]]:
         similar = self.find_similar(problem_spec, top_k=5, min_similarity=0.3)
 
         algo_scores = defaultdict(list)
@@ -144,10 +145,10 @@ class ProblemLibrary:
         ranked = sorted(algo_scores.items(), key=lambda x: weighted_avg(x[1]), reverse=True)
         return [(algo, weighted_avg(scores)) for algo, scores in ranked[:top_k]]
 
-    def get_all_problems(self) -> Dict[str, Dict]:
+    def get_all_problems(self) -> dict[str, dict]:
         return dict(self.problems)
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         if not self.problems:
             return {"total_problems": 0}
 
@@ -164,7 +165,7 @@ class ProblemLibrary:
             "total_runs": sum(p.get("total_runs", 0) for p in self.problems.values())
         }
 
-    def _chroma_to_results(self, results: Dict) -> List[Dict]:
+    def _chroma_to_results(self, results: dict) -> list[dict]:
         output = []
         for i in range(len(results["ids"][0])):
             pid = results["ids"][0][i]
@@ -188,7 +189,7 @@ class ProblemLibrary:
         return output
 
     def _fallback_search(self, query_vec: np.ndarray, top_k: int,
-                         min_similarity: float) -> List[Dict]:
+                         min_similarity: float) -> list[dict]:
         similarities = []
         for pid, entry in self.problems.items():
             stored_vec = self._decode_signature(entry.get("signature", ""))
@@ -212,7 +213,7 @@ class ProblemLibrary:
                 })
         return results
 
-    def _decode_signature(self, signature: str) -> Optional[np.ndarray]:
+    def _decode_signature(self, signature: str) -> np.ndarray | None:
         try:
             rng = np.random.RandomState(hash(signature) & 0xFFFFFFFF)
             return rng.randn(self._embedding_dim)

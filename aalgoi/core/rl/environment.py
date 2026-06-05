@@ -4,14 +4,15 @@ try:
 except ImportError:
     gym = None
     spaces = None
-import numpy as np
-from typing import Dict, Any, Tuple, Optional
 import logging
 import time
+from typing import Any
+
+import numpy as np
 
 from aalgoi.core.context_engine import ContextEngine
 from aalgoi.core.problem_spec import ProblemSpec, ProblemType
-from aalgoi.core.rl.reward_shaper import RewardShaper, AdaptiveRewardShaper
+from aalgoi.core.rl.reward_shaper import AdaptiveRewardShaper, RewardShaper
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +20,7 @@ logger = logging.getLogger(__name__)
 class AAlgoIEnv(gym.Env):
     metadata = {"render_modes": []}
 
-    def __init__(self, algorithm_registry: Dict, config: Dict = None):
+    def __init__(self, algorithm_registry: dict, config: dict = None):
         super().__init__()
         self.algorithm_registry = algorithm_registry
         self.config = config or {}
@@ -43,7 +44,7 @@ class AAlgoIEnv(gym.Env):
         self.best_score_episode = 0.0
         self._history_cache = {}
 
-    def reset(self, seed: Optional[int] = None, options: Optional[Dict] = None) -> Tuple[np.ndarray, Dict]:
+    def reset(self, seed: int | None = None, options: dict | None = None) -> tuple[np.ndarray, dict]:
         super().reset(seed=seed)
         options = options or {}
 
@@ -74,7 +75,7 @@ class AAlgoIEnv(gym.Env):
         }
         return state, info
 
-    def step(self, action: int) -> Tuple[np.ndarray, float, bool, bool, Dict]:
+    def step(self, action: int) -> tuple[np.ndarray, float, bool, bool, dict]:
         self.step_count += 1
         algo_name = self.algorithm_names[action]
         algorithm = self.algorithm_registry[algo_name]
@@ -201,7 +202,7 @@ class AAlgoIEnv(gym.Env):
             features[16] = 1.0 if priority == "accuracy" else 0.0
         return features
 
-    def _get_history(self) -> Dict:
+    def _get_history(self) -> dict:
         return {"best_score": self.best_score_episode, "algorithm_combinations": []}
 
     def _assess_quality(self, input_data, output, algorithm) -> float:
@@ -212,7 +213,7 @@ class AAlgoIEnv(gym.Env):
             return 1.0 - (inversions / max(len(output), 1))
         return 0.95
 
-    def _sample_problem(self) -> Tuple[Any, Any]:
+    def _sample_problem(self) -> tuple[Any, Any]:
         import random
         size = random.randint(10, 1000)
         data = [random.randint(0, 10000) for _ in range(size)]

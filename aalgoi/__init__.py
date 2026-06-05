@@ -43,15 +43,15 @@ Any data format:
 """
 
 from aalgoi._core import (
-    Mind,
-    solve,
-    session,
     AlgorithmInfo,
     BenchmarkReport,
+    Mind,
+    session,
+    solve,
 )
+from aalgoi._data import detect_type, normalize, normalize_with_metadata
 from aalgoi._result import SolveResult
-from aalgoi._data import normalize, detect_type, normalize_with_metadata
-from aalgoi.shortcuts import sort, search, path, knapsack, cluster, classify, regress, compare, why
+from aalgoi.shortcuts import classify, cluster, compare, knapsack, path, regress, search, sort, why
 
 __version__ = "2.1.0"
 

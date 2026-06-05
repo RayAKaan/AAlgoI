@@ -1,24 +1,26 @@
 import ast
 import json
-import time
 import logging
-from typing import Any, Dict, List, Optional, Tuple, Callable
+import time
 from dataclasses import dataclass, field
+from typing import Any
 
-from aalgoi.core.ast_optimizer import ASTOptimizer
-from aalgoi.core.llm_client import OllamaClient
-from aalgoi.core.sandboxed_executor import (
-    create_sandboxed_module,
-    execute_sandboxed,
-    benchmark_sandboxed,
-)
-from aalgoi.core.prompt_builder import build_synthesis_prompt
-from aalgoi.core.problem_spec import ProblemSpec, ProblemType
-from aalgoi.core.problem_library import ProblemLibrary
 from aalgoi.algorithms.base import Algorithm
 from aalgoi.algorithms.primitives import (
-    PRIMITIVES, get_primitive_names, get_composable_chain,
-    compose_pipeline, Primitive
+    PRIMITIVES,
+    Primitive,
+    compose_pipeline,
+    get_composable_chain,
+)
+from aalgoi.core.ast_optimizer import ASTOptimizer
+from aalgoi.core.llm_client import OllamaClient
+from aalgoi.core.problem_library import ProblemLibrary
+from aalgoi.core.problem_spec import ProblemSpec, ProblemType
+from aalgoi.core.prompt_builder import build_synthesis_prompt
+from aalgoi.core.sandboxed_executor import (
+    benchmark_sandboxed,
+    create_sandboxed_module,
+    execute_sandboxed,
 )
 
 logger = logging.getLogger(__name__)
@@ -26,21 +28,21 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class SynthesisResult:
-    algorithms: List[Dict[str, Any]]
+    algorithms: list[dict[str, Any]]
     strategy: str
     confidence: float
     explanation: str
     execution_time_ms: float = 0.0
-    sources: List[str] = field(default_factory=list)
-    pipeline: Optional[List[Primitive]] = None
+    sources: list[str] = field(default_factory=list)
+    pipeline: list[Primitive] | None = None
 
 
 class AlgorithmSynthesizer:
-    def __init__(self, problem_library: Optional[ProblemLibrary] = None,
-                 llm_client: Optional[Any] = None):
+    def __init__(self, problem_library: ProblemLibrary | None = None,
+                 llm_client: Any | None = None):
         self.problem_library = problem_library or ProblemLibrary()
         self.llm_client = llm_client
-        self._synthesis_cache: Dict[str, SynthesisResult] = {}
+        self._synthesis_cache: dict[str, SynthesisResult] = {}
 
     def synthesize(self, problem_spec: ProblemSpec,
                    use_llm: bool = False,
@@ -76,12 +78,12 @@ class AlgorithmSynthesizer:
         composition_result = self._primitive_composition(spec)
         return composition_result
 
-    def _template_match(self, spec: ProblemSpec) -> Tuple[bool, SynthesisResult]:
+    def _template_match(self, spec: ProblemSpec) -> tuple[bool, SynthesisResult]:
         algorithms = []
         pt = spec.problem_type
 
         if pt == ProblemType.OPTIMIZATION or pt == ProblemType.ROUTING:
-            has_minimize = any(o.direction == "minimize" for o in spec.objectives)
+            any(o.direction == "minimize" for o in spec.objectives)
             if spec.constraints:
                 algorithms.append({
                     "name": "greedy",
@@ -159,7 +161,7 @@ class AlgorithmSynthesizer:
             sources=["built-in templates"]
         )
 
-    def _transfer_synthesis(self, spec: ProblemSpec) -> Tuple[bool, SynthesisResult]:
+    def _transfer_synthesis(self, spec: ProblemSpec) -> tuple[bool, SynthesisResult]:
         if not self.problem_library or not self.problem_library.problems:
             return False, None
 
@@ -268,10 +270,10 @@ class AlgorithmSynthesizer:
             pipeline=pipeline
         )
 
-    def _infer_pipeline(self, spec: ProblemSpec) -> Optional[List[Primitive]]:
+    def _infer_pipeline(self, spec: ProblemSpec) -> list[Primitive] | None:
         pt = spec.problem_type
         has_constraints = len(spec.constraints) > 0
-        has_numeric_output = any(
+        any(
             "int" in str(v.get("type", "")) or "float" in str(v.get("type", ""))
             for v in spec.outputs.values()
         )
@@ -281,7 +283,7 @@ class AlgorithmSynthesizer:
         )
 
         if pt == ProblemType.SEARCH:
-            search_target_name = "search" if "search" in spec.name.lower() else None
+            "search" if "search" in spec.name.lower() else None
             chain = get_composable_chain("iterate", "binary_search")
             if chain:
                 return chain
@@ -298,7 +300,7 @@ class AlgorithmSynthesizer:
 
         return None
 
-    def _get_fallback_algorithms(self, spec: ProblemSpec) -> List[Dict]:
+    def _get_fallback_algorithms(self, spec: ProblemSpec) -> list[dict]:
         algorithms = []
 
         input_types = set()
@@ -354,9 +356,9 @@ class LLMAlgorithmSynthesizer:
         self,
         spec: ProblemSpec,
         data: Any,
-        baseline_algo: Optional[Algorithm] = None,
+        baseline_algo: Algorithm | None = None,
         min_improvement: float = 0.05,
-    ) -> Optional[Algorithm]:
+    ) -> Algorithm | None:
         if not self._should_attempt(spec, data):
             return None
 

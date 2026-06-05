@@ -6,7 +6,6 @@ import threading
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 import requests
 
@@ -62,7 +61,7 @@ class GitHubRegistrySync:
         embedder,
         agent=None,
         cache_dir: str = "~/.aalgoi/registry",
-        config: Optional[dict] = None,
+        config: dict | None = None,
     ):
         self.registry = local_registry
         self.embedder = embedder
@@ -80,7 +79,7 @@ class GitHubRegistrySync:
         self.backoff_max = cfg.get("backoff_max_seconds", _DEFAULT_BACKOFF_MAX)
 
         self._running = False
-        self._thread: Optional[threading.Thread] = None
+        self._thread: threading.Thread | None = None
         self._backoff_delay = 0
         self._push_queue: list[dict] = []
 

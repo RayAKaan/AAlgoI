@@ -1,9 +1,6 @@
 
 import json
-import subprocess
-import time
-from typing import Any, Dict, List, Optional, Tuple
-
+from typing import Any
 
 SELECTION_PROMPT = """You are an algorithm selection expert. Given this context:
 
@@ -43,7 +40,7 @@ Return ONLY valid JSON with parameter names and values.
 
 
 class LLMAdapter:
-    def __init__(self, config: Optional[Dict] = None):
+    def __init__(self, config: dict | None = None):
         self.config = config or {}
         self.backend = self.config.get("backend", "ollama")
         self.model = self.config.get("model", "phi3:mini")
@@ -75,7 +72,7 @@ class LLMAdapter:
 
         return self._available
 
-    def analyze_context(self, context: Dict) -> Dict[str, Any]:
+    def analyze_context(self, context: dict) -> dict[str, Any]:
         if not self.enabled:
             return {"algorithm": None, "reason": "LLM disabled"}
 
@@ -84,7 +81,7 @@ class LLMAdapter:
 
         fp = context.get("features", {})
         dp = context.get("data_profile", {})
-        env = context.get("environment", {})
+        context.get("environment", {})
         cons = context.get("constraints", {})
 
         cpu = fp.get("cpu_free", 0.5)
@@ -110,7 +107,7 @@ class LLMAdapter:
         response = self._query(prompt)
         return self._parse_selection(response)
 
-    def explain_decision(self, context: Dict, chosen: str, result_metrics: Dict) -> str:
+    def explain_decision(self, context: dict, chosen: str, result_metrics: dict) -> str:
         if not self.enabled or not self.check_available():
             return "LLM explanation unavailable"
 
@@ -137,7 +134,7 @@ class LLMAdapter:
         except (json.JSONDecodeError, ValueError):
             return response
 
-    def suggest_parameters(self, context: Dict, algo_name: str) -> Dict:
+    def suggest_parameters(self, context: dict, algo_name: str) -> dict:
         if not self.enabled or not self.check_available():
             return {}
 
@@ -161,7 +158,7 @@ class LLMAdapter:
 
     def _query(self, prompt: str) -> str:
         try:
-            import requests
+            import requests  # noqa: F401
             if self.backend == "ollama":
                 return self._query_ollama(prompt)
             else:
@@ -197,7 +194,7 @@ class LLMAdapter:
             return r.json().get("content", "")
         return json.dumps({"error": f"llama.cpp error: {r.status_code}"})
 
-    def _parse_selection(self, response: str) -> Dict:
+    def _parse_selection(self, response: str) -> dict:
         try:
             parsed = json.loads(response)
             if isinstance(parsed, dict) and "algorithm" in parsed:
@@ -217,7 +214,7 @@ class LLMAdapter:
 
         return {"algorithm": None, "reason": response[:200]}
 
-    def _try_parse_json(self, text: str) -> Dict:
+    def _try_parse_json(self, text: str) -> dict:
         try:
             return json.loads(text)
         except (json.JSONDecodeError, ValueError):
@@ -257,7 +254,7 @@ class LLMAdapter:
         algos = descriptions.get(task_type, descriptions["sorting"])
         return "\n".join(f"  - {a}" for a in algos)
 
-    def _get_known_params(self, algo_name: str) -> Dict:
+    def _get_known_params(self, algo_name: str) -> dict:
         known = {
             "quicksort": {"in_place": False},
             "timsort": {},
@@ -277,7 +274,7 @@ class LLMAdapter:
         }
         return known.get(algo_name, {})
 
-    def get_stats(self) -> Dict:
+    def get_stats(self) -> dict:
         return {
             "enabled": self.enabled,
             "available": self._available,

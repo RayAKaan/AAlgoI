@@ -1,7 +1,8 @@
 import pytest
 import torch
+
+from aalgoi.core.mind.cognitive_actions import ActionResult, CognitiveAction
 from aalgoi.core.mind.mind_state import MindState, build_data_profile
-from aalgoi.core.mind.cognitive_actions import CognitiveAction, ActionResult
 
 
 class TestBuildDataProfile:

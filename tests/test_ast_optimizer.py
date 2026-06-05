@@ -4,7 +4,6 @@ import time
 
 from aalgoi.core.ast_optimizer import ASTOptimizer
 
-
 # ── Baseline: no change tests ───────────────────────────────────────────
 
 def test_no_change_already_optimal():

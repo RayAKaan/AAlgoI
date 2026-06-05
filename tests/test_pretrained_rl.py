@@ -1,16 +1,17 @@
 """Test the pre-trained RL model across all domains."""
 
-import sys
 import os
-import time
 import random
+import sys
+import time
+
 import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from aalgoi.core.rl import PPOAgent
 from aalgoi.core.context_engine import ContextEngine
 from aalgoi.core.problem_spec import ProblemSpec, ProblemType
+from aalgoi.core.rl import PPOAgent
 from aalgoi.pipeline import UniversalSolver
 
 solver = UniversalSolver()

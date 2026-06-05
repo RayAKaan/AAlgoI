@@ -1,6 +1,7 @@
-import networkx as nx
-from typing import Dict, List, Optional
 import logging
+
+import networkx as nx
+
 from aalgoi.core.problem_spec import ProblemType
 
 logger = logging.getLogger(__name__)
@@ -18,7 +19,7 @@ class AlgorithmKnowledgeGraph:
     def __init__(self):
         self.graph = nx.MultiDiGraph()
 
-    def add_algorithm(self, algo_name: str, metadata: Dict):
+    def add_algorithm(self, algo_name: str, metadata: dict):
         """Add an algorithm node and its semantic edges.
 
         Expected metadata keys:
@@ -42,7 +43,7 @@ class AlgorithmKnowledgeGraph:
             self._safe_add_node(bf, type="Constraint")
             self.graph.add_edge(algo_name, bf, relation="PERFORMS_BEST_WHEN")
 
-    def add_problem_type(self, problem_name: str, solving_algorithms: List[str]):
+    def add_problem_type(self, problem_name: str, solving_algorithms: list[str]):
         """Link a problem type to algorithms that solve it."""
         self._safe_add_node(problem_name, type="Problem")
         for algo in solving_algorithms:
@@ -50,7 +51,7 @@ class AlgorithmKnowledgeGraph:
                 self.graph.add_edge(problem_name, algo, relation="SOLVED_BY")
 
     def find_candidates(self, problem_type: str,
-                        constraints: Optional[List[str]] = None) -> List[str]:
+                        constraints: list[str] | None = None) -> list[str]:
         """Traverse from Problem -> Algorithm, optionally filtered by constraints."""
         if not self.graph.has_node(problem_type):
             return []
@@ -76,7 +77,7 @@ class AlgorithmKnowledgeGraph:
 
         return valid if valid else candidates
 
-    def find_alternatives(self, failed_algo: str) -> List[str]:
+    def find_alternatives(self, failed_algo: str) -> list[str]:
         """Find siblings sharing the same IS_A pattern (e.g. DivideAndConquer)."""
         if not self.graph.has_node(failed_algo):
             return []

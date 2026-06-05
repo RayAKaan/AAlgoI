@@ -7,18 +7,18 @@ into plain Python types that the mind can process.
 
 from __future__ import annotations
 
-import json
-import math
 import base64
 import csv
 import io
-from pathlib import Path
-from datetime import datetime, date, time as dt_time, timedelta
-from decimal import Decimal
-from fractions import Fraction
+import json
 from collections import OrderedDict
-from enum import Enum
 from dataclasses import fields as dataclass_fields
+from datetime import date, datetime, timedelta
+from datetime import time as dt_time
+from decimal import Decimal
+from enum import Enum
+from fractions import Fraction
+from pathlib import Path
 from typing import Any
 
 
@@ -190,18 +190,18 @@ def _normalize_file(path_str: str) -> Any:
         return path_str
     suffix = path.suffix.lower()
     if suffix == ".json":
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             return normalize(json.load(f))
     if suffix in (".csv", ".tsv"):
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             reader = csv.DictReader(f)
             rows = [dict(row) for row in reader]
             return {"columns": reader.fieldnames or [], "rows": rows}
     if suffix == ".txt":
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             return f.read()
     try:
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             return normalize(json.load(f))
     except (json.JSONDecodeError, UnicodeDecodeError, ValueError):
         return path_str

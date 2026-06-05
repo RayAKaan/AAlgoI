@@ -1,5 +1,5 @@
-from typing import Any
 import re
+from typing import Any
 
 from aalgoi.core.reasoning.essence import ProblemEssence
 

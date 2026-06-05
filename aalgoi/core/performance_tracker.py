@@ -1,8 +1,11 @@
 
 import time
 import traceback
-from typing import Any, Dict, List, Optional, Tuple, Callable
+from collections.abc import Callable
+from typing import Any
+
 import numpy as np
+
 
 class PerformanceTracker:
     """
@@ -10,24 +13,25 @@ class PerformanceTracker:
     Tracks time, memory, accuracy, and custom quality scores.
     """
 
-    def __init__(self, config: Optional[Dict] = None):
+    def __init__(self, config: dict | None = None):
         self.config = config or {}
-        self.measurements: List[Dict] = []
-        self._baseline_measurements: Dict[str, List[float]] = {}
+        self.measurements: list[dict] = []
+        self._baseline_measurements: dict[str, list[float]] = {}
 
-    def evaluate(self, fn: Callable, data: Any, context: Dict, 
-                 expected_result: Any = None) -> Tuple[Any, Dict]:
+    def evaluate(self, fn: Callable, data: Any, context: dict,
+                 expected_result: Any = None) -> tuple[Any, dict]:
         """
         Execute function and measure comprehensive performance metrics.
         """
-        import psutil
         import os
+
+        import psutil
 
         process = psutil.Process(os.getpid())
 
         # Pre-execution metrics
         mem_before = process.memory_info().rss / (1024 * 1024)  # MB
-        cpu_before = process.cpu_percent()
+        process.cpu_percent()
 
         # Execute with timing
         start_time = time.perf_counter()
@@ -41,14 +45,14 @@ class PerformanceTracker:
             result = None
             success = False
             error = str(e)
-            traceback_str = traceback.format_exc()
+            traceback.format_exc()
 
         end_time = time.perf_counter()
         end_cpu = time.process_time()
 
         # Post-execution metrics
         mem_after = process.memory_info().rss / (1024 * 1024)  # MB
-        cpu_after = process.cpu_percent()
+        process.cpu_percent()
 
         # Calculate metrics
         wall_time_ms = (end_time - start_time) * 1000
@@ -94,8 +98,8 @@ class PerformanceTracker:
 
         return result, metrics
 
-    def _compute_quality_score(self, result: Any, expected: Any, 
-                               context: Dict, success: bool) -> float:
+    def _compute_quality_score(self, result: Any, expected: Any,
+                               context: dict, success: bool) -> float:
         """
         Compute quality score from 0 to 1.
         """
@@ -117,7 +121,7 @@ class PerformanceTracker:
                         return 0.0  # Not sorted
                 else:
                     return 1.0 if result == expected else 0.0
-            except:
+            except Exception:
                 return 0.5
 
         # No expected result - use heuristics
@@ -128,13 +132,13 @@ class PerformanceTracker:
 
         return 1.0 if result is not None else 0.0
 
-    def get_performance_summary(self, algorithm_name: Optional[str] = None) -> Dict:
+    def get_performance_summary(self, algorithm_name: str | None = None) -> dict:
         """
         Get performance summary for an algorithm or overall.
         """
         if algorithm_name:
             measurements = [
-                m for m in self.measurements 
+                m for m in self.measurements
                 if algorithm_name in m.get("algorithm_names", [])
             ]
         else:
@@ -157,7 +161,7 @@ class PerformanceTracker:
             "budget_compliance": sum(1 for m in measurements if m["metrics"]["within_budget"]) / len(measurements)
         }
 
-    def get_baseline(self, algorithm_name: str) -> Optional[float]:
+    def get_baseline(self, algorithm_name: str) -> float | None:
         """Get average baseline performance for an algorithm."""
         measurements = self._baseline_measurements.get(algorithm_name, [])
         if measurements:

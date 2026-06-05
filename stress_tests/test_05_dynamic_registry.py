@@ -1,6 +1,8 @@
 import time
+
 from aalgoi.algorithms.base import Algorithm
 from aalgoi.core.smart_solver import SmartSolver
+
 
 class PerfectSorter(Algorithm):
     name = "PerfectSorter"
@@ -49,7 +51,7 @@ def test_new_algorithm_immediately_selectable():
                             list(range(1000)) + [999, 998, 997])
         post_algos_used.append(result.get('algorithm', ''))
 
-    print(f"\nDynamic Registry Test:")
+    print("\nDynamic Registry Test:")
     print(f"  Registration latency: {registration_latency:.1f}ms")
     print(f"  Algos used pre-registration: {set(pre_algos_used)}")
     print(f"  Algos used post-registration: {set(post_algos_used)}")

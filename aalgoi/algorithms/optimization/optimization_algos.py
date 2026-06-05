@@ -3,9 +3,10 @@ Optimization algorithms: knapsack variants.
 All return {selected, value, weight, valid}.
 """
 
-import random
 import math
+import random
 from typing import Any
+
 from aalgoi.algorithms.base import Algorithm
 
 

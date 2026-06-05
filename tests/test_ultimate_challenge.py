@@ -6,9 +6,10 @@ THE PANDEMIC RESPONSE CHALLENGE — HONEST SCORING
 One problem. Every algorithm. Real score.
 """
 
-from aalgoi import solve
 import numpy as np
 import pytest
+
+from aalgoi import solve
 
 _SCORES = {}
 

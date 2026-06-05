@@ -1,9 +1,10 @@
 """Integration tests verifying pipeline end-to-end for supported problem types."""
 
-import pytest
 import numpy as np
-from aalgoi.pipeline import UniversalSolver
+import pytest
+
 from aalgoi.core.problem_spec import ProblemSpec, ProblemType
+from aalgoi.pipeline import UniversalSolver
 
 
 @pytest.fixture

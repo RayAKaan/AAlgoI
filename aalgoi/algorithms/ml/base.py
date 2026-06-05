@@ -1,8 +1,10 @@
 
-from aalgoi.algorithms.base import Algorithm
-from typing import Any, Dict, Optional, List
-import numpy as np
 import logging
+from typing import Any
+
+import numpy as np
+
+from aalgoi.algorithms.base import Algorithm
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +28,7 @@ class MLAlgorithm(Algorithm):
     def __init__(
         self,
         model_class,
-        default_params: Dict = None,
+        default_params: dict = None,
         name: str = None,
         task: str = "auto"
     ):
@@ -39,8 +41,8 @@ class MLAlgorithm(Algorithm):
 
         self.time_complexity = "O(n*d)"
         self.space_complexity = "O(d\u00b2)"
-        self.tags: List[str] = ["ml", "supervised"]
-        self.best_for: List[str] = []
+        self.tags: list[str] = ["ml", "supervised"]
+        self.best_for: list[str] = []
 
     @property
     def name(self) -> str:
@@ -125,7 +127,7 @@ class MLAlgorithm(Algorithm):
         X_test = self._validate_ml_input(X_test)
         return X_train, y_train, X_test
 
-    def _compute_metrics(self, X, y, X_test) -> Dict:
+    def _compute_metrics(self, X, y, X_test) -> dict:
         return {"status": "fitted"}
 
     def validate_output(self, input_data, output_data) -> bool:
@@ -133,7 +135,7 @@ class MLAlgorithm(Algorithm):
             return output_data.get("trained", False) is True
         return False
 
-    def describe(self) -> Dict:
+    def describe(self) -> dict:
         return {
             "name": self._name,
             "type": "ml",

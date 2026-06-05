@@ -8,10 +8,11 @@ Word embedding algorithms:
 - Embedding visualization (Lab 2)
 """
 
-import numpy as np
-from typing import Dict, List, Tuple, Optional, Any
-from collections import Counter
 import logging
+from collections import Counter
+from typing import Any
+
+import numpy as np
 
 from aalgoi.algorithms.base import Algorithm
 
@@ -51,7 +52,7 @@ class Word2VecTrainer(Algorithm):
         self.patterns = ["EmbeddingTraining", "NeuralNetwork", "ContextPrediction"]
         self.problem_types = ["NLP", "EMBEDDINGS"]
 
-    def process(self, data: Any) -> Dict:
+    def process(self, data: Any) -> dict:
         corpus = data.get("corpus", [])
         vector_size = data.get("vector_size", 100)
         window = data.get("window", 5)
@@ -102,7 +103,7 @@ class Word2VecTrainer(Algorithm):
             logger.error("Word2Vec training failed: %s", e)
             return {"trained": False, "error": str(e)}
 
-    def get_vector(self, word: str) -> Optional[np.ndarray]:
+    def get_vector(self, word: str) -> np.ndarray | None:
         if self.model is None:
             return None
         try:
@@ -110,7 +111,7 @@ class Word2VecTrainer(Algorithm):
         except KeyError:
             return None
 
-    def get_similar(self, word: str, top_n: int = 10) -> List[Tuple[str, float]]:
+    def get_similar(self, word: str, top_n: int = 10) -> list[tuple[str, float]]:
         if self.model is None:
             return []
         try:
@@ -154,7 +155,7 @@ class FrequencyVectorArithmetic(Algorithm):
         self.patterns = ["FrequencyBased", "SimpleArithmetic", "Analogy", "Frequency"]
         self.problem_types = ["NLP", "WORD_ARITHMETIC"]
 
-    def process(self, data: Any) -> Dict:
+    def process(self, data: Any) -> dict:
         corpus = data.get("corpus", [])
         operation = data.get("operation", "")
         remove_stopwords = data.get("remove_stopwords", True)
@@ -181,7 +182,7 @@ class FrequencyVectorArithmetic(Algorithm):
         if missing:
             return {
                 "valid": False,
-                "error": "Words not in vocabulary: %s" % missing,
+                "error": f"Words not in vocabulary: {missing}",
                 "vocabulary_size": len(freq)
             }
 
@@ -220,7 +221,7 @@ class FrequencyVectorArithmetic(Algorithm):
             "algorithm": self.name
         }
 
-    def _remove_stopwords(self, tokenized: List[List[str]]) -> List[List[str]]:
+    def _remove_stopwords(self, tokenized: list[list[str]]) -> list[list[str]]:
         try:
             from nltk.corpus import stopwords
             stop_words = set(stopwords.words('english'))
@@ -235,7 +236,7 @@ class FrequencyVectorArithmetic(Algorithm):
                 for sentence in tokenized
             ]
 
-    def _parse_operation(self, expr: str) -> Tuple[List[str], List[str]]:
+    def _parse_operation(self, expr: str) -> tuple[list[str], list[str]]:
         tokens = expr.lower().split()
         positive = []
         negative = []
@@ -300,7 +301,7 @@ class WordVectorArithmetic(Algorithm):
         self.patterns = ["EmbeddingBased", "Analogy", "Pretrained"]
         self.problem_types = ["NLP", "WORD_ARITHMETIC"]
 
-    def process(self, data: Any) -> Dict:
+    def process(self, data: Any) -> dict:
         operation = data.get("operation", "")
         model_name = data.get("embedding_model", "glove-wiki-gigaword-100")
         top_k = data.get("top_k", 5)
@@ -320,7 +321,7 @@ class WordVectorArithmetic(Algorithm):
         if missing:
             return {
                 "valid": False,
-                "error": "Words not in vocabulary: %s" % missing,
+                "error": f"Words not in vocabulary: {missing}",
                 "model": self.model_name
             }
 
@@ -376,7 +377,7 @@ class WordVectorArithmetic(Algorithm):
             logger.error("Failed to load model %s: %s", model_name, e)
             return False
 
-    def _parse_operation(self, expr: str) -> Tuple[List[str], List[str]]:
+    def _parse_operation(self, expr: str) -> tuple[list[str], list[str]]:
         tokens = expr.lower().split()
         positive = []
         negative = []
@@ -438,7 +439,7 @@ class EmbeddingVisualization(Algorithm):
         self.patterns = ["DimensionalityReduction", "Visualization"]
         self.problem_types = ["NLP", "VISUALIZATION"]
 
-    def process(self, data: Any) -> Dict:
+    def process(self, data: Any) -> dict:
         words = data.get("words", [])
         corpus = data.get("corpus", None)
         method = data.get("method", "pca")
@@ -481,7 +482,7 @@ class EmbeddingVisualization(Algorithm):
             "algorithm": self.name
         }
 
-    def _train_embeddings(self, corpus: List[str], words: List[str]) -> Optional[np.ndarray]:
+    def _train_embeddings(self, corpus: list[str], words: list[str]) -> np.ndarray | None:
         try:
             from gensim.models import Word2Vec
 
@@ -505,7 +506,7 @@ class EmbeddingVisualization(Algorithm):
             logger.error("Failed to train embeddings: %s", e)
             return None
 
-    def _load_pretrained(self, words: List[str], model_name: str) -> Optional[np.ndarray]:
+    def _load_pretrained(self, words: list[str], model_name: str) -> np.ndarray | None:
         try:
             import gensim.downloader as api
 
@@ -524,7 +525,7 @@ class EmbeddingVisualization(Algorithm):
             logger.error("Failed to load pretrained embeddings: %s", e)
             return np.random.randn(len(words), 100)
 
-    def _pca_reduce(self, embeddings: np.ndarray, dimensions: int) -> Tuple[np.ndarray, float]:
+    def _pca_reduce(self, embeddings: np.ndarray, dimensions: int) -> tuple[np.ndarray, float]:
         from sklearn.decomposition import PCA
 
         n_components = min(dimensions, embeddings.shape[0], embeddings.shape[1])
@@ -540,7 +541,7 @@ class EmbeddingVisualization(Algorithm):
 
         return reduced, variance
 
-    def _tsne_reduce(self, embeddings: np.ndarray, dimensions: int) -> Tuple[np.ndarray, None]:
+    def _tsne_reduce(self, embeddings: np.ndarray, dimensions: int) -> tuple[np.ndarray, None]:
         from sklearn.manifold import TSNE
 
         tsne = TSNE(n_components=dimensions, random_state=42, perplexity=min(30, len(embeddings) - 1))
@@ -548,18 +549,18 @@ class EmbeddingVisualization(Algorithm):
 
         return reduced, None
 
-    def _compute_distances(self, coordinates: List[List[float]], words: List[str]) -> Dict[str, float]:
+    def _compute_distances(self, coordinates: list[list[float]], words: list[str]) -> dict[str, float]:
         distances = {}
         for i, w1 in enumerate(words):
             for j, w2 in enumerate(words):
                 if i < j:
                     d = sum((coordinates[i][k] - coordinates[j][k]) ** 2 for k in range(len(coordinates[i])))
                     dist = float(np.sqrt(d))
-                    distances["%s-%s" % (w1, w2)] = dist
+                    distances[f"{w1}-{w2}"] = dist
 
         return distances
 
-    def _find_clusters(self, coordinates: List[List[float]], words: List[str], threshold: float) -> List[List[str]]:
+    def _find_clusters(self, coordinates: list[list[float]], words: list[str], threshold: float) -> list[list[str]]:
         n = len(words)
         visited = [False] * n
         clusters = []

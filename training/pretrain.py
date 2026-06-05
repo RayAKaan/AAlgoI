@@ -1,20 +1,18 @@
-import torch
-import numpy as np
-import time
+import json
 import logging
 import os
-import json
 import random
-from tqdm import tqdm
+import time
 from collections import defaultdict, deque
-from typing import Dict, List, Tuple, Any
+from typing import Any
 
-from aalgoi.core.rl.agents.selection_agent import PPOAgent
-from aalgoi.core.context_engine import ContextEngine
+import numpy as np
+from tqdm import tqdm
+
 from aalgoi.core.problem_spec import ProblemSpec, ProblemType
 from aalgoi.core.validator import LearningValidator
 from aalgoi.pipeline import UniversalSolver
-from training.data_generator import SyntheticDataGenerator, CurriculumLevel
+from training.data_generator import CurriculumLevel, SyntheticDataGenerator
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -37,7 +35,7 @@ class TrainingMetrics:
         if reward > self.best_reward:
             self.best_reward = reward
 
-    def summary(self) -> Dict:
+    def summary(self) -> dict:
         return {
             'avg_reward_last_100': float(np.mean(self.episode_rewards)) if self.episode_rewards else 0.0,
             'success_rate_last_100': float(np.mean(self.success_rates)) if self.success_rates else 0.0,
@@ -51,7 +49,7 @@ class TrainingMetrics:
 
 
 class RLPretrainer:
-    def __init__(self, save_dir="checkpoints/pretrain_v2", config: Dict = None):
+    def __init__(self, save_dir="checkpoints/pretrain_v2", config: dict = None):
         self.config = config or {}
         self.save_dir = save_dir
         os.makedirs(save_dir, exist_ok=True)
@@ -111,7 +109,7 @@ class RLPretrainer:
         logger.info(json.dumps(summary, indent=2))
         return summary
 
-    def _generate_problem(self) -> Tuple[ProblemSpec, Any]:
+    def _generate_problem(self) -> tuple[ProblemSpec, Any]:
         domain = random.choice(['sorting', 'pathfinding', 'optimization'])
         if domain == 'sorting':
             return self.data_gen.generate_sorting()
@@ -132,7 +130,7 @@ class RLPretrainer:
             logger.info(f"Curriculum advanced to level {self.current_level}")
 
     def _execute_and_reward(self, algo_name: str, data: Any,
-                            spec: ProblemSpec, context: Dict) -> Tuple[float, bool, Dict]:
+                            spec: ProblemSpec, context: dict) -> tuple[float, bool, dict]:
         algo = self.registry[algo_name]
         prepared_data = self._prepare_data(spec, data)
 
@@ -182,7 +180,7 @@ class RLPretrainer:
             return 5.0 * (1.0 - elapsed / budget_sec)
         return -5.0 * (elapsed / budget_sec - 1.0)
 
-    def _build_state_vector(self, context: Dict, spec: ProblemSpec) -> np.ndarray:
+    def _build_state_vector(self, context: dict, spec: ProblemSpec) -> np.ndarray:
         vec = np.zeros(200, dtype=np.float32)
         dp = context.get('data_profile', {})
         patterns = dp.get('patterns', {})

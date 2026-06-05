@@ -3,9 +3,9 @@ Benchmarking Framework
 Compare AAlgoI against standard implementations.
 """
 
-import time
 import logging
-from typing import Dict, Any
+import time
+from typing import Any
 
 from aalgoi.core.problem_spec import ProblemSpec, ProblemType
 
@@ -21,7 +21,7 @@ class Benchmarker:
     def __init__(self, solver):
         self.solver = solver
 
-    def compare(self, spec: ProblemSpec, data: Any) -> Dict[str, Any]:
+    def compare(self, spec: ProblemSpec, data: Any) -> dict[str, Any]:
         """
         Run comparison benchmark: AAlgoI vs standard library.
         Returns timing, speedup, winner.

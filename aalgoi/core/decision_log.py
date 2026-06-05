@@ -1,21 +1,20 @@
 
 import json
 import time
-import os
-from typing import Any, Dict, List, Optional
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
+from typing import Any
 
 
 @dataclass
 class Decision:
-    context: Dict[str, Any]
-    candidates: List[str]
+    context: dict[str, Any]
+    candidates: list[str]
     chosen: str
     confidence: float
     reason: str
     timestamp: float = 0.0
-    outcome_success: Optional[bool] = None
-    wall_time_ms: Optional[float] = None
+    outcome_success: bool | None = None
+    wall_time_ms: float | None = None
 
     def __post_init__(self):
         if self.timestamp == 0.0:
@@ -25,7 +24,7 @@ class Decision:
 class DecisionLog:
     def __init__(self, path: str = "audit.jsonl"):
         self.path = path
-        self.recent_decisions: List[Decision] = []
+        self.recent_decisions: list[Decision] = []
         self.max_in_memory = 1000
 
     def record(self, decision: Decision):
@@ -37,22 +36,22 @@ class DecisionLog:
             with open(self.path, 'a') as f:
                 line = json.dumps(asdict(decision), default=str)
                 f.write(line + '\n')
-        except IOError:
+        except OSError:
             pass
 
-    def get_recent(self, n: int = 10) -> List[Decision]:
+    def get_recent(self, n: int = 10) -> list[Decision]:
         return self.recent_decisions[-n:]
 
-    def get_last(self) -> Optional[Decision]:
+    def get_last(self) -> Decision | None:
         if self.recent_decisions:
             return self.recent_decisions[-1]
         return None
 
-    def get_by_algorithm(self, algo_name: str, n: int = 10) -> List[Decision]:
+    def get_by_algorithm(self, algo_name: str, n: int = 10) -> list[Decision]:
         matches = [d for d in self.recent_decisions if d.chosen == algo_name]
         return matches[-n:]
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         if not self.recent_decisions:
             return {"total_decisions": 0}
 

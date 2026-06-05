@@ -3,15 +3,15 @@ Tests for the public aalgoi API.
 All calls validated against real core/mind/ APIs.
 """
 
-import pytest
-import json
 from pathlib import Path
 
+import pytest
+
 import aalgoi
+from aalgoi._core import AlgorithmInfo, BenchmarkReport, Mind
+from aalgoi._data import detect_type, normalize
 from aalgoi._result import SolveResult
-from aalgoi._status import box, table, progress_bar
-from aalgoi._core import Mind, AlgorithmInfo, BenchmarkReport
-from aalgoi._data import normalize, detect_type
+from aalgoi._status import box, progress_bar, table
 
 
 @pytest.fixture

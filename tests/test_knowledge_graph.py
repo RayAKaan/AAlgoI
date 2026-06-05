@@ -1,6 +1,4 @@
-import pytest
 from aalgoi.core.knowledge_graph import AlgorithmKnowledgeGraph
-
 
 # ---------- Construction ----------
 

@@ -1,6 +1,7 @@
 
-from aalgoi.algorithms.ml.base import MLAlgorithm
 import logging
+
+from aalgoi.algorithms.ml.base import MLAlgorithm
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +20,7 @@ class RandomForestAlgo(MLAlgorithm):
         super().__init__(
             Model,
             params,
-            name="random_forest_{}".format(task),
+            name=f"random_forest_{task}",
             task=task
         )
         self.tags = ["ml", "ensemble", "bagging", "decision tree", task]
@@ -54,9 +55,9 @@ class XGBoostAlgo(MLAlgorithm):
         if task not in self._available_cache:
             try:
                 if task == "classification":
-                    from xgboost import XGBClassifier
+                    from xgboost import XGBClassifier  # noqa: F401
                 else:
-                    from xgboost import XGBRegressor
+                    from xgboost import XGBRegressor  # noqa: F401
                 self._available_cache[task] = True
             except ImportError:
                 logger.info("xgboost not installed \u2014 XGBoostAlgo(%s) unavailable", task)
@@ -87,7 +88,7 @@ class XGBoostAlgo(MLAlgorithm):
         super().__init__(
             Model,
             params,
-            name="xgboost_{}".format(task),
+            name=f"xgboost_{task}",
             task=task
         )
 
@@ -130,9 +131,9 @@ class LightGBMAlgo(MLAlgorithm):
         if task not in self._available_cache:
             try:
                 if task == "classification":
-                    from lightgbm import LGBMClassifier
+                    from lightgbm import LGBMClassifier  # noqa: F401
                 else:
-                    from lightgbm import LGBMRegressor
+                    from lightgbm import LGBMRegressor  # noqa: F401
                 self._available_cache[task] = True
             except ImportError:
                 logger.info("lightgbm not installed \u2014 LightGBMAlgo(%s) unavailable", task)
@@ -162,7 +163,7 @@ class LightGBMAlgo(MLAlgorithm):
         super().__init__(
             Model,
             params,
-            name="lightgbm_{}".format(task),
+            name=f"lightgbm_{task}",
             task=task
         )
 

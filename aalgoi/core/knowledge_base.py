@@ -1,21 +1,22 @@
 
 import json
-import time
 import logging
-import numpy as np
-from typing import Dict, List, Any, Optional, Tuple
+import time
 from collections import defaultdict
+from typing import Any
+
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
 
 class VectorKnowledgeBase:
-    def __init__(self, config: Optional[Dict] = None):
+    def __init__(self, config: dict | None = None):
         self.config = config or {}
         self.collection_name = self.config.get("collection_name", "aalgoi_memory")
         self.max_size = self.config.get("max_size", 100000)
-        self.records: List[Dict] = []
-        self._index: Dict[str, List[int]] = defaultdict(list)
+        self.records: list[dict] = []
+        self._index: dict[str, list[int]] = defaultdict(list)
         self._chroma_client = None
         self._chroma_collection = None
         self._use_chromadb = False
@@ -33,7 +34,7 @@ class VectorKnowledgeBase:
         except (ImportError, Exception):
             pass
 
-    def store(self, context: Dict, algorithm_names: List[str], metrics: Dict):
+    def store(self, context: dict, algorithm_names: list[str], metrics: dict):
         record = {
             "timestamp": time.time(),
             "context": {
@@ -87,7 +88,7 @@ class VectorKnowledgeBase:
         if len(self.records) > self.max_size:
             self._prune_old_records()
 
-    def query_similar(self, context: Dict, top_k: int = 5) -> List[Dict]:
+    def query_similar(self, context: dict, top_k: int = 5) -> list[dict]:
         if self._use_chromadb and self._chroma_collection is not None:
             try:
                 query_text = json.dumps({
@@ -108,7 +109,7 @@ class VectorKnowledgeBase:
 
         return self._fallback_similarity_search(context, top_k)
 
-    def _chroma_to_records(self, results: Dict) -> List[Dict]:
+    def _chroma_to_records(self, results: dict) -> list[dict]:
         records = []
         for i, meta in enumerate(results["metadatas"][0]):
             rec = {
@@ -127,7 +128,7 @@ class VectorKnowledgeBase:
             records.append(rec)
         return records
 
-    def _fallback_similarity_search(self, context: Dict, top_k: int) -> List[Dict]:
+    def _fallback_similarity_search(self, context: dict, top_k: int) -> list[dict]:
         if not self.records:
             return []
 
@@ -144,7 +145,7 @@ class VectorKnowledgeBase:
         similarities.sort(key=lambda x: x[0], reverse=True)
         return [record for _, record in similarities[:top_k]]
 
-    def penalize(self, algorithm_name: str, context: Dict):
+    def penalize(self, algorithm_name: str, context: dict):
         penalty_record = {
             "timestamp": time.time(),
             "context": {"features": context.get("features", {})},
@@ -167,7 +168,7 @@ class VectorKnowledgeBase:
                 if score > 0:
                     metrics["score"] = score * factor
 
-    def get_algorithm_stats(self, algorithm_name: str) -> Dict[str, Any]:
+    def get_algorithm_stats(self, algorithm_name: str) -> dict[str, Any]:
         indices = self._index.get(algorithm_name, [])
         if not indices:
             return {}
@@ -186,13 +187,13 @@ class VectorKnowledgeBase:
             "last_used": max(r.get("timestamp", 0) for r in records) if records else None
         }
 
-    def get_all_stats(self) -> Dict[str, Dict]:
+    def get_all_stats(self) -> dict[str, dict]:
         return {
             algo: self.get_algorithm_stats(algo)
             for algo in self._index.keys()
         }
 
-    def get_best_algorithm(self, context: Dict, metric: str = "quality_score") -> Optional[str]:
+    def get_best_algorithm(self, context: dict, metric: str = "quality_score") -> str | None:
         similar = self.query_similar(context, top_k=20)
         if not similar:
             return None
@@ -219,7 +220,7 @@ class VectorKnowledgeBase:
         best_algo = max(algo_scores.keys(), key=lambda a: np.mean(algo_scores[a]))
         return best_algo
 
-    def _features_to_vector(self, features: Dict) -> np.ndarray:
+    def _features_to_vector(self, features: dict) -> np.ndarray:
         feature_names = [
             "data_size_log", "is_numeric", "is_sorted", "is_nearly_sorted",
             "cpu_free", "mem_free_ratio", "cpu_count", "time_budget_norm",
@@ -243,7 +244,7 @@ class VectorKnowledgeBase:
                 self._index[algo].append(i)
 
 
-    def merge(self, global_knowledge: Dict):
+    def merge(self, global_knowledge: dict):
         """
         Merge knowledge from the federated network.
         Integrate remote algorithm performance metrics.
@@ -268,7 +269,7 @@ class VectorKnowledgeBase:
 
         logger.info("Merged %d federated knowledge entries", len(global_knowledge))
 
-    def get_top_performing(self, n: int = 10) -> Dict:
+    def get_top_performing(self, n: int = 10) -> dict:
         """Extract top N best performing algorithms for sharing."""
         sorted_records = sorted(
             self.records,

@@ -2,9 +2,9 @@ import ast
 import builtins
 import multiprocessing as mp
 import time
-import signal
+from collections.abc import Callable
 from types import ModuleType
-from typing import Any, Callable, Optional
+from typing import Any
 
 # ── Security Configuration ──────────────────────────────────────────────
 
@@ -90,7 +90,7 @@ class SandboxValidator(ast.NodeVisitor):
 
 # ── Sandboxed Module Creator ────────────────────────────────────────────
 
-def create_sandboxed_module(name: str, source: str) -> Optional[ModuleType]:
+def create_sandboxed_module(name: str, source: str) -> ModuleType | None:
     validator = SandboxValidator()
     if not validator.validate(source):
         return None

@@ -24,9 +24,9 @@ Usage:
     result = domain.validate(output)
 """
 
-from typing import Dict, List, Any
+from typing import Any, Dict, List
 
-DOMAIN_REGISTRY: Dict[str, Any] = {}
+DOMAIN_REGISTRY: dict[str, Any] = {}
 
 def register_domain(name: str, domain_module):
     DOMAIN_REGISTRY[name] = domain_module
@@ -34,5 +34,5 @@ def register_domain(name: str, domain_module):
 def get_domain(name: str):
     return DOMAIN_REGISTRY.get(name)
 
-def list_domains() -> List[str]:
+def list_domains() -> list[str]:
     return list(DOMAIN_REGISTRY.keys())

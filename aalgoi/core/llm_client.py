@@ -1,8 +1,6 @@
 import os
-from typing import Optional
 
 import requests
-
 
 OLLAMA_DEFAULT_URL = "http://localhost:11434"
 

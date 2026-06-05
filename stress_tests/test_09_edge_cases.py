@@ -1,4 +1,5 @@
 import random
+
 from aalgoi.core.smart_solver import SmartSolver
 
 EDGE_CASES = [
@@ -54,7 +55,7 @@ def test_extreme_edge_cases():
                 f"Case {i}: '{description}' CRASHED: {type(e).__name__}: {e}"
             )
 
-    print(f"\nEdge Case Results:")
+    print("\nEdge Case Results:")
     print(f"  Total cases: {len(EDGE_CASES)}")
     print(f"  Crashes:     {len(crashes)}")
     print(f"  Wrong fails: {len(wrong_fail)}")

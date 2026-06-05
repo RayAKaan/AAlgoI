@@ -5,7 +5,6 @@ Provides DAG visualization of algorithm selection pipelines
 and algorithm performance charts.
 """
 
-from typing import Dict, Any, Optional, List
 import logging
 
 logger = logging.getLogger(__name__)
@@ -29,10 +28,10 @@ except ImportError:
 
 
 def visualize_pipeline(
-    pipeline_steps: List[str],
-    save_path: Optional[str] = "pipeline.png",
+    pipeline_steps: list[str],
+    save_path: str | None = "pipeline.png",
     title: str = "Pipeline DAG",
-) -> Optional[str]:
+) -> str | None:
     if not _MPL_AVAILABLE or not _NX_AVAILABLE:
         logger.warning("matplotlib and networkx required for pipeline visualization")
         return None
@@ -59,10 +58,10 @@ def visualize_pipeline(
 
 
 def plot_algorithm_comparison(
-    algo_names: List[str],
-    times_ms: List[float],
-    save_path: Optional[str] = "comparison.png",
-) -> Optional[str]:
+    algo_names: list[str],
+    times_ms: list[float],
+    save_path: str | None = "comparison.png",
+) -> str | None:
     if not _MPL_AVAILABLE:
         logger.warning("matplotlib required for comparison plots")
         return None

@@ -1,6 +1,8 @@
 import random
-from aalgoi.core.smart_solver import SmartSolver
+
 from aalgoi.core.checkpoint_manager import CheckpointManager
+from aalgoi.core.smart_solver import SmartSolver
+
 
 def test_rollback_restores_exact_behavior():
     solver  = SmartSolver()
@@ -31,7 +33,7 @@ def test_rollback_restores_exact_behavior():
     for _ in range(100):
         solver.ask("sort this list", [None, "string", {}, [], float('nan')])
 
-    v2_id = manager.save_checkpoint(
+    manager.save_checkpoint(
         usolver.meta_controller.rl_agent.lora_adapter,
         solve_count=100,
         metrics={'success_rate': 0.30}

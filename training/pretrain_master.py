@@ -10,24 +10,25 @@ Stages:
   3. Adversarial Self-Play — robustness via SelfPlayEngine
 """
 
-import sys
-import torch
-import torch.nn as nn
-import numpy as np
-import time
-import os
 import json
 import logging
-from typing import Any, Dict, List, Optional, Tuple
+import os
+import sys
+import time
+from typing import Any
+
+import numpy as np
+import torch
+import torch.nn as nn
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from aalgoi.core.problem_spec import ProblemSpec, ProblemType
 from aalgoi.core.rl.agents.selection_agent import PPOAgent
 from aalgoi.core.rl.powerhouse_agent import WorldModel
-from aalgoi.core.problem_spec import ProblemSpec, ProblemType
 from training.curriculum import CurriculumScheduler
-from training.self_play import SelfPlayEngine
 from training.data_generator import SyntheticDataGenerator
+from training.self_play import SelfPlayEngine
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +40,7 @@ class PreTrainer:
     Uses the 38-dim state + attention-based action head architecture.
     """
 
-    def __init__(self, agent: PPOAgent, registry: Dict[str, Any],
+    def __init__(self, agent: PPOAgent, registry: dict[str, Any],
                  embedder=None,
                  save_path: str = "checkpoints/pretrained_v1.pt"):
         self.agent = agent
@@ -63,7 +64,7 @@ class PreTrainer:
     def pretrain(self,
                  supervised_iters: int = 10000,
                  rl_iters: int = 50000,
-                 selfplay_iters: int = 0) -> Dict[str, Any]:
+                 selfplay_iters: int = 0) -> dict[str, Any]:
         logger.info("=" * 60)
         logger.info("Starting Pre-Training Pipeline")
         logger.info("  Stages: supervised (%d) + RL (%d) + self-play (%d)",
@@ -148,7 +149,7 @@ class PreTrainer:
     def _stage2_rl_curriculum(self, iterations: int):
         logger.info("Stage 2: RL Curriculum (%d iterations)...", iterations)
 
-        batch_successes: List[float] = []
+        batch_successes: list[float] = []
 
         for i in range(iterations):
             spec, data = self._generate_problem()
@@ -197,7 +198,7 @@ class PreTrainer:
     # ---------------------------------------------------------------
 
     def _generate_problem(self,
-                          pt: Optional[ProblemType] = None) -> Tuple[ProblemSpec, Any]:
+                          pt: ProblemType | None = None) -> tuple[ProblemSpec, Any]:
         """Generate a problem.
 
         If pt is given, generate from that domain directly.
@@ -256,8 +257,8 @@ class PreTrainer:
 
         return np.nan_to_num(vec, nan=0.0)
 
-    def _compute_stats(self, data: Any) -> Dict[str, Any]:
-        stats: Dict[str, Any] = {}
+    def _compute_stats(self, data: Any) -> dict[str, Any]:
+        stats: dict[str, Any] = {}
         if isinstance(data, (list, tuple)) and len(data) > 0:
             try:
                 arr = np.array([x for x in data if isinstance(x, (int, float))], dtype=float)
@@ -272,8 +273,8 @@ class PreTrainer:
                 pass
         return stats
 
-    def _detect_patterns(self, data: Any) -> Dict[str, Any]:
-        patterns: Dict[str, Any] = {}
+    def _detect_patterns(self, data: Any) -> dict[str, Any]:
+        patterns: dict[str, Any] = {}
         if isinstance(data, list) and len(data) > 1:
             numeric = [x for x in data if isinstance(x, (int, float))]
             if len(numeric) > 1:
@@ -285,7 +286,7 @@ class PreTrainer:
             patterns["unique_ratio"] = len(set(numeric)) / max(len(numeric), 1)
         return patterns
 
-    def _get_env_info(self) -> Dict[str, float]:
+    def _get_env_info(self) -> dict[str, float]:
         try:
             import psutil
             mem = psutil.virtual_memory()
@@ -296,7 +297,7 @@ class PreTrainer:
         except ImportError:
             return {"cpu_free": 0.5, "mem_ratio": 0.5}
 
-    def _get_rule_based_label(self, spec: ProblemSpec, data: Any) -> Optional[int]:
+    def _get_rule_based_label(self, spec: ProblemSpec, data: Any) -> int | None:
         """Return the textbook-optimal algorithm index for a problem."""
         name = None
         pt = spec.problem_type
@@ -331,7 +332,7 @@ class PreTrainer:
             return None
         return self.algo_to_idx.get(name)
 
-    def _find_algo(self, *substrings: str) -> Optional[str]:
+    def _find_algo(self, *substrings: str) -> str | None:
         """Find the first algorithm name matching any substring."""
         for name in self.algo_names:
             lower = name.lower()
@@ -341,7 +342,7 @@ class PreTrainer:
         return None
 
     def _execute_and_verify(self, action: int, data: Any,
-                            spec: ProblemSpec) -> Tuple[float, bool]:
+                            spec: ProblemSpec) -> tuple[float, bool]:
         """Execute the chosen algorithm and return (reward, success)."""
         algo_name = self.idx_to_algo.get(action)
         if algo_name is None or algo_name not in self.registry:
@@ -413,10 +414,10 @@ class PreTrainer:
     # Performance Guarantee Validation
     # ---------------------------------------------------------------
 
-    def validate_performance(self) -> Dict[str, Any]:
+    def validate_performance(self) -> dict[str, Any]:
         logger.info("Validating pre-trained model performance...")
 
-        results: Dict[str, Any] = {
+        results: dict[str, Any] = {
             "sorting_accuracy": self._test_sorting(),
             "pathfinding_accuracy": self._test_pathfinding(),
             "domain_routing": self._test_domain_routing(),
@@ -512,8 +513,8 @@ if __name__ == "__main__":
         format="%(asctime)s - %(levelname)s - %(message)s",
     )
 
-    from aalgoi.pipeline import UniversalSolver
     from aalgoi.core.algorithm_embedder import AlgorithmEmbedder
+    from aalgoi.pipeline import UniversalSolver
 
     solver = UniversalSolver()
     agent = solver.meta_controller.rl_agent
@@ -534,4 +535,4 @@ if __name__ == "__main__":
     print(f"  Inference time:        {results.get('inference_time_ms')} ms")
     print(f"  Model size:            {results.get('model_size_mb')} MB")
     print(f"  Validation passed:     {results.get('passed')}")
-    print(f"\nModel saved to: checkpoints/pretrained_v1.pt")
+    print("\nModel saved to: checkpoints/pretrained_v1.pt")

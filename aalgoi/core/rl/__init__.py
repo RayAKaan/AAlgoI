@@ -2,7 +2,7 @@
 
 _TORCH_AVAILABLE = False
 try:
-    import torch
+    import torch  # noqa: F401
     _TORCH_AVAILABLE = True
 except ImportError:
     pass
@@ -22,10 +22,10 @@ _POWERHOUSE_CLASSES = [
 ]
 
 if _TORCH_AVAILABLE:
+    from aalgoi.core.rl.agents.selection_agent import AttentionActorCritic, PPOAgent
     from aalgoi.core.rl.environment import AAlgoIEnv
-    from aalgoi.core.rl.replay_buffer import ReplayBuffer, EpisodeBuffer, PrioritizedReplayBuffer
-    from aalgoi.core.rl.reward_shaper import RewardShaper, AdaptiveRewardShaper, CurriculumRewardShaper
-    from aalgoi.core.rl.agents.selection_agent import PPOAgent, AttentionActorCritic
+    from aalgoi.core.rl.replay_buffer import EpisodeBuffer, PrioritizedReplayBuffer, ReplayBuffer
+    from aalgoi.core.rl.reward_shaper import AdaptiveRewardShaper, CurriculumRewardShaper, RewardShaper
 else:
     AAlgoIEnv = None
     ReplayBuffer = None

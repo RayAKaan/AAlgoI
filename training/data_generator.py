@@ -1,7 +1,7 @@
-import random
-import numpy as np
 import logging
-from typing import Any, Dict, Tuple
+import random
+
+import numpy as np
 
 from aalgoi.core.problem_spec import ProblemSpec, ProblemType
 
@@ -26,7 +26,7 @@ class SyntheticDataGenerator:
         self.level = level
         logger.info(f"Curriculum advanced to level {level}")
 
-    def generate_sorting(self) -> Tuple[ProblemSpec, list]:
+    def generate_sorting(self) -> tuple[ProblemSpec, list]:
         if self.level == CurriculumLevel.BEGINNER:
             size = random.randint(10, 100)
             scenario = random.choice(["random", "sorted"])
@@ -62,7 +62,7 @@ class SyntheticDataGenerator:
         self.stats["problems_generated"] += 1
         return spec, data
 
-    def generate_pathfinding(self) -> Tuple[ProblemSpec, Dict]:
+    def generate_pathfinding(self) -> tuple[ProblemSpec, dict]:
         if self.level == CurriculumLevel.BEGINNER:
             nodes = random.randint(5, 20)
             density = 0.3
@@ -96,7 +96,7 @@ class SyntheticDataGenerator:
         )
         return spec, {"graph": graph, "start": "0", "end": str(nodes - 1)}
 
-    def generate_optimization(self) -> Tuple[ProblemSpec, Dict]:
+    def generate_optimization(self) -> tuple[ProblemSpec, dict]:
         if self.level == CurriculumLevel.BEGINNER:
             items_count = random.randint(10, 30)
             capacity = random.randint(50, 150)
@@ -118,7 +118,7 @@ class SyntheticDataGenerator:
         )
         return spec, {"items": items, "capacity": capacity}
 
-    def generate_classification(self, n_classes: int = None) -> Tuple[ProblemSpec, Dict]:
+    def generate_classification(self, n_classes: int = None) -> tuple[ProblemSpec, dict]:
         """Generate synthetic classification problems for training."""
         from sklearn.datasets import make_classification
 
@@ -155,7 +155,7 @@ class SyntheticDataGenerator:
         self.stats["problems_generated"] += 1
         return spec, {"X_train": X, "y_train": y}
 
-    def generate_regression(self) -> Tuple[ProblemSpec, Dict]:
+    def generate_regression(self) -> tuple[ProblemSpec, dict]:
         """Generate synthetic regression problems for training."""
         from sklearn.datasets import make_regression
 

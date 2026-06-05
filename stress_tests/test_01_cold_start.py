@@ -1,8 +1,10 @@
-import time
-import threading
 import statistics
+import threading
+import time
+
 from aalgoi.core.rl.agents.selection_agent import PPOAgent
 from aalgoi.core.smart_solver import SmartSolver
+
 
 def test_cold_start_under_concurrent_load():
     PPOAgent._clear_cache()
@@ -24,7 +26,7 @@ def test_cold_start_under_concurrent_load():
             elapsed = time.perf_counter() - start
             times.append(elapsed)
 
-            assert result.get('success') == True
+            assert result.get('success')
             assert result.get('result') == [0,1,2,3,4,5,6,7,8,9], \
                 f"Thread {thread_id} got wrong result: {result.get('result')}"
 
@@ -45,8 +47,8 @@ def test_cold_start_under_concurrent_load():
         t.join()
     total_time = time.perf_counter() - start_all
 
-    print(f"\nCold Start Under Load Results:")
-    print(f"  Threads:       20")
+    print("\nCold Start Under Load Results:")
+    print("  Threads:       20")
     print(f"  Successes:     {len(results)}")
     print(f"  Errors:        {len(errors)}")
     print(f"  Total time:    {total_time:.3f}s")
@@ -57,12 +59,12 @@ def test_cold_start_under_concurrent_load():
         print(f"  P99 latency:   {sorted(times)[19]*1000:.1f}ms")
 
     if errors:
-        print(f"\n  FAILURES:")
+        print("\n  FAILURES:")
         for e in errors:
             print(f"    {e}")
 
     assert len(errors) == 0,   f"FAIL: Some threads crashed on cold start: {errors}"
-    assert len(results) == 20, f"FAIL: Not all threads returned results"
+    assert len(results) == 20, "FAIL: Not all threads returned results"
     assert total_time < 30,    f"FAIL: Cold start took more than 30 seconds ({total_time:.1f}s)"
     assert statistics.median(times) < 4.0, \
         f"FAIL: Median cold start latency > 4 seconds ({statistics.median(times)*1000:.1f}ms)"

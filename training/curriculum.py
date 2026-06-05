@@ -4,9 +4,9 @@ Starts easy, increases difficulty as agent improves.
 """
 
 import logging
-from typing import Tuple, Any
+from typing import Any
 
-from aalgoi.core.problem_spec import ProblemSpec, ProblemType
+from aalgoi.core.problem_spec import ProblemSpec
 from training.data_generator import SyntheticDataGenerator
 
 logger = logging.getLogger(__name__)
@@ -39,7 +39,7 @@ class CurriculumScheduler:
                 logger.info("Curriculum: Reduced to level %.1f", self.difficulty_level)
                 self.success_history.clear()
 
-    def generate_problem(self) -> Tuple[ProblemSpec, Any]:
+    def generate_problem(self) -> tuple[ProblemSpec, Any]:
         """Generate problem appropriate for current difficulty level."""
         gen = SyntheticDataGenerator()
 

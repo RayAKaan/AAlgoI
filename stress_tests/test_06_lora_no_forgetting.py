@@ -1,5 +1,7 @@
 import random
+
 from aalgoi.core.smart_solver import SmartSolver
+
 
 def _measure_selection_quality(solver, data_type, trials=50):
     optimal_map = {
@@ -48,7 +50,7 @@ def test_lora_personalizes_without_forgetting():
     post_random = _measure_selection_quality(solver, "random")
     post_reverse = _measure_selection_quality(solver, "reverse")
 
-    print(f"\nLoRA Personalization Results:")
+    print("\nLoRA Personalization Results:")
     print(f"  Nearly Sorted: {baseline_nearly_sorted:.1%} -> "
           f"{post_nearly_sorted:.1%}")
     print(f"  Random:        {baseline_random:.1%} -> {post_random:.1%}")
@@ -62,8 +64,8 @@ def test_lora_personalizes_without_forgetting():
         print("  (reverse performance dropped — noisy measurement)")
 
     assert post_random >= baseline_random - 0.15, \
-        f"FAIL: Catastrophic forgetting on random data"
+        "FAIL: Catastrophic forgetting on random data"
     assert post_reverse >= baseline_reverse - 0.15, \
-        f"FAIL: Catastrophic forgetting on reverse data"
+        "FAIL: Catastrophic forgetting on reverse data"
     assert post_nearly_sorted >= baseline_nearly_sorted - 0.10, \
         "FAIL: Nearly-sorted performance dropped significantly"

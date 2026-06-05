@@ -1,6 +1,4 @@
-import pytest
-from aalgoi.algorithms.pathfinding import Dijkstra, AStar, BFSPathfinder
-
+from aalgoi.algorithms.pathfinding import AStar, BFSPathfinder, Dijkstra
 
 SIMPLE_GRAPH = {"A": {"B": 1, "C": 4}, "B": {"C": 2, "D": 5}, "C": {"D": 1}, "D": {}}
 

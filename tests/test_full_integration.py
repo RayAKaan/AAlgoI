@@ -1,9 +1,9 @@
-import pytest
-import sys
 import os
-import time
 import random
-import numpy as np
+import sys
+import time
+
+import pytest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 

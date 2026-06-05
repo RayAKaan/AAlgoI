@@ -1,6 +1,6 @@
-import pytest
-from pathlib import Path
 from unittest.mock import MagicMock
+
+import pytest
 
 from aalgoi.core.mind.safety_manager import MindSafetyManager
 

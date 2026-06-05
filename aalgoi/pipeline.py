@@ -1,39 +1,36 @@
 
-import time
 import json
-import math
 import logging
-import threading
+import time
+from typing import Any
+
 import numpy as np
-from typing import Any, Dict, List, Optional, Tuple
+
+from aalgoi.algorithms.optimization import (
+    AntColonyOptimization,
+    GeneticAlgorithm,
+    GreedyKnapsack,
+    HillClimbing,
+    ParticleSwarmOptimization,
+    SimulatedAnnealing,
+)
+from aalgoi.algorithms.pathfinding import AStar, BFSPathfinder, Dijkstra, FloydWarshall
+from aalgoi.algorithms.safety import IdentityAlgorithm, SafeKnapsack, SafePath, SafeSort
+from aalgoi.core.compositor import DynamicCompositor
+from aalgoi.core.context_engine import ContextEngine
+from aalgoi.core.decision_log import Decision, DecisionLog
+from aalgoi.core.drift_detector import DriftDetector
+from aalgoi.core.explainer import Explainer
+from aalgoi.core.genetic_evolver import GeneticPipelineEvolver
+from aalgoi.core.knowledge_base import KnowledgeBase
+from aalgoi.core.meta_controller import MetaController, UniversalMetaController
+from aalgoi.core.performance_tracker import PerformanceTracker
+from aalgoi.core.pipeline_graph import PipelineGraph
+from aalgoi.core.problem_spec import ProblemSpec, ProblemType
+from aalgoi.core.rl.reward_shaper import RewardShaper
+from aalgoi.core.validator import LearningValidator, PipelineValidator
 
 logger = logging.getLogger(__name__)
-
-from aalgoi.core.context_engine import ContextEngine
-from aalgoi.core.meta_controller import MetaController
-from aalgoi.core.compositor import DynamicCompositor
-from aalgoi.core.performance_tracker import PerformanceTracker
-from aalgoi.core.knowledge_base import KnowledgeBase
-from aalgoi.core.bandit import UCB1Bandit
-from aalgoi.core.validator import PipelineValidator
-from aalgoi.core.drift_detector import DriftDetector
-from aalgoi.core.decision_log import DecisionLog, Decision
-from aalgoi.core.pipeline_graph import PipelineGraph
-from aalgoi.core.genetic_evolver import GeneticPipelineEvolver
-
-from aalgoi.algorithms.pathfinding import Dijkstra, AStar, BFSPathfinder, FloydWarshall
-from aalgoi.algorithms.optimization import (
-    GreedyKnapsack, SimulatedAnnealing, GeneticAlgorithm,
-    HillClimbing, ParticleSwarmOptimization, AntColonyOptimization,
-)
-from aalgoi.algorithms.safety import IdentityAlgorithm, SafeSort, SafePath, SafeKnapsack
-
-from aalgoi.core.problem_spec import ProblemSpec, ProblemType
-from aalgoi.core.meta_controller import UniversalMetaController
-from aalgoi.core.validator import LearningValidator
-from aalgoi.core.explainer import Explainer
-from aalgoi.core.rl.reward_shaper import RewardShaper
-from aalgoi.algorithms.primitives import PRIMITIVES
 
 
 class Result:
@@ -72,7 +69,7 @@ class Result:
         error: str = "",
         confidence: float = 0.0,
         alternatives: list = None,
-        metrics: Dict = None,
+        metrics: dict = None,
         pipeline: list = None,
     ):
         self.result = result
@@ -115,7 +112,7 @@ class Result:
     def keys(self):
         return [k for k, v in self.KNOWN_KEYS.items() if k == v and hasattr(self, k)]
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         return {k: getattr(self, k) for k in [
             "result", "algorithm", "time_ms", "success",
             "answer", "error", "confidence", "alternatives",
@@ -246,7 +243,7 @@ class UniversalSolver:
 
     def solve(self, problem_spec: ProblemSpec, data: Any,
               use_llm: bool = False,
-              expected: Any = None) -> Dict:
+              expected: Any = None) -> dict:
         if problem_spec.is_multi_domain():
             return self._solve_multi_domain(problem_spec, data)
         return self._solve_single_domain(problem_spec, data, use_llm, expected)
@@ -263,7 +260,7 @@ class UniversalSolver:
         matching = [k for k in data if k in known_keys]
         return len(matching) >= 2
 
-    def _solve_multi_domain(self, problem: ProblemSpec, data: Dict) -> Dict[str, Any]:
+    def _solve_multi_domain(self, problem: ProblemSpec, data: dict) -> dict[str, Any]:
         if not problem.sub_problems:
             problem = self._auto_decompose_problem(problem, data)
 
@@ -289,7 +286,7 @@ class UniversalSolver:
             'explanation': f"Multi-domain pipeline: {len(results)} stages completed"
         }
 
-    def _auto_decompose_problem(self, problem: ProblemSpec, data: Dict) -> ProblemSpec:
+    def _auto_decompose_problem(self, problem: ProblemSpec, data: dict) -> ProblemSpec:
         key_to_type = {
             'packages': ProblemType.SORTING,
             'items': ProblemType.OPTIMIZATION,
@@ -335,7 +332,7 @@ class UniversalSolver:
 
     def _solve_single_domain(self, problem_spec: ProblemSpec, data: Any,
                              use_llm: bool = False,
-                             expected: Any = None) -> Dict:
+                             expected: Any = None) -> dict:
         start = time.perf_counter()
 
         ptype = problem_spec.problem_type
@@ -382,7 +379,7 @@ class UniversalSolver:
                 output_list = output if isinstance(output, list) else []
                 expected_list = expected if isinstance(expected, list) else []
                 success = (output_list == expected_list)
-        except Exception as e:
+        except Exception:
             alt = self.meta_controller.get_fallback_alternative(algo_name)
             if alt and alt in self.registry:
                 try:
@@ -572,58 +569,49 @@ class UniversalSolver:
 
         return {"result": result}
 
-    def _build_registry(self) -> Dict:
-        from aalgoi.algorithms.sorting import (
-            QuickSort, TimSort, HeapSort, InsertionSort,
-            RadixSort, MergeSort
-        )
-        from aalgoi.algorithms.pathfinding import Dijkstra, AStar, BFSPathfinder, FloydWarshall
-        from aalgoi.algorithms.optimization import (
-            GreedyKnapsack, SimulatedAnnealing, GeneticAlgorithm,
-            HillClimbing, ParticleSwarmOptimization, AntColonyOptimization,
+    def _build_registry(self) -> dict:
+        from aalgoi.algorithms.image_processing import (
+            CLAHE,
+            BilateralFilter,
+            CannyEdgeDetection,
+            GaussianBlur,
+            LaplacianEdgeDetection,
+            MedianFilter,
+            MorphologyOperation,
+            NLMDenoising,
+            SobelEdgeDetection,
         )
         from aalgoi.algorithms.ml import (
-            LinearRegressionAlgo,
-            RidgeAlgo,
-            LassoAlgo,
-            LogisticRegressionAlgo,
-            KNNAlgo,
-            SVMAlgo,
-            GaussianNBAlgo,
-            RandomForestAlgo,
-            XGBoostAlgo,
-            LightGBMAlgo,
-            KMeansClustering,
             DBSCANClustering,
+            GaussianNBAlgo,
             GMMAlgo,
+            KMeansClustering,
+            KNNAlgo,
+            LassoAlgo,
+            LightGBMAlgo,
+            LinearRegressionAlgo,
+            LogisticRegressionAlgo,
             PCAReductionAlgo,
+            RandomForestAlgo,
+            RidgeAlgo,
+            SVMAlgo,
+            XGBoostAlgo,
         )
-        from aalgoi.algorithms.ml.embeddings import (
-            PCAReduction, TSNEVisualization, SemanticSimilarityGenerator
-        )
-        from aalgoi.algorithms.image_processing import (
-            GaussianBlur, MedianFilter,
-            BilateralFilter, SobelEdgeDetection, CLAHE,
-            CannyEdgeDetection, LaplacianEdgeDetection,
-            NLMDenoising, MorphologyOperation,
-        )
-        from aalgoi.algorithms.safety import (
-            IdentityAlgorithm, SafeSort, SafePath,
-            SafeKnapsack
-        )
+        from aalgoi.algorithms.ml.embeddings import PCAReduction, SemanticSimilarityGenerator, TSNEVisualization
         from aalgoi.algorithms.nlp import (
-            Word2VecTrainer,
-            FrequencyVectorArithmetic,
-            WordVectorArithmetic,
+            CreativeSentenceGenerator,
             EmbeddingVisualization,
-            SentimentAnalyzer,
-            TextSummarizer,
+            FrequencyVectorArithmetic,
+            PromptEnricher,
             RAGRetriever,
             SemanticSearcher,
-            PromptEnricher,
-            CreativeSentenceGenerator,
+            SentimentAnalyzer,
+            TextSummarizer,
+            Word2VecTrainer,
             WordExpander,
+            WordVectorArithmetic,
         )
+        from aalgoi.algorithms.sorting import HeapSort, InsertionSort, MergeSort, QuickSort, RadixSort, TimSort
 
         ml_classes = [
             LinearRegressionAlgo,
@@ -700,10 +688,10 @@ class UniversalSolver:
 
         return registry
 
-    def _get_global_registry(self) -> Dict:
+    def _get_global_registry(self) -> dict:
         return dict(self.registry)
 
-    def explain_last(self) -> Optional[Dict]:
+    def explain_last(self) -> dict | None:
         sel = self.meta_controller.get_last_selection()
         if not sel:
             return None
@@ -812,7 +800,7 @@ class UniversalSolver:
 
         return time.time() - start
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         return {
             "total_solves": self._execution_count,
             "validator": self.validator.get_stats()
@@ -820,7 +808,7 @@ class UniversalSolver:
 
 
 class AAlgoI:
-    def __init__(self, config: Optional[Dict] = None):
+    def __init__(self, config: dict | None = None):
         self.config = config or {}
         self._init_components()
         self._execution_count: int = 0
@@ -828,8 +816,8 @@ class AAlgoI:
         self._reconfigure_threshold = self.config.get("reconfigure_threshold", 0.15)
         self._retrain_interval = self.config.get("retrain_interval", 100)
 
-        self._baseline_times: Dict[str, List[float]] = {}
-        self._hot_cache: Dict[str, Dict] = {}
+        self._baseline_times: dict[str, list[float]] = {}
+        self._hot_cache: dict[str, dict] = {}
         self._warm_cache_max = self.config.get("warm_cache", {}).get("max_entries", 1000)
         self._min_hits_for_hot = self.config.get("warm_cache", {}).get("min_hits_for_hot", 50)
 
@@ -862,61 +850,54 @@ class AAlgoI:
         )
         self.decision_log = DecisionLog()
 
-        self._active_pipeline: List[Any] = []
-        self._active_graph: Optional[PipelineGraph] = None
-        self._last_context: Optional[Dict] = None
+        self._active_pipeline: list[Any] = []
+        self._active_graph: PipelineGraph | None = None
+        self._last_context: dict | None = None
         self._use_dag = self.config.get("enable_dag", True)
 
-    def _build_algorithm_registry(self) -> Dict[str, Any]:
-        from aalgoi.algorithms.sorting import (
-            QuickSort, InsertionSort, MergeSort, TimSort, RadixSort, HeapSort
-        )
-        from aalgoi.algorithms.pathfinding import Dijkstra, AStar, BFSPathfinder, FloydWarshall
-        from aalgoi.algorithms.optimization import (
-            GreedyKnapsack, SimulatedAnnealing, GeneticAlgorithm,
-            HillClimbing, ParticleSwarmOptimization, AntColonyOptimization,
+    def _build_algorithm_registry(self) -> dict[str, Any]:
+        from aalgoi.algorithms.image_processing import (
+            CLAHE,
+            BilateralFilter,
+            CannyEdgeDetection,
+            GaussianBlur,
+            LaplacianEdgeDetection,
+            MedianFilter,
+            MorphologyOperation,
+            NLMDenoising,
+            SobelEdgeDetection,
         )
         from aalgoi.algorithms.ml import (
-            LinearRegressionAlgo,
-            RidgeAlgo,
-            LassoAlgo,
-            LogisticRegressionAlgo,
-            KNNAlgo,
-            SVMAlgo,
-            GaussianNBAlgo,
-            RandomForestAlgo,
-            XGBoostAlgo,
-            LightGBMAlgo,
-            KMeansClustering,
             DBSCANClustering,
+            GaussianNBAlgo,
             GMMAlgo,
+            KMeansClustering,
+            KNNAlgo,
+            LassoAlgo,
+            LightGBMAlgo,
+            LinearRegressionAlgo,
+            LogisticRegressionAlgo,
             PCAReductionAlgo,
+            RandomForestAlgo,
+            RidgeAlgo,
+            SVMAlgo,
+            XGBoostAlgo,
         )
-        from aalgoi.algorithms.ml.embeddings import (
-            PCAReduction, TSNEVisualization, SemanticSimilarityGenerator
-        )
-        from aalgoi.algorithms.image_processing import (
-            GaussianBlur, MedianFilter,
-            BilateralFilter, SobelEdgeDetection, CLAHE,
-            CannyEdgeDetection, LaplacianEdgeDetection,
-            NLMDenoising, MorphologyOperation,
-        )
-        from aalgoi.algorithms.safety import (
-            IdentityAlgorithm, SafeSort, SafePath, SafeKnapsack
-        )
+        from aalgoi.algorithms.ml.embeddings import PCAReduction, SemanticSimilarityGenerator, TSNEVisualization
         from aalgoi.algorithms.nlp import (
-            Word2VecTrainer,
-            FrequencyVectorArithmetic,
-            WordVectorArithmetic,
+            CreativeSentenceGenerator,
             EmbeddingVisualization,
-            SentimentAnalyzer,
-            TextSummarizer,
+            FrequencyVectorArithmetic,
+            PromptEnricher,
             RAGRetriever,
             SemanticSearcher,
-            PromptEnricher,
-            CreativeSentenceGenerator,
+            SentimentAnalyzer,
+            TextSummarizer,
+            Word2VecTrainer,
             WordExpander,
+            WordVectorArithmetic,
         )
+        from aalgoi.algorithms.sorting import HeapSort, InsertionSort, MergeSort, QuickSort, RadixSort, TimSort
 
         ml_classes = [
             LinearRegressionAlgo,
@@ -1071,7 +1052,7 @@ class AAlgoI:
 
         return validated_result
 
-    def _rebuild_pipeline_from_names(self, algo_names: List[str]) -> List[Any]:
+    def _rebuild_pipeline_from_names(self, algo_names: list[str]) -> list[Any]:
         pipeline = []
         registry = self.meta_controller.registry
         for name in algo_names:
@@ -1080,8 +1061,8 @@ class AAlgoI:
                 pipeline.append(algo)
         return pipeline
 
-    def _validate_and_fallback(self, result: Any, data: Any, context: Dict,
-                                metrics: Dict) -> Any:
+    def _validate_and_fallback(self, result: Any, data: Any, context: dict,
+                                metrics: dict) -> Any:
         if not metrics.get("success", True):
             safe_result, ok = self.meta_controller.execute_with_fallback(data, context, self._active_pipeline)
             if ok:
@@ -1103,7 +1084,7 @@ class AAlgoI:
         fitness = self._evolver.evaluate_fitness(perf_data)
         self._evolver.evolve(fitness)
 
-    def _should_reconfigure(self, context: Dict) -> bool:
+    def _should_reconfigure(self, context: dict) -> bool:
         if not self._last_context:
             return True
 
@@ -1137,7 +1118,7 @@ class AAlgoI:
 
         return False
 
-    def _hash_context(self, context: Dict) -> str:
+    def _hash_context(self, context: dict) -> str:
         dp = context.get("data_profile", {})
         fp = context.get("features", {})
         cons = context.get("constraints", {})
@@ -1153,7 +1134,7 @@ class AAlgoI:
         }
         return str(bucketed)
 
-    def _update_hot_cache(self, ctx_key: str, context: Dict):
+    def _update_hot_cache(self, ctx_key: str, context: dict):
         if ctx_key in self._hot_cache:
             self._hot_cache[ctx_key]["count"] += 1
         else:
@@ -1169,9 +1150,9 @@ class AAlgoI:
                         key=lambda k: self._hot_cache[k].get("last_seen", 0))
             del self._hot_cache[oldest]
 
-    def _compute_composite_score(self, metrics: Dict, context: Dict, algo_names: List[str]) -> float:
+    def _compute_composite_score(self, metrics: dict, context: dict, algo_names: list[str]) -> float:
         quality = metrics.get("quality_score", 0)
-        within_budget = 1.0 if metrics.get("within_budget", True) else 0.0
+        1.0 if metrics.get("within_budget", True) else 0.0
         success = 1.0 if metrics.get("success", True) else 0.0
 
         time_budget = context.get("constraints", {}).get("time_budget_ms", 500)
@@ -1202,7 +1183,7 @@ class AAlgoI:
 
         return score
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         return {
             "executions": self._execution_count,
             "total_time_ms": self._total_time_ms,
@@ -1228,7 +1209,7 @@ class AAlgoI:
             "warm_cache_hits": sum(e["count"] for e in self._hot_cache.values())
         }
 
-    def explain_decision(self) -> Dict[str, Any]:
+    def explain_decision(self) -> dict[str, Any]:
         if not self._last_context:
             return {"error": "No execution yet"}
 
@@ -1264,7 +1245,7 @@ class AAlgoI:
             "llm_explanation": llm_explanation if llm_explanation else "LLM not available"
         }
 
-    def _generate_reasoning(self, context: Dict) -> List[str]:
+    def _generate_reasoning(self, context: dict) -> list[str]:
         reasoning = []
 
         data_profile = context.get("data_profile", {})
@@ -1300,7 +1281,7 @@ class AAlgoI:
 
         return reasoning
 
-    def benchmark(self, data: Any, algorithms: Optional[List[str]] = None) -> Dict[str, Dict]:
+    def benchmark(self, data: Any, algorithms: list[str] | None = None) -> dict[str, dict]:
         if algorithms is None:
             algorithms = list(self.meta_controller.registry.keys())
 
@@ -1338,7 +1319,7 @@ class AAlgoI:
 
         return results
 
-    def get_decision_log(self, n: int = 10) -> List[Dict]:
+    def get_decision_log(self, n: int = 10) -> list[dict]:
         decisions = self.decision_log.get_recent(n)
         return [{
             "chosen": d.chosen,
@@ -1349,8 +1330,8 @@ class AAlgoI:
             "timestamp": d.timestamp
         } for d in decisions]
 
-    def get_drift_stats(self) -> Dict:
+    def get_drift_stats(self) -> dict:
         return self.drift_detector.get_stats()
 
-    def get_validation_stats(self) -> Dict:
+    def get_validation_stats(self) -> dict:
         return self.validator.get_failure_stats()

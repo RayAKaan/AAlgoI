@@ -1,7 +1,8 @@
-import time
 import random
-import os
+import time
+
 from aalgoi.core.smart_solver import SmartSolver
+
 
 def test_sustained_load_no_degradation():
     solver = SmartSolver()
@@ -89,7 +90,7 @@ def test_sustained_load_no_degradation():
     final_success_rate = sum(results_window) / len(results_window) if results_window else 0
 
     print(f"\n{'='*50}")
-    print(f"Sustained Load Final Results:")
+    print("Sustained Load Final Results:")
     print(f"  Total solves:       {total_solves}")
     print(f"  Total crashes:      {total_crashes}")
     print(f"  Final success rate: {final_success_rate:.1%}")

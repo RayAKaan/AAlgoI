@@ -1,8 +1,8 @@
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
-from aalgoi.core.mind.synthesis.templates import TemplateRegistry
 from aalgoi.core.mind.synthesis.modifier import CodeModifier
 from aalgoi.core.mind.synthesis.optimizer import CodeOptimizer
+from aalgoi.core.mind.synthesis.templates import TemplateRegistry
 
 if TYPE_CHECKING:
     from aalgoi.core.mind.mind_state import MindState

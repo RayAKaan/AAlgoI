@@ -1,6 +1,6 @@
+
 import numpy as np
 import torch
-from typing import Dict, Optional, List
 
 COMPLEXITY_MAP = {
     "O(1)":               0.0,
@@ -42,9 +42,9 @@ class AlgorithmEmbedder:
     EMBED_DIM = 32
 
     def __init__(self):
-        self._cache: Dict[str, torch.Tensor] = {}
+        self._cache: dict[str, torch.Tensor] = {}
 
-    def get_embedding(self, algo_name: str) -> Optional[torch.Tensor]:
+    def get_embedding(self, algo_name: str) -> torch.Tensor | None:
         return self._cache.get(algo_name)
 
     def add_embedding(self, algo_name: str, embedding: torch.Tensor):
@@ -116,7 +116,7 @@ class AlgorithmEmbedder:
                 embeddings.append(self.embed_algorithm(algo))
         return torch.stack(embeddings, dim=0)
 
-    def _infer_problem_types(self, algorithm) -> List[str]:
+    def _infer_problem_types(self, algorithm) -> list[str]:
         name = algorithm.name.lower()
         tags = [t.lower() for t in getattr(algorithm, 'tags', [])]
         all_text = [name] + tags

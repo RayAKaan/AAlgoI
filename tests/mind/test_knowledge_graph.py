@@ -1,11 +1,9 @@
+
 import pytest
-from pathlib import Path
 
 from aalgoi.core.mind.knowledge_graph import (
     AlgorithmicKnowledgeGraph,
     AlgorithmNode,
-    ProblemNode,
-    PrincipleNode,
     EdgeType,
 )
 
@@ -168,7 +166,6 @@ class TestKGRecording:
         assert len(parent_edges) == 2
 
     def test_record_new_algorithm_creates_problem(self, kg):
-        from aalgoi.core.mind.cognitive_actions import CognitiveAction
         new_algo = AlgorithmNode(
             name="novel_algo",
             code="def solve(x): return x",

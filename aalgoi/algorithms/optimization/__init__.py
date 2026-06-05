@@ -1,6 +1,10 @@
 from .optimization_algos import (
-    GreedyKnapsack, SimulatedAnnealing, GeneticAlgorithm,
-    HillClimbing, ParticleSwarm, AntColony
+    AntColony,
+    GeneticAlgorithm,
+    GreedyKnapsack,
+    HillClimbing,
+    ParticleSwarm,
+    SimulatedAnnealing,
 )
 
 ParticleSwarmOptimization = ParticleSwarm

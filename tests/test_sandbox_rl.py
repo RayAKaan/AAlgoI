@@ -5,10 +5,11 @@ Validates: state encoding, policy correctness, training loop,
 curriculum, persistence, forking, instance store, auto-learn mode.
 """
 
-import pytest
-import numpy as np
-import tempfile
 import os
+import tempfile
+
+import numpy as np
+import pytest
 
 HAS_TORCH = False
 try:
@@ -25,8 +26,8 @@ pytestmark = pytest.mark.skipif(not HAS_TORCH, reason="PyTorch not installed")
 class TestStateBridge:
     @pytest.fixture
     def bridge(self):
-        from aalgoi.sandbox.state_bridge import StateBridge
         from aalgoi.core.smart_solver import SmartSolver
+        from aalgoi.sandbox.state_bridge import StateBridge
         return StateBridge(SmartSolver().solver.registry)
 
     def test_state_vector_shape(self, bridge):
@@ -196,20 +197,20 @@ class TestInstanceStore:
         instance_store._instances.clear()
 
     def test_register_and_get(self):
-        from aalgoi.sandbox.instance_store import register, get_instance
+        from aalgoi.sandbox.instance_store import get_instance, register
         obj = object()
         register("test_obj", obj)
         assert get_instance("test_obj") is obj
 
     def test_list(self):
-        from aalgoi.sandbox.instance_store import register, list_instances
+        from aalgoi.sandbox.instance_store import list_instances, register
         register("a", object())
         register("b", object())
         names = list_instances()
         assert "a" in names and "b" in names
 
     def test_delete(self):
-        from aalgoi.sandbox.instance_store import register, delete_instance, get_instance
+        from aalgoi.sandbox.instance_store import delete_instance, get_instance, register
         register("to_delete", object())
         assert delete_instance("to_delete") is True
         assert get_instance("to_delete") is None
@@ -340,8 +341,8 @@ class TestSandboxRL:
 
     def test_list_instances(self):
         from aalgoi.sandbox import SandboxRL
-        a = SandboxRL(name="inst_a", hidden_size=32, num_layers=1)
-        b = SandboxRL(name="inst_b", hidden_size=32, num_layers=1)
+        SandboxRL(name="inst_a", hidden_size=32, num_layers=1)
+        SandboxRL(name="inst_b", hidden_size=32, num_layers=1)
         names = SandboxRL.list()
         assert "inst_a" in names
         assert "inst_b" in names

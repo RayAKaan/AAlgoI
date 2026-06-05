@@ -3,11 +3,10 @@ Debug and Visualization CLI for AAlgoI.
 Shows context analysis, RL policy distribution, and reasoning chain.
 """
 
-import sys
 import os
+import sys
 
 import click
-import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -25,6 +24,7 @@ def debug():
 def visualize(problem, data, json_flag):
     """Visualize how AAlgoI solves a problem."""
     import json as json_module
+
     from aalgoi.core.smart_solver import SmartSolver
 
     solver = SmartSolver()
@@ -91,7 +91,7 @@ def _load_data_arg(data_arg):
         return json.loads(data_arg)
     except json.JSONDecodeError:
         try:
-            with open(data_arg, "r") as f:
+            with open(data_arg) as f:
                 return json.load(f)
         except Exception:
             return None

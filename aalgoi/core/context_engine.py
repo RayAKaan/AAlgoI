@@ -1,9 +1,9 @@
 
-import time
-import psutil
+from typing import Any
+
 import numpy as np
-from typing import Any, Dict, List, Optional, Tuple
-import json
+import psutil
+
 
 class ContextEngine:
     """
@@ -11,10 +11,10 @@ class ContextEngine:
     Profiles input data, environment, and predicts optimal conditions.
     """
 
-    def __init__(self, config: Optional[Dict] = None):
+    def __init__(self, config: dict | None = None):
         self.config = config or {}
-        self.history: List[Dict] = []
-        self._cache: Dict[str, Any] = {}
+        self.history: list[dict] = []
+        self._cache: dict[str, Any] = {}
 
     def analyze(self, problem_text: str, data=None) -> dict:
         """Analyze a problem and return context."""
@@ -82,7 +82,7 @@ class ContextEngine:
         self.history.append(result)
         return result
 
-    def _classify_domain(self, features: Dict) -> str:
+    def _classify_domain(self, features: dict) -> str:
         data_size = features.get("data_size_log", 0)
         is_sorted = features.get("is_sorted", 0)
         if is_sorted:
@@ -91,7 +91,7 @@ class ContextEngine:
             return "sorting"
         return "generic"
 
-    def _estimate_complexity(self, features: Dict) -> str:
+    def _estimate_complexity(self, features: dict) -> str:
         data_size = features.get("data_size_log", 0)
         if data_size > 6:
             return "O(n log n)"
@@ -99,7 +99,7 @@ class ContextEngine:
             return "O(n)"
         return "O(1)"
 
-    def _get_suggestions(self, domain: str, complexity: str) -> List[str]:
+    def _get_suggestions(self, domain: str, complexity: str) -> list[str]:
         suggestions = []
         if domain == "sorting":
             suggestions.append("Use quicksort for average-case, timsort for real-world")
@@ -111,7 +111,7 @@ class ContextEngine:
             suggestions.append("Consider divide-and-conquer approach")
         return suggestions
 
-    def _analyze_data(self, data: Any) -> Dict[str, Any]:
+    def _analyze_data(self, data: Any) -> dict[str, Any]:
         """Deep data profiling."""
         profile = {
             "type": type(data).__name__,
@@ -141,7 +141,7 @@ class ContextEngine:
 
         return profile
 
-    def _compute_statistics(self, data: Any) -> Dict[str, Any]:
+    def _compute_statistics(self, data: Any) -> dict[str, Any]:
         """Compute statistical properties of data."""
         stats = {}
 
@@ -174,7 +174,7 @@ class ContextEngine:
             return 0.0
         return float(np.mean(((arr - mean) / std) ** 3))
 
-    def _detect_patterns(self, data: Any) -> Dict[str, Any]:
+    def _detect_patterns(self, data: Any) -> dict[str, Any]:
         """Detect structural patterns in data."""
         patterns = {}
 
@@ -219,7 +219,7 @@ class ContextEngine:
             seen.add(sub)
         return False
 
-    def _analyze_environment(self) -> Dict[str, Any]:
+    def _analyze_environment(self) -> dict[str, Any]:
         """Analyze system environment."""
         env = {
             "cpu": {
@@ -239,12 +239,12 @@ class ContextEngine:
 
         try:
             env["cpu"]["freq_mhz"] = psutil.cpu_freq().current if psutil.cpu_freq() else None
-        except:
+        except Exception:
             pass
 
         return env
 
-    def _analyze_constraints(self) -> Dict[str, Any]:
+    def _analyze_constraints(self) -> dict[str, Any]:
         """Analyze current constraints."""
         return {
             "time_budget_ms": self.config.get("time_budget_ms", 500),
@@ -253,7 +253,7 @@ class ContextEngine:
             "priority": self.config.get("priority", "balanced")  # speed, accuracy, balanced
         }
 
-    def _predict_optimal_conditions(self, context: Dict) -> Dict[str, Any]:
+    def _predict_optimal_conditions(self, context: dict) -> dict[str, Any]:
         """AI-powered prediction of optimal execution conditions."""
         predictions = {
             "recommended_parallelism": 1,
@@ -298,7 +298,7 @@ class ContextEngine:
 
         return predictions
 
-    def _extract_features(self, context: Dict) -> Dict[str, float]:
+    def _extract_features(self, context: dict) -> dict[str, float]:
         """Extract normalized feature vector for ML models."""
         features = {}
 
@@ -329,10 +329,10 @@ class ContextEngine:
         try:
             import sys
             return sys.getsizeof(data)
-        except:
+        except Exception:
             return len(data) * 8  # rough estimate
 
-    def _analyze_ml_data(self, data) -> Dict:
+    def _analyze_ml_data(self, data) -> dict:
         if isinstance(data, dict):
             X = data.get("X_train")
             y = data.get("y_train")
@@ -387,6 +387,6 @@ class ContextEngine:
 
         return profile
 
-    def get_feature_vector(self, context: Dict) -> List[float]:
+    def get_feature_vector(self, context: dict) -> list[float]:
         """Get flat feature vector for ML consumption."""
         return list(context["features"].values())

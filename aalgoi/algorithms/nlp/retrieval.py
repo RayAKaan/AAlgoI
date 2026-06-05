@@ -6,9 +6,8 @@ Retrieval algorithms:
 - Semantic search
 """
 
-import numpy as np
-from typing import Dict, List, Optional, Any
 import logging
+from typing import Any
 
 from aalgoi.algorithms.base import Algorithm
 
@@ -52,7 +51,7 @@ class RAGRetriever(Algorithm):
         self.patterns = ["EmbeddingBased", "RetrievalAugmented", "ChunkAndEmbed"]
         self.problem_types = ["NLP", "RETRIEVAL"]
 
-    def process(self, data: Any) -> Dict:
+    def process(self, data: Any) -> dict:
         document = data.get("document", "")
         query = data.get("query", "")
         top_k = data.get("top_k", 3)
@@ -115,7 +114,7 @@ class RAGRetriever(Algorithm):
             logger.error("Failed to load model: %s", e)
             return False
 
-    def _split_into_passages(self, text: str, max_length: int = 500) -> List[str]:
+    def _split_into_passages(self, text: str, max_length: int = 500) -> list[str]:
         text = text.replace('\n\n', ' ').replace('\n', ' ')
         sentences = text.split('. ')
 
@@ -173,7 +172,7 @@ class SemanticSearcher(Algorithm):
         self.patterns = ["EmbeddingBased", "SimilaritySearch", "DenseRetrieval"]
         self.problem_types = ["NLP", "RETRIEVAL"]
 
-    def process(self, data: Any) -> Dict:
+    def process(self, data: Any) -> dict:
         corpus = data.get("corpus", [])
         query = data.get("query", "")
         top_k = data.get("top_k", 5)

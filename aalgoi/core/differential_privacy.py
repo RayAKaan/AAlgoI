@@ -5,14 +5,13 @@ Uses diffprivlib to add calibrated noise to shared metrics,
 preventing dataset fingerprinting via aggregate statistics.
 """
 
-from typing import Dict, Any, Optional
 import logging
 
 logger = logging.getLogger(__name__)
 
 _DP_AVAILABLE = False
 try:
-    from diffprivlib.mechanisms import Laplace, Gaussian
+    from diffprivlib.mechanisms import Gaussian, Laplace
     _DP_AVAILABLE = True
 except ImportError:
     Laplace = None
@@ -51,9 +50,9 @@ def privatize_metric(
 
 
 def prepare_federation_payload(
-    metrics: Dict[str, float],
+    metrics: dict[str, float],
     epsilon: float = 1.0,
-) -> Dict[str, float]:
+) -> dict[str, float]:
     if not _DP_AVAILABLE:
         return metrics
     return {

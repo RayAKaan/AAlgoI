@@ -1,5 +1,5 @@
-import pytest
 import numpy as np
+
 from aalgoi.algorithms.ml.base import MLAlgorithm
 
 

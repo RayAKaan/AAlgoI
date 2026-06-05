@@ -1,11 +1,11 @@
+import logging
+from collections import deque
+
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.distributions import Categorical
-import numpy as np
-from typing import Dict, List, Optional, Tuple
-import logging
-from collections import deque
 
 logger = logging.getLogger(__name__)
 
@@ -90,7 +90,7 @@ class AttentionActorCritic(nn.Module):
         algo_embeddings: torch.Tensor,
         deterministic: bool = False,
         candidate_mask: torch.Tensor = None,
-    ) -> Tuple[int, float, float]:
+    ) -> tuple[int, float, float]:
         policy, value = self.forward(state, algo_embeddings)
 
         if candidate_mask is not None:
@@ -110,7 +110,7 @@ class PPOAgent:
     _sd_cache: dict = {}
 
     @classmethod
-    def _get_cached_state_dict(cls, path: str) -> Optional[dict]:
+    def _get_cached_state_dict(cls, path: str) -> dict | None:
         import os as _os
         path = _os.path.abspath(_os.path.expanduser(path))
         if path not in cls._sd_cache:
@@ -127,7 +127,7 @@ class PPOAgent:
     def _clear_cache(cls):
         cls._sd_cache.clear()
 
-    def __init__(self, state_dim: int = STATE_DIM, config: Dict = None):
+    def __init__(self, state_dim: int = STATE_DIM, config: dict = None):
         self.config = config or {}
         self.state_dim = state_dim
 
@@ -164,8 +164,8 @@ class PPOAgent:
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.network.to(self.device)
 
-        self._algo_embeddings: Optional[torch.Tensor] = None
-        self._algo_names: List[str] = []
+        self._algo_embeddings: torch.Tensor | None = None
+        self._algo_names: list[str] = []
 
         self.lora_adapter = None
 
@@ -176,8 +176,8 @@ class PPOAgent:
     def get_calibrated_probs(
         self,
         state: np.ndarray,
-        temperature: Optional[float] = None,
-    ) -> Tuple[np.ndarray, float]:
+        temperature: float | None = None,
+    ) -> tuple[np.ndarray, float]:
         temp = temperature if temperature is not None else self._calibrated_temperature
         state_t = torch.FloatTensor(state).unsqueeze(0).to(self.device)
         algo_t = self._algo_embeddings
@@ -195,7 +195,7 @@ class PPOAgent:
     def update_algo_embeddings(
         self,
         embeddings: torch.Tensor,
-        algo_names: List[str],
+        algo_names: list[str],
     ):
         self._algo_embeddings = embeddings.to(self.device)
         self._algo_names = algo_names
@@ -205,7 +205,7 @@ class PPOAgent:
         state: np.ndarray,
         deterministic: bool = False,
         candidate_mask: list = None,
-    ) -> Tuple[int, float, float]:
+    ) -> tuple[int, float, float]:
         if self._algo_embeddings is None:
             raise RuntimeError(
                 "No algorithm embeddings loaded. "
@@ -247,7 +247,7 @@ class PPOAgent:
     ):
         self.replay_buffer.push(state, action, reward, done, log_prob, value)
 
-    def train(self) -> Optional[Dict]:
+    def train(self) -> dict | None:
         if len(self.replay_buffer) < self.batch_size:
             return {"total_loss": 0.0, "policy_loss": 0.0, "value_loss": 0.0, "entropy": 0.0}
 
@@ -305,7 +305,7 @@ class PPOAgent:
         rewards: torch.Tensor,
         values: torch.Tensor,
         dones: torch.Tensor,
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         advantages = []
         gae = 0.0
         for t in reversed(range(len(rewards))):
@@ -391,7 +391,7 @@ class PPOAgent:
         if path:
             self.lora_adapter.load(path)
 
-    def get_stats(self) -> Dict:
+    def get_stats(self) -> dict:
         return {
             k: {"mean": float(np.mean(v)) if v else 0.0, "std": float(np.std(v)) if v else 0.0}
             for k, v in self.training_stats.items()

@@ -9,8 +9,6 @@ Windows-safe: falls back to ASCII when Unicode encoding fails.
 from __future__ import annotations
 
 import sys
-import shutil
-
 
 # ── Detect Unicode support ───────────────────────────────────────────
 

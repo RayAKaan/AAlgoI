@@ -1,6 +1,5 @@
 import ast
 import copy
-from typing import List, Optional
 
 
 class ASTOptimizer:
@@ -43,7 +42,7 @@ class ASTOptimizer:
 
     # ── Pass 1: @lru_cache injection ─────────────────────────────────
 
-    def _inject_lru_cache(self, tree: ast.Module) -> Optional[ast.Module]:
+    def _inject_lru_cache(self, tree: ast.Module) -> ast.Module | None:
         """Add @lru_cache to pure functions with >= 1 arg and no decorators."""
         tree = copy.deepcopy(tree)
         changed = False
@@ -117,7 +116,7 @@ class ASTOptimizer:
 
     # ── Pass 2: Listcomp conversion ──────────────────────────────────
 
-    def _convert_listcomps(self, tree: ast.Module) -> Optional[ast.Module]:
+    def _convert_listcomps(self, tree: ast.Module) -> ast.Module | None:
         """
         Convert this pattern:
             result = []
@@ -207,7 +206,7 @@ class ASTOptimizer:
 
     # ── Pass 3: Loop fusion ──────────────────────────────────────────
 
-    def _fuse_loops(self, tree: ast.Module) -> Optional[ast.Module]:
+    def _fuse_loops(self, tree: ast.Module) -> ast.Module | None:
         """
         Fuse adjacent for-loops over the same iterable:
             for x in data:  A(x)

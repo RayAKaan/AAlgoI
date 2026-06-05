@@ -1,13 +1,12 @@
 """Unit tests for registry sync, token manager, and config loading."""
 import hashlib
 import os
-from unittest.mock import patch, MagicMock, ANY
+from unittest.mock import MagicMock, patch
 
 import pytest
 
 from aalgoi.core.registry_sync import GitHubRegistrySync, _load_registry_config
 from aalgoi.core.token_manager import TokenManager
-
 
 # ── Fixtures ─────────────────────────────────────────────────────────────────
 
@@ -70,8 +69,6 @@ class TestTokenManager:
 
 class TestRegistryConfig:
     def test_load_registry_config_returns_defaults_on_missing_file(self, tmp_path):
-        import json
-        from pathlib import Path
 
         cfg = _load_registry_config()
         # Should return empty dict when no config file found

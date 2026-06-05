@@ -1,6 +1,7 @@
 from aalgoi.algorithms.base import Algorithm
 from aalgoi.core.smart_solver import SmartSolver
 
+
 class AlwaysCrashesAlgorithm(Algorithm):
     name = "AlwaysCrashes"
     def process(self, data):
@@ -24,8 +25,8 @@ def test_self_healing_under_sabotage():
             if result.get('result') == expected:
                 correct_results += 1
 
-    print(f"\nSelf-Healing Under Sabotage:")
-    print(f"  Trials:           20")
+    print("\nSelf-Healing Under Sabotage:")
+    print("  Trials:           20")
     print(f"  Successes:        {successes}/20")
     print(f"  Correct results:  {correct_results}/20")
 

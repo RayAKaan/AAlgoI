@@ -1,17 +1,15 @@
-import torch
-import torch.nn.functional as F
-import time
-import math
 import random
-from pathlib import Path
 from dataclasses import dataclass, field
 from typing import Any
 
-from aalgoi.core.mind.rl_mind import AlgorithmicMind
-from aalgoi.core.mind.mind_state import build_data_profile
-from aalgoi.core.mind.cognitive_actions import CognitiveAction, ActionParams, ActionResult
+import torch
+import torch.nn.functional as F
+
+from aalgoi.core.mind.cognitive_actions import CognitiveAction
 from aalgoi.core.mind.knowledge_graph import AlgorithmicKnowledgeGraph
+from aalgoi.core.mind.mind_state import build_data_profile
 from aalgoi.core.mind.model_config import MindConfig
+from aalgoi.core.mind.rl_mind import AlgorithmicMind
 
 _STATE_FEATURE_DIM = 64 + 8 + 128  # data_features + scalars + kg_neighborhood
 
@@ -452,7 +450,7 @@ class BootstrapTrainer:
         with torch.no_grad():
             for path in ideal_paths:
                 for aug in range(max(1, n_samples // len(ideal_paths))):
-                    problem_text = _generate_problem_text(path, aug)
+                    _generate_problem_text(path, aug)
                     data = _generate_problem_data(path, aug)
                     data_features = _build_full_state(data)
 

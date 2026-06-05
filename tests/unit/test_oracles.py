@@ -1,5 +1,5 @@
-import pytest
 import numpy as np
+
 from aalgoi.core.oracles import ORACLES, evaluate, get_oracle
 from aalgoi.core.problem_spec import ProblemType
 

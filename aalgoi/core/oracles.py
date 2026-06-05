@@ -1,8 +1,11 @@
-from typing import Any, Callable, Dict, Optional
-from aalgoi.core.problem_spec import ProblemType
+from collections.abc import Callable
+from typing import Any
+
 import numpy as np
 
-ORACLES: Dict[ProblemType, Callable[[Any, Any], bool]] = {}
+from aalgoi.core.problem_spec import ProblemType
+
+ORACLES: dict[ProblemType, Callable[[Any, Any], bool]] = {}
 
 def _register(pt: ProblemType):
     def decorator(fn: Callable[[Any, Any], bool]):
@@ -11,7 +14,7 @@ def _register(pt: ProblemType):
     return decorator
 
 
-def get_oracle(problem_type: ProblemType) -> Optional[Callable[[Any, Any], bool]]:
+def get_oracle(problem_type: ProblemType) -> Callable[[Any, Any], bool] | None:
     return ORACLES.get(problem_type)
 
 

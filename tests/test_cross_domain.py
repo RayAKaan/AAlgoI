@@ -1,8 +1,6 @@
 """Unit tests for cross-domain knowledge graph routing."""
-import pytest
 from aalgoi.core.knowledge_graph import AlgorithmKnowledgeGraph
 from aalgoi.core.meta_controller import UniversalMetaController
-
 
 # ── Helper: build a minimal KG with cross-domain edges ──────────────────────
 
@@ -137,7 +135,6 @@ class TestIntegrationWithMetaController:
     def test_cross_domain_not_mixed_into_primary_pool_when_sufficient(self):
         """Cross-domain candidates are fallbacks, not mixed into RL action space."""
         mc = UniversalMetaController(config={"kg_enabled": True})
-        kg = mc.kg
 
         # Use sorting with 100 elements (no SmallN constraint)
         mc._cross_domain_pool = []

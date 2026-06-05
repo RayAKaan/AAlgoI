@@ -1,14 +1,14 @@
-import time
-import random
-import logging
 import inspect
-from typing import Dict, Any, List, Tuple, Optional
+import logging
+import random
+import time
+from typing import Any
 
 import numpy as np
 
 from aalgoi.core.algorithm_marketplace import AlgorithmMarketplace, AlgorithmMetadata
-from aalgoi.core.rl.agents.selection_agent import PPOAgent
 from aalgoi.core.problem_spec import ProblemSpec, ProblemType
+from aalgoi.core.rl.agents.selection_agent import PPOAgent
 from training.data_generator import SyntheticDataGenerator
 
 logger = logging.getLogger(__name__)
@@ -23,7 +23,7 @@ class AlgorithmDiscoveryEngine:
     4. Storing successful algorithms globally
     """
 
-    def __init__(self, marketplace: Optional[AlgorithmMarketplace] = None):
+    def __init__(self, marketplace: AlgorithmMarketplace | None = None):
         self.marketplace = marketplace or AlgorithmMarketplace()
         self.rl_agent = PPOAgent(state_dim=200, num_actions=100)
         self.synth_generator = SyntheticDataGenerator()
@@ -32,7 +32,7 @@ class AlgorithmDiscoveryEngine:
 
     def discover_algorithm(
         self, target_problem: ProblemSpec, iterations: int = 1000
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """
         RL loop: try algorithm combinations, reward performance, store winners.
         Returns the best discovered algorithm metadata if found.
@@ -52,7 +52,7 @@ class AlgorithmDiscoveryEngine:
             for test_spec, test_data in test_problems:
                 try:
                     start = time.perf_counter()
-                    result = candidate.process(test_data)
+                    candidate.process(test_data)
                     elapsed = time.perf_counter() - start
 
                     novelty = self._calculate_novelty(candidate, test_spec)
@@ -139,7 +139,7 @@ class AlgorithmDiscoveryEngine:
 
         return SynthesizedAlgorithm()
 
-    def _generate_test_problems(self, target_problem: ProblemSpec, n: int = 10) -> List[Tuple[ProblemSpec, Any]]:
+    def _generate_test_problems(self, target_problem: ProblemSpec, n: int = 10) -> list[tuple[ProblemSpec, Any]]:
         """Generate synthetic test problems for the target domain."""
         tests = []
 
@@ -172,8 +172,8 @@ class AlgorithmDiscoveryEngine:
     def _compute_discovery_reward(
         self,
         is_valid: bool,
-        metrics: Dict[str, float],
-        discovered_algorithm: Optional[Dict] = None,
+        metrics: dict[str, float],
+        discovered_algorithm: dict | None = None,
     ) -> float:
         """Compute reward for algorithm discovery attempt."""
         reward = 0.0
@@ -193,7 +193,7 @@ class AlgorithmDiscoveryEngine:
 
         return reward
 
-    def _build_discovery_info(self, algorithm, novelty: float) -> Dict:
+    def _build_discovery_info(self, algorithm, novelty: float) -> dict:
         return {
             "novelty_score": novelty,
             "algorithm_name": algorithm.name,

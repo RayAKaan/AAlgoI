@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """AAlgoI Demo — RL-powered algorithm selection across 3 domains."""
 
-from aalgoi.pipeline import UniversalSolver
 from aalgoi.core.problem_spec import ProblemSpec, ProblemType
+from aalgoi.pipeline import UniversalSolver
 
 
 def main():

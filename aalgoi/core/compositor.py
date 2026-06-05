@@ -1,31 +1,30 @@
 
 import ast
+import copy
+import functools
 import inspect
 import textwrap
-import functools
 import types
-from typing import Any, Dict, List, Optional, Callable
-from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
-import copy
-import time
+from concurrent.futures import ThreadPoolExecutor
+from typing import Any
 
 from aalgoi.core.pipeline_graph import PipelineGraph
 
 
 class DynamicCompositor:
-    def __init__(self, config: Optional[Dict] = None):
+    def __init__(self, config: dict | None = None):
         self.config = config or {}
-        self._modification_history: List[Dict] = []
-        self._cache_registry: Dict[str, Any] = {}
-        self._ast_cache: Dict[str, ast.AST] = {}
+        self._modification_history: list[dict] = []
+        self._cache_registry: dict[str, Any] = {}
+        self._ast_cache: dict[str, ast.AST] = {}
         self._use_dag = self.config.get("enable_dag", True)
 
-    def build_pipeline(self, algorithms: List[Any], context: Dict[str, Any]) -> List[Any]:
+    def build_pipeline(self, algorithms: list[Any], context: dict[str, Any]) -> list[Any]:
         if self._use_dag and len(algorithms) > 1:
             return self._build_dag_pipeline(algorithms, context)
         return self._build_linear_pipeline(algorithms, context)
 
-    def _build_linear_pipeline(self, algorithms: List[Any], context: Dict[str, Any]) -> List[Any]:
+    def _build_linear_pipeline(self, algorithms: list[Any], context: dict[str, Any]) -> list[Any]:
         pipeline = []
 
         for i, algo in enumerate(algorithms):
@@ -35,7 +34,7 @@ class DynamicCompositor:
 
         return pipeline
 
-    def _build_dag_pipeline(self, algorithms: List[Any], context: Dict[str, Any]) -> List[Any]:
+    def _build_dag_pipeline(self, algorithms: list[Any], context: dict[str, Any]) -> list[Any]:
         graph = PipelineGraph()
         features = context.get("features", {})
 
@@ -56,17 +55,17 @@ class DynamicCompositor:
 
         return graph
 
-    def _can_parallelize(self, algo: Any, context: Dict) -> bool:
+    def _can_parallelize(self, algo: Any, context: dict) -> bool:
         if any(tag in getattr(algo, 'tags', []) for tag in ["sorting", "stable"]):
             return False
         if hasattr(algo, 'name') and algo.name in ['timsort', 'merge_sort', 'heap_sort']:
             return False
         return True
 
-    def _adapt(self, algo: Any, context: Dict, pipeline_position: int = 0) -> Any:
-        features = context.get("features", {})
-        predictions = context.get("predictions", {})
-        constraints = context.get("constraints", {})
+    def _adapt(self, algo: Any, context: dict, pipeline_position: int = 0) -> Any:
+        context.get("features", {})
+        context.get("predictions", {})
+        context.get("constraints", {})
 
         algo = self._parametric_tune(algo, context)
 
@@ -84,7 +83,7 @@ class DynamicCompositor:
 
         return algo
 
-    def _parametric_tune(self, algo: Any, context: Dict) -> Any:
+    def _parametric_tune(self, algo: Any, context: dict) -> Any:
         features = context.get("features", {})
         constraints = context.get("constraints", {})
 
@@ -126,7 +125,7 @@ class DynamicCompositor:
 
         return algo
 
-    def _should_cache(self, algo: Any, context: Dict) -> bool:
+    def _should_cache(self, algo: Any, context: dict) -> bool:
         data_profile = context.get("data_profile", {})
         patterns = data_profile.get("patterns", {})
 
@@ -167,7 +166,7 @@ class DynamicCompositor:
 
         return algo
 
-    def _should_parallelize(self, algo: Any, context: Dict) -> bool:
+    def _should_parallelize(self, algo: Any, context: dict) -> bool:
         if any(tag in algo.tags for tag in ["sorting", "stable"]):
             return False
         if hasattr(algo, 'name') and algo.name in ['timsort', 'merge_sort', 'heap_sort']:
@@ -189,7 +188,7 @@ class DynamicCompositor:
 
         return False
 
-    def _inject_parallelization(self, algo: Any, context: Dict) -> Any:
+    def _inject_parallelization(self, algo: Any, context: dict) -> Any:
         if not hasattr(algo, "process"):
             return algo
 
@@ -223,7 +222,7 @@ class DynamicCompositor:
 
         return algo
 
-    def _optimize_intermediate(self, algo: Any, context: Dict) -> Any:
+    def _optimize_intermediate(self, algo: Any, context: dict) -> Any:
         constraints = context.get("constraints", {})
 
         if constraints.get("priority") == "speed":
@@ -232,7 +231,7 @@ class DynamicCompositor:
 
         return algo
 
-    def _should_ast_optimize(self, algo: Any, context: Dict) -> bool:
+    def _should_ast_optimize(self, algo: Any, context: dict) -> bool:
         if hasattr(algo, "call_count") and algo.call_count > 20:
             return True
         predictions = context.get("predictions", {})
@@ -240,7 +239,7 @@ class DynamicCompositor:
             return True
         return False
 
-    def _ast_optimize(self, algo: Any, context: Dict) -> Any:
+    def _ast_optimize(self, algo: Any, context: dict) -> Any:
         try:
             if not hasattr(algo, "process"):
                 return algo
@@ -272,7 +271,7 @@ class DynamicCompositor:
     def execute_dag(self, graph: PipelineGraph, data: Any) -> Any:
         return graph.execute(data)
 
-    def get_modification_stats(self) -> Dict[str, Any]:
+    def get_modification_stats(self) -> dict[str, Any]:
         return {
             "total_modifications": len(self._modification_history),
             "modification_types": list(set(
@@ -282,7 +281,7 @@ class DynamicCompositor:
 
 
 class ASTOptimizer(ast.NodeTransformer):
-    def __init__(self, context: Dict):
+    def __init__(self, context: dict):
         self.context = context
         self.optimizations_applied = []
 

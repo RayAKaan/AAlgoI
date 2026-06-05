@@ -1,5 +1,6 @@
 from typing import Any
-from aalgoi.core.reasoning.correctness_prover import CorrectnessProver, CorrectnessProof
+
+from aalgoi.core.reasoning.correctness_prover import CorrectnessProof, CorrectnessProver
 
 
 class ProverAdapter:

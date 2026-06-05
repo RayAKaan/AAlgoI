@@ -1,9 +1,8 @@
-import pytest
 from aalgoi.core.mind.benchmark import (
-    get_benchmark_problems,
     BenchmarkProblem,
-    verify_solution,
+    get_benchmark_problems,
     run_benchmark,
+    verify_solution,
 )
 
 

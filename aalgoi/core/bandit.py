@@ -1,21 +1,21 @@
 
 import math
 import random
-from typing import Dict, List, Any, Optional
+from typing import Any
 
 
 class UCB1Bandit:
-    def __init__(self, algorithm_names: List[str], epsilon: float = 0.2,
+    def __init__(self, algorithm_names: list[str], epsilon: float = 0.2,
                  epsilon_decay: float = 0.99, epsilon_min: float = 0.05):
         self.algorithm_names = algorithm_names
-        self.counts: Dict[str, int] = {name: 0 for name in algorithm_names}
-        self.rewards: Dict[str, float] = {name: 0.0 for name in algorithm_names}
+        self.counts: dict[str, int] = {name: 0 for name in algorithm_names}
+        self.rewards: dict[str, float] = {name: 0.0 for name in algorithm_names}
         self.epsilon = epsilon
         self.epsilon_decay = epsilon_decay
         self.epsilon_min = epsilon_min
         self.total_trials = 0
 
-    def select(self, candidates: Optional[List[str]] = None) -> str:
+    def select(self, candidates: list[str] | None = None) -> str:
         pool = candidates if candidates else self.algorithm_names
         if not pool:
             return self.algorithm_names[0]
@@ -45,7 +45,7 @@ class UCB1Bandit:
     def reset_exploration(self):
         self.epsilon = min(0.2, self.epsilon + 0.1)
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         return {
             "epsilon": self.epsilon,
             "total_trials": self.total_trials,

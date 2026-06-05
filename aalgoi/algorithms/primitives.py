@@ -1,7 +1,9 @@
 
-from typing import Any, List, Optional, Dict
-from aalgoi.algorithms.base import Algorithm
+from typing import Any
+
 import numpy as np
+
+from aalgoi.algorithms.base import Algorithm
 
 
 class Primitive(Algorithm):
@@ -9,8 +11,8 @@ class Primitive(Algorithm):
 
     time_complexity: str = "O(1)"
     space_complexity: str = "O(1)"
-    best_for: List[str] = []
-    combines_well_with: List[str] = []
+    best_for: list[str] = []
+    combines_well_with: list[str] = []
     input_type: str = "any"
     output_type: str = "any"
 
@@ -27,7 +29,7 @@ class Primitive(Algorithm):
     def can_compose_with(self, other: "Primitive") -> bool:
         return self.output_type == other.input_type or other.input_type == "any" or self.output_type == "any"
 
-    def describe(self) -> Dict[str, Any]:
+    def describe(self) -> dict[str, Any]:
         info = super().describe()
         info.update({
             "time_complexity": self.time_complexity,
@@ -659,7 +661,7 @@ class BacktrackingPrimitive(Primitive):
         if self.backtrack_fn and callable(self.backtrack_fn):
             return self.backtrack_fn(data)
         if isinstance(data, list):
-            n = len(data)
+            len(data)
             result = []
 
             def _permute(current, remaining):
@@ -800,11 +802,11 @@ PRIMITIVES = {
 }
 
 
-def get_primitive_names() -> List[str]:
+def get_primitive_names() -> list[str]:
     return list(PRIMITIVES.keys())
 
 
-def get_composable_chain(start: str, end: str) -> Optional[List[Primitive]]:
+def get_composable_chain(start: str, end: str) -> list[Primitive] | None:
     if start not in PRIMITIVES or end not in PRIMITIVES:
         return None
 
@@ -828,7 +830,7 @@ def get_composable_chain(start: str, end: str) -> Optional[List[Primitive]]:
     return None
 
 
-def compose_pipeline(primitive_names: List[str]) -> Optional[List[Primitive]]:
+def compose_pipeline(primitive_names: list[str]) -> list[Primitive] | None:
     pipeline = []
     for name in primitive_names:
         if name not in PRIMITIVES:

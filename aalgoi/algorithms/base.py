@@ -1,9 +1,11 @@
 
-from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional
-import time
 import copy
+import time
+from abc import ABC, abstractmethod
+from typing import Any
+
 import numpy as np
+
 
 class Algorithm(ABC):
 
@@ -11,15 +13,15 @@ class Algorithm(ABC):
         self.name = getattr(self, 'name', "base")
         self.time_complexity: str = "O(1)"
         self.space_complexity: str = "O(1)"
-        self.tags: List[str] = []
-        self.best_for: List[str] = []
-        self.patterns: List[str] = []
-        self.problem_types: List[str] = []
-        self.params: Dict[str, Any] = {}
+        self.tags: list[str] = []
+        self.best_for: list[str] = []
+        self.patterns: list[str] = []
+        self.problem_types: list[str] = []
+        self.params: dict[str, Any] = {}
 
-        self.modifications: List[str] = []
-        self.last_execution_time: Optional[float] = None
-        self.last_memory_usage: Optional[float] = None
+        self.modifications: list[str] = []
+        self.last_execution_time: float | None = None
+        self.last_memory_usage: float | None = None
 
     @abstractmethod
     def process(self, data: Any) -> Any:
@@ -30,14 +32,14 @@ class Algorithm(ABC):
             if len(input_data) != len(output_data):
                 return False
 
-        if type(input_data) != type(output_data):
+        if type(input_data) is not type(output_data):  # noqa: E721
             if not (isinstance(input_data, (list, tuple, np.ndarray, str)) and
                     isinstance(output_data, (list, tuple, np.ndarray, str))):
                 return False
 
         return True
 
-    def get_params(self, deep: bool = True) -> Dict[str, Any]:
+    def get_params(self, deep: bool = True) -> dict[str, Any]:
         return {
             'name': self.name,
             'time_complexity': self.time_complexity,
@@ -52,7 +54,7 @@ class Algorithm(ABC):
                 setattr(self, key, value)
         return self
 
-    def metadata(self) -> Dict[str, Any]:
+    def metadata(self) -> dict[str, Any]:
         return {
             "name": self.name,
             "tags": self.tags,
@@ -63,7 +65,7 @@ class Algorithm(ABC):
             "problem_types": self.problem_types,
         }
 
-    def describe(self) -> Dict[str, Any]:
+    def describe(self) -> dict[str, Any]:
         return self.metadata()
 
     def clone(self):

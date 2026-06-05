@@ -1,9 +1,9 @@
 """Security-focused tests for eval replacement, token storage, and code injection prevention."""
 
-import pytest
-import json
 import ast
 import re
+
+import pytest
 
 
 def test_web_ui_no_eval():

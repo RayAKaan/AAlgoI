@@ -1,4 +1,3 @@
-import pytest
 from aalgoi.core.mind.model_config import MindConfig
 
 

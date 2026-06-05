@@ -1,5 +1,5 @@
+
 import numpy as np
-from typing import Dict, Any, Optional
 
 from aalgoi.algorithms.base import Algorithm
 
@@ -16,7 +16,7 @@ class Word2VecTrainer(Algorithm):
         self.patterns = ["EmbeddingTraining", "NeuralNetwork"]
         self.problem_types = ["NLP", "EMBEDDINGS"]
 
-    def process(self, data: Dict) -> Dict:
+    def process(self, data: dict) -> dict:
         from gensim.models import Word2Vec
 
         corpus = data.get("corpus", [])
@@ -47,7 +47,7 @@ class Word2VecTrainer(Algorithm):
             "domain_analysis": analysis,
         }
 
-    def _analyze_domain_semantics(self, model, domain: str) -> Dict:
+    def _analyze_domain_semantics(self, model, domain: str) -> dict:
         domain_pairs = {
             "legal": [
                 ("contract", "agreement"),
@@ -99,7 +99,7 @@ class PCAReduction(Algorithm):
         self.patterns = ["LinearReduction", "Unsupervised"]
         self.problem_types = ["DIMENSIONALITY_REDUCTION"]
 
-    def process(self, data: Dict) -> Dict:
+    def process(self, data: dict) -> dict:
         from sklearn.decomposition import PCA
 
         embeddings = np.array(data.get("embeddings", []))
@@ -136,7 +136,7 @@ class TSNEVisualization(Algorithm):
         self.patterns = ["NonLinearReduction", "Probabilistic"]
         self.problem_types = ["VISUALIZATION"]
 
-    def process(self, data: Dict) -> Dict:
+    def process(self, data: dict) -> dict:
         from sklearn.manifold import TSNE
 
         embeddings = np.array(data.get("embeddings", []))
@@ -177,7 +177,7 @@ class SemanticSimilarityGenerator(Algorithm):
         self.patterns = ["EmbeddingBased", "Similarity"]
         self.problem_types = ["NLP", "SIMILARITY"]
 
-    def process(self, data: Dict) -> Dict:
+    def process(self, data: dict) -> dict:
         model = data.get("model")
         input_word = data.get("input_word", "")
         topn = data.get("topn", 5)

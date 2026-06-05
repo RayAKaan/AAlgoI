@@ -7,13 +7,11 @@ Next-generation RL agent with:
 - Multi-task shared representations
 """
 
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import numpy as np
-from typing import Dict, List, Tuple, Optional
 from torch.distributions import Categorical
-
 
 # ============================================
 # HIERARCHICAL RL: High-level + Low-level
@@ -70,7 +68,7 @@ class HierarchicalAgent(nn.Module):
         self.high = HighLevelController(state_dim, num_strategies)
         self.low = LowLevelController(state_dim, num_algorithms)
 
-    def forward(self, state: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+    def forward(self, state: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         strategy_probs = self.high(state)
         strategy = strategy_probs.argmax(dim=-1, keepdim=True)
         algo_probs = self.low(state, strategy.squeeze(-1))
@@ -145,7 +143,7 @@ class WorldModel(nn.Module):
         self.optimizer = torch.optim.Adam(self.parameters(), lr=1e-3)
 
     def update(self, state: torch.Tensor, action: torch.Tensor,
-               actual_reward: float, actual_next_state: Optional[torch.Tensor] = None) -> float:
+               actual_reward: float, actual_next_state: torch.Tensor | None = None) -> float:
         """Update world model with real transition data."""
         self.optimizer.zero_grad()
 
@@ -171,7 +169,7 @@ class WorldModel(nn.Module):
 
         return total_loss.item()
 
-    def generate_hard_state(self, state_dim: Optional[int] = None) -> torch.Tensor:
+    def generate_hard_state(self, state_dim: int | None = None) -> torch.Tensor:
         """Generate a state predicted to yield low reward (hard problem)."""
         dim = state_dim if state_dim is not None else self.state_dim
         state = torch.randn(1, dim, requires_grad=True)
@@ -191,7 +189,7 @@ class WorldModel(nn.Module):
 
         return state.detach()
 
-    def predict(self, state: torch.Tensor, action: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+    def predict(self, state: torch.Tensor, action: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         action = action.to(dtype=torch.long)
         state = state.to(dtype=torch.float)
         action_onehot = F.one_hot(action, num_classes=self.action_dim).float()
@@ -239,7 +237,7 @@ class MetaLearner:
         self.meta_optimizer = torch.optim.Adam(model.parameters(), lr=meta_lr)
         self.inner_lr = inner_lr
 
-    def meta_train(self, task_batch: List[Tuple[Dict, Dict]]) -> float:
+    def meta_train(self, task_batch: list[tuple[dict, dict]]) -> float:
         """
         task_batch: list of (support_set, query_set) for different problem types
         """
@@ -263,7 +261,7 @@ class MetaLearner:
 
         return meta_loss.item()
 
-    def fast_adapt(self, new_problem_data: Dict, num_steps: int = 5):
+    def fast_adapt(self, new_problem_data: dict, num_steps: int = 5):
         """Quickly adapt to new problem type in a few gradient steps."""
         for _ in range(num_steps):
             loss = self._compute_loss(self.model, new_problem_data)
@@ -277,7 +275,7 @@ class MetaLearner:
         )
         return clone
 
-    def _compute_loss(self, model: nn.Module, data: Dict) -> torch.Tensor:
+    def _compute_loss(self, model: nn.Module, data: dict) -> torch.Tensor:
         states = torch.FloatTensor(data.get("states", []))
         actions = torch.LongTensor(data.get("actions", []))
         if len(states) == 0:
@@ -286,7 +284,7 @@ class MetaLearner:
         loss = F.cross_entropy(logits, actions)
         return loss
 
-    def _apply_gradients(self, model: nn.Module, grads: List[torch.Tensor]) -> nn.Module:
+    def _apply_gradients(self, model: nn.Module, grads: list[torch.Tensor]) -> nn.Module:
         for param, grad in zip(model.parameters(), grads):
             param.data -= self.inner_lr * grad
         return model
@@ -315,7 +313,7 @@ class MultiTaskAgent(nn.Module):
         self.policy_head = nn.Linear(256, num_algorithms)
         self.value_head = nn.Linear(256, 1)
 
-    def forward(self, state: torch.Tensor, task_id: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+    def forward(self, state: torch.Tensor, task_id: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         task_emb = self.task_encoder(task_id)
         combined = torch.cat([state, task_emb], dim=-1)
         features = self.shared(combined)
@@ -324,7 +322,7 @@ class MultiTaskAgent(nn.Module):
         return policy, value
 
     def get_action(self, state: torch.Tensor, task_id: torch.Tensor,
-                   deterministic: bool = False) -> Tuple[int, float, float]:
+                   deterministic: bool = False) -> tuple[int, float, float]:
         """Sample action from policy. Returns (action, log_prob, value)."""
         policy, value = self.forward(state, task_id)
 

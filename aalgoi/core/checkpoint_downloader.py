@@ -3,7 +3,6 @@ Downloads pretrained model weights on first use.
 Ships nothing. Downloads once. Caches forever.
 """
 
-import os
 import threading
 import urllib.request
 from pathlib import Path

@@ -1,11 +1,12 @@
 
-from dataclasses import dataclass, field, asdict
-from typing import Dict, List, Any, Callable, Optional, Tuple
-from enum import Enum
-import numpy as np
-import json
 import re
 from collections import Counter
+from collections.abc import Callable
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Any
+
+import numpy as np
 
 
 class ProblemType(Enum):
@@ -42,7 +43,7 @@ class Objective:
 @dataclass
 class Constraint:
     description: str
-    validator: Optional[Callable] = None
+    validator: Callable | None = None
 
     def __str__(self):
         return self.description
@@ -52,17 +53,17 @@ class Constraint:
 class ProblemSpec:
     name: str
     problem_type: ProblemType = ProblemType.OPTIMIZATION
-    inputs: Dict[str, Dict] = field(default_factory=dict)
-    outputs: Dict[str, Dict] = field(default_factory=dict)
-    constraints: List[Any] = field(default_factory=list)
-    objectives: List[Objective] = field(default_factory=list)
-    validation: Dict[str, Callable] = field(default_factory=dict)
-    examples: List[Dict] = field(default_factory=list)
-    domain_knowledge: Dict = field(default_factory=dict)
+    inputs: dict[str, dict] = field(default_factory=dict)
+    outputs: dict[str, dict] = field(default_factory=dict)
+    constraints: list[Any] = field(default_factory=list)
+    objectives: list[Objective] = field(default_factory=list)
+    validation: dict[str, Callable] = field(default_factory=dict)
+    examples: list[dict] = field(default_factory=list)
+    domain_knowledge: dict = field(default_factory=dict)
     description: str = ""
 
-    sub_problems: Dict[str, 'ProblemSpec'] = field(default_factory=dict)
-    pipeline_order: List[str] = field(default_factory=list)
+    sub_problems: dict[str, 'ProblemSpec'] = field(default_factory=dict)
+    pipeline_order: list[str] = field(default_factory=list)
 
     def is_multi_domain(self) -> bool:
         return len(self.sub_problems) > 0 or self._has_heterogeneous_inputs()
@@ -73,7 +74,7 @@ class ProblemSpec:
             return len(set(types)) > 1
         return False
 
-    def decompose(self, data: Dict) -> List[Tuple['ProblemSpec', Any]]:
+    def decompose(self, data: dict) -> list[tuple['ProblemSpec', Any]]:
         if not self.pipeline_order:
             self.pipeline_order = self._infer_pipeline_order()
         decomposed = []
@@ -86,7 +87,7 @@ class ProblemSpec:
                 decomposed.append((self, data))
         return decomposed
 
-    def _infer_pipeline_order(self) -> List[str]:
+    def _infer_pipeline_order(self) -> list[str]:
         return list(self.sub_problems.keys())
 
     def get_time_budget(self) -> float:
@@ -300,7 +301,7 @@ class ProblemSpec:
 
         return vector
 
-    def validate(self) -> Tuple[bool, List[str]]:
+    def validate(self) -> tuple[bool, list[str]]:
         errors = []
 
         if not self.name:
@@ -320,7 +321,7 @@ class ProblemSpec:
 
         return len(errors) == 0, errors
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         return {
             "name": self.name,
             "problem_type": self.problem_type.value,
@@ -335,7 +336,7 @@ class ProblemSpec:
         }
 
     @classmethod
-    def from_dict(cls, d: Dict) -> "ProblemSpec":
+    def from_dict(cls, d: dict) -> "ProblemSpec":
         raw_sub = d.get("sub_problems", {})
         sub_problems = {k: cls.from_dict(v) for k, v in raw_sub.items()} if isinstance(raw_sub, dict) else {}
         return cls(

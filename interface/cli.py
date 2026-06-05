@@ -1,7 +1,7 @@
 import json
 import os
 import sys
-from typing import Any, Dict
+from typing import Any
 
 import click
 
@@ -178,7 +178,8 @@ def cmd_benchmark(problem, n, runs):
         aalgoi b sort --n 1000 --runs 10
     """
     import random
-    from aalgoi import benchmark, ProblemSpec, ProblemType
+
+    from aalgoi import ProblemSpec, ProblemType, benchmark
 
     data = [random.randint(0, 10**6) for _ in range(n)]
     spec = ProblemSpec(name=problem, problem_type=ProblemType.SORTING)
@@ -364,8 +365,8 @@ def checkpoint_list(json_output):
         )
 
     click.echo(
-        f"\nBase model: ~/.aalgoi/checkpoints/pretrained_final.pt "
-        f"(never modified)"
+        "\nBase model: ~/.aalgoi/checkpoints/pretrained_final.pt "
+        "(never modified)"
     )
 
 
@@ -418,7 +419,7 @@ def checkpoint_rollback(version, dry_run):
         return
 
     metrics = entry.get('metrics', {})
-    click.echo(f"\nRollback plan:")
+    click.echo("\nRollback plan:")
     click.echo(f"  Current version : v{current}")
     click.echo(f"  Target version  : v{target}")
     click.echo(f"  Solve count     : {entry['solve_count']}")
@@ -510,6 +511,7 @@ def checkpoint_info():
         aalgoi checkpoint info
     """
     from pathlib import Path
+
     from aalgoi.core.checkpoint_manager import CheckpointManager
 
     manager     = CheckpointManager()
@@ -537,7 +539,7 @@ def checkpoint_info():
         else 0.0
     )
 
-    click.echo(f"\nCheckpoint Status")
+    click.echo("\nCheckpoint Status")
     click.echo("─" * 40)
     click.echo(f"  Current version    : v{current}")
     click.echo(f"  Total checkpoints  : {len(checkpoints)}")
@@ -588,7 +590,7 @@ def sync_group():
 @sync_group.command("status")
 def sync_status():
     """Show registry sync status, backoff state, and queue depth."""
-    from aalgoi.core.registry_sync import GitHubRegistrySync, _load_registry_config
+    from aalgoi.core.registry_sync import _load_registry_config
 
     cfg = _load_registry_config()
     url = cfg.get("base_url", "https://raw.githubusercontent.com/aalgoi/algorithm-registry/main")
@@ -607,7 +609,7 @@ def sync_status():
         version = 0
         count = 0
 
-    click.echo(f"\nRegistry Sync Status")
+    click.echo("\nRegistry Sync Status")
     click.echo("─" * 40)
     click.echo(f"  Remote registry    : {url}")
     click.echo(f"  Last sync          : {last_sync[:19] if last_sync != 'never' else 'never'}")
@@ -634,8 +636,8 @@ def sync_status():
 @sync_group.command("pull")
 def sync_pull():
     """Force a registry sync pull now."""
-    from aalgoi.core.registry_manager import DynamicRegistry
     from aalgoi.core.algorithm_embedder import AlgorithmEmbedder
+    from aalgoi.core.registry_manager import DynamicRegistry
     from aalgoi.core.registry_sync import GitHubRegistrySync
 
     registry = DynamicRegistry(None)
@@ -673,8 +675,8 @@ def sync_pull():
 @click.option("--dry-run", is_flag=True, help="Validate without pushing")
 def sync_push(algorithm_name, token, dry_run):
     """Push a discovered algorithm upstream to GitHub."""
-    from aalgoi.core.registry_manager import DynamicRegistry
     from aalgoi.core.algorithm_embedder import AlgorithmEmbedder
+    from aalgoi.core.registry_manager import DynamicRegistry
     from aalgoi.core.registry_sync import GitHubRegistrySync
 
     registry = DynamicRegistry(None)

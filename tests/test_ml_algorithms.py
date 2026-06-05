@@ -16,9 +16,9 @@ Plus integration tests for:
 - Knowledge graph ML registrations
 """
 
-import pytest
+
 import numpy as np
-from typing import Dict, Any
+import pytest
 
 
 @pytest.fixture
@@ -57,8 +57,9 @@ def high_dim_data():
 class TestMLAlgorithmBase:
 
     def test_extract_data_dict(self):
-        from aalgoi.algorithms.ml.base import MLAlgorithm
         from sklearn.linear_model import LinearRegression
+
+        from aalgoi.algorithms.ml.base import MLAlgorithm
 
         algo = MLAlgorithm(LinearRegression, name="test")
         X = np.array([[1, 2], [3, 4]])
@@ -73,8 +74,9 @@ class TestMLAlgorithmBase:
         assert np.array_equal(X_test, X)
 
     def test_extract_data_tuple(self):
-        from aalgoi.algorithms.ml.base import MLAlgorithm
         from sklearn.linear_model import LinearRegression
+
+        from aalgoi.algorithms.ml.base import MLAlgorithm
 
         algo = MLAlgorithm(LinearRegression, name="test")
         X = np.array([[1, 2], [3, 4]])
@@ -87,8 +89,9 @@ class TestMLAlgorithmBase:
         assert X_test is None
 
     def test_extract_data_bare_array(self):
-        from aalgoi.algorithms.ml.base import MLAlgorithm
         from sklearn.linear_model import LinearRegression
+
+        from aalgoi.algorithms.ml.base import MLAlgorithm
 
         algo = MLAlgorithm(LinearRegression, name="test")
         X = np.array([[1, 2], [3, 4]])
@@ -308,6 +311,7 @@ class TestGaussianNB:
 
     def test_fast_training(self, classification_data):
         import time
+
         from aalgoi.algorithms.ml import GaussianNBAlgo
 
         algo = GaussianNBAlgo()

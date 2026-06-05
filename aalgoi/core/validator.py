@@ -1,8 +1,7 @@
 
-from typing import Any, List, Dict, Optional, Callable, Tuple
-from collections import defaultdict
 import time
-import numpy as np
+from collections import defaultdict
+from typing import Any
 
 from aalgoi.algorithms.base import Algorithm
 
@@ -16,7 +15,7 @@ class ValidationDetail:
         self.passed = passed
         self.message = message
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         return {
             "metric": self.metric,
             "value": self.value,
@@ -29,7 +28,7 @@ class ValidationDetail:
 class LearningValidator:
     def __init__(self, adaptation_rate: float = 0.05):
         self.adaptation_rate = adaptation_rate
-        self._thresholds: Dict[str, Dict[str, float]] = defaultdict(
+        self._thresholds: dict[str, dict[str, float]] = defaultdict(
             lambda: {
                 "max_time_ms": 1000.0,
                 "min_accuracy": 0.0,
@@ -37,12 +36,12 @@ class LearningValidator:
                 "output_not_null": 1.0
             }
         )
-        self._history: Dict[str, List[Dict]] = defaultdict(list)
-        self._adaptation_counts: Dict[str, int] = defaultdict(int)
+        self._history: dict[str, list[dict]] = defaultdict(list)
+        self._adaptation_counts: dict[str, int] = defaultdict(int)
 
     def validate(self, algorithm_name: str, input_data: Any,
                  output_data: Any, execution_time_ms: float = 0.0,
-                 metadata: Optional[Dict] = None) -> Tuple[bool, List[ValidationDetail]]:
+                 metadata: dict | None = None) -> tuple[bool, list[ValidationDetail]]:
         details = []
         thresholds = self._thresholds[algorithm_name]
 
@@ -82,7 +81,7 @@ class LearningValidator:
         return passed, details
 
     def record_result(self, algorithm_name: str, passed: bool,
-                      details: List[ValidationDetail],
+                      details: list[ValidationDetail],
                       input_data: Any = None):
         record = {
             "passed": passed,
@@ -96,7 +95,7 @@ class LearningValidator:
             self._adapt_thresholds(algorithm_name, details, input_data)
 
     def _adapt_thresholds(self, algorithm_name: str,
-                          details: List[ValidationDetail],
+                          details: list[ValidationDetail],
                           input_data: Any = None):
         thresholds = self._thresholds[algorithm_name]
         self._adaptation_counts[algorithm_name] += 1
@@ -119,10 +118,10 @@ class LearningValidator:
                     )
                     thresholds["_ref_size"] = current_size
 
-    def get_thresholds(self, algorithm_name: str) -> Dict[str, float]:
+    def get_thresholds(self, algorithm_name: str) -> dict[str, float]:
         return dict(self._thresholds[algorithm_name])
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         total_validations = sum(len(h) for h in self._history.values())
         successful = sum(
             sum(1 for r in h if r["passed"])
@@ -136,7 +135,7 @@ class LearningValidator:
             "adaptations": dict(self._adaptation_counts)
         }
 
-    def get_algorithm_stats(self, algorithm_name: str) -> Dict[str, Any]:
+    def get_algorithm_stats(self, algorithm_name: str) -> dict[str, Any]:
         hist = self._history.get(algorithm_name, [])
         if not hist:
             return {"total": 0, "pass_rate": 0}
@@ -150,7 +149,7 @@ class LearningValidator:
 
 class ValidationResult:
     def __init__(self, passed: bool, algorithm_name: str, input_data: Any,
-                 output_data: Any, error: Optional[str] = None):
+                 output_data: Any, error: str | None = None):
         self.passed = passed
         self.algorithm_name = algorithm_name
         self.input_data = input_data
@@ -160,7 +159,7 @@ class ValidationResult:
 
 class PipelineValidator:
     def __init__(self):
-        self.failures: List[ValidationResult] = []
+        self.failures: list[ValidationResult] = []
 
     def validate_step(self, algorithm: Algorithm, input_data: Any,
                       output_data: Any) -> ValidationResult:
@@ -187,8 +186,8 @@ class PipelineValidator:
 
         return result
 
-    def execute_with_rollback(self, pipeline: List[Algorithm], data: Any,
-                              fallback_algo: Optional[Algorithm] = None) -> Any:
+    def execute_with_rollback(self, pipeline: list[Algorithm], data: Any,
+                              fallback_algo: Algorithm | None = None) -> Any:
         result = data
         intermediate_results = [(None, data)]
 
@@ -207,7 +206,7 @@ class PipelineValidator:
 
         return result, intermediate_results, None
 
-    def get_failure_stats(self) -> Dict[str, Any]:
+    def get_failure_stats(self) -> dict[str, Any]:
         if not self.failures:
             return {"total_failures": 0}
 

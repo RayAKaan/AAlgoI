@@ -1,31 +1,30 @@
 
-import random
 import copy
-from typing import Dict, List, Any, Optional, Tuple
-from collections import defaultdict
+import random
+from typing import Any
 
 
 class GeneticPipelineEvolver:
-    def __init__(self, algo_pool: Dict[str, Any], pop_size: int = 20,
+    def __init__(self, algo_pool: dict[str, Any], pop_size: int = 20,
                  mutation_rate: float = 0.2, crossover_rate: float = 0.7):
         self.pool = list(algo_pool.keys())
         self.pool_objects = algo_pool
         self.pop_size = pop_size
         self.mutation_rate = mutation_rate
         self.crossover_rate = crossover_rate
-        self.population: List[List[str]] = self._random_population()
-        self.fitness_history: List[float] = []
+        self.population: list[list[str]] = self._random_population()
+        self.fitness_history: list[float] = []
         self.generation = 0
-        self.best_individual: Optional[List[str]] = None
+        self.best_individual: list[str] | None = None
         self.best_fitness: float = 0.0
 
-    def _random_population(self) -> List[List[str]]:
+    def _random_population(self) -> list[list[str]]:
         return [
             random.sample(self.pool, k=random.randint(1, min(4, len(self.pool))))
             for _ in range(self.pop_size)
         ]
 
-    def evaluate_fitness(self, performance_data: Dict[str, Dict]) -> List[float]:
+    def evaluate_fitness(self, performance_data: dict[str, dict]) -> list[float]:
         fitness_scores = []
 
         for individual in self.population:
@@ -53,7 +52,7 @@ class GeneticPipelineEvolver:
 
         return fitness_scores
 
-    def evolve(self, fitness_scores: List[float]):
+    def evolve(self, fitness_scores: list[float]):
         ranked = sorted(zip(fitness_scores, self.population), key=lambda x: x[0], reverse=True)
         parents = [p for _, p in ranked[:self.pop_size // 2]]
 
@@ -79,7 +78,7 @@ class GeneticPipelineEvolver:
         if fitness_scores:
             self.fitness_history.append(sum(fitness_scores) / len(fitness_scores))
 
-    def _crossover(self, parent_a: List[str], parent_b: List[str]) -> List[str]:
+    def _crossover(self, parent_a: list[str], parent_b: list[str]) -> list[str]:
         split = len(parent_a) // 2
         child = parent_a[:split] + parent_b[split:]
         seen = set()
@@ -90,7 +89,7 @@ class GeneticPipelineEvolver:
                 unique.append(algo)
         return unique if unique else parent_a[:1]
 
-    def _mutate(self, individual: List[str]) -> List[str]:
+    def _mutate(self, individual: list[str]) -> list[str]:
         if not individual:
             return random.sample(self.pool, k=1)
 
@@ -114,15 +113,15 @@ class GeneticPipelineEvolver:
 
         return mutated
 
-    def get_best(self) -> Optional[List[str]]:
+    def get_best(self) -> list[str] | None:
         return self.best_individual
 
-    def get_best_pipeline(self) -> List[Any]:
+    def get_best_pipeline(self) -> list[Any]:
         if not self.best_individual:
             return []
         return [self.pool_objects[name] for name in self.best_individual if name in self.pool_objects]
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         return {
             "generation": self.generation,
             "population_size": len(self.population),

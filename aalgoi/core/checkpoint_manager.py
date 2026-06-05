@@ -1,7 +1,6 @@
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 
 class CheckpointManager:
@@ -36,7 +35,7 @@ class CheckpointManager:
 
         return version
 
-    def rollback(self, version: Optional[int] = None) -> Optional[str]:
+    def rollback(self, version: int | None = None) -> str | None:
         manifest = self._load_manifest()
 
         if not manifest['checkpoints']:
@@ -80,7 +79,7 @@ class CheckpointManager:
     def list_checkpoints(self) -> list:
         return self._load_manifest()['checkpoints']
 
-    def get_current_adapter_path(self) -> Optional[str]:
+    def get_current_adapter_path(self) -> str | None:
         manifest = self._load_manifest()
         version = manifest.get('current_version', 0)
         if version == 0:

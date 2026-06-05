@@ -1,5 +1,6 @@
-import pytest
 import re
+
+import pytest
 
 
 def test_name_must_be_snake_case():

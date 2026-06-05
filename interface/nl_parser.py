@@ -1,8 +1,8 @@
 import re
-from typing import Dict, List, Optional, Tuple
-from aalgoi.core.problem_spec import ProblemSpec, ProblemType, Objective, Constraint
 
-PATTERNS: List[Dict] = [
+from aalgoi.core.problem_spec import Objective, ProblemSpec, ProblemType
+
+PATTERNS: list[dict] = [
     {
         "name": "sorting",
         "keywords": ["sort", "order", "arrange", "sorted", "alphabetical", "ascending", "descending"],
@@ -103,7 +103,7 @@ def parse_description(description: str) -> ProblemSpec:
     )
 
 
-def _detect_direction(text: str) -> Optional[str]:
+def _detect_direction(text: str) -> str | None:
     if any(w in text for w in ["maximize", "maximum", "max", "largest", "fastest", "biggest"]):
         return "maximize"
     if any(w in text for w in ["minimize", "minimum", "min", "smallest", "shortest", "cheapest"]):
@@ -111,7 +111,7 @@ def _detect_direction(text: str) -> Optional[str]:
     return None
 
 
-def _detect_metric(text: str) -> Optional[str]:
+def _detect_metric(text: str) -> str | None:
     metrics = ["time", "distance", "cost", "profit", "accuracy", "speed",
                "weight", "length", "area", "volume", "score", "efficiency"]
     for m in metrics:
@@ -120,7 +120,7 @@ def _detect_metric(text: str) -> Optional[str]:
     return None
 
 
-def _infer_inputs(text: str) -> Dict:
+def _infer_inputs(text: str) -> dict:
     inputs = {}
     if any(w in text for w in ["list", "array", "numbers", "items", "data"]):
         inputs["data"] = {"type": "list"}
@@ -133,7 +133,7 @@ def _infer_inputs(text: str) -> Dict:
     return inputs
 
 
-def _infer_outputs(text: str, ptype: ProblemType) -> Dict:
+def _infer_outputs(text: str, ptype: ProblemType) -> dict:
     if ptype in (ProblemType.SEARCH, ProblemType.CLASSIFICATION):
         return {"result": {"type": "int"}}
     if ptype in (ProblemType.OPTIMIZATION,):
@@ -141,14 +141,14 @@ def _infer_outputs(text: str, ptype: ProblemType) -> Dict:
     return {"result": {"type": "list"}}
 
 
-def extract_data_from_description(description: str) -> Optional[List]:
+def extract_data_from_description(description: str) -> list | None:
     numbers = re.findall(r'\d+', description)
     if numbers:
         return [int(n) for n in numbers]
     return None
 
 
-def parse_solve_input(user_input: str) -> Tuple[ProblemSpec, Optional[List]]:
+def parse_solve_input(user_input: str) -> tuple[ProblemSpec, list | None]:
     data = extract_data_from_description(user_input)
     spec = parse_description(user_input)
     return spec, data

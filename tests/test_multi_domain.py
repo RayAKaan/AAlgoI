@@ -1,7 +1,8 @@
-import pytest
-import sys
 import os
 import random
+import sys
+
+import pytest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -10,7 +11,7 @@ from aalgoi.pipeline import UniversalSolver
 
 
 def generate_supply_chain_data(n_packages=50, n_cities=10, n_items=20):
-    city_ids = [str(i) for i in range(n_cities)]
+    [str(i) for i in range(n_cities)]
     graph = {}
     for i in range(n_cities):
         neighbors = {}

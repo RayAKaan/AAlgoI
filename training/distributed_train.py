@@ -7,11 +7,12 @@ Usage:
     torchrun --nproc_per_node=4 training/distributed_train.py
 """
 
+import logging
+import os
+
 import torch
 import torch.distributed as dist
 import torch.multiprocessing as mp
-import os
-import logging
 
 logger = logging.getLogger(__name__)
 

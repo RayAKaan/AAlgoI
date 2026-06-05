@@ -5,7 +5,8 @@ One-function-per-task shortcuts — torch-free, direct algorithm dispatch.
 from __future__ import annotations
 
 import logging
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -146,8 +147,8 @@ def maximize(fn: Callable, bounds: tuple = (-10, 10), steps: int = 1000) -> floa
 def cluster(data: list, n: int = None, *, method: str = "auto") -> dict:
     """Cluster data points."""
     try:
-        from sklearn.cluster import KMeans
         import numpy as np
+        from sklearn.cluster import KMeans
         X = np.array(data)
         k = n or min(8, max(1, len(X) // 2))
         km = KMeans(n_clusters=k, n_init="auto", random_state=42)
@@ -161,8 +162,8 @@ def cluster(data: list, n: int = None, *, method: str = "auto") -> dict:
 def classify(X_train, y_train, X_test) -> list:
     """Train classifier and predict labels for X_test."""
     try:
-        from sklearn.neighbors import KNeighborsClassifier
         import numpy as np
+        from sklearn.neighbors import KNeighborsClassifier
         n = min(len(X_train), max(1, int(np.sqrt(len(X_train)))))
         knn = KNeighborsClassifier(n_neighbors=n)
         knn.fit(np.array(X_train), np.array(y_train))
@@ -175,8 +176,8 @@ def classify(X_train, y_train, X_test) -> list:
 def regress(X_train, y_train, X_test) -> list:
     """Fit regression model and predict for X_test."""
     try:
-        from sklearn.linear_model import LinearRegression
         import numpy as np
+        from sklearn.linear_model import LinearRegression
         lr = LinearRegression()
         lr.fit(np.array(X_train), np.array(y_train))
         return lr.predict(np.array(X_test)).tolist()

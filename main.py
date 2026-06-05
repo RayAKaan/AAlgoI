@@ -13,13 +13,11 @@ Usage:
 
 import argparse
 import random
-import time
-import json
-from typing import List, Dict, Any
 
 from aalgoi.pipeline import AAlgoI
 
-def generate_test_data(size: int, pattern: str = "random") -> List[int]:
+
+def generate_test_data(size: int, pattern: str = "random") -> list[int]:
     if pattern == "random":
         return [random.randint(0, size * 10) for _ in range(size)]
     elif pattern == "sorted":
@@ -38,7 +36,7 @@ def generate_test_data(size: int, pattern: str = "random") -> List[int]:
     else:
         return [random.randint(0, size * 10) for _ in range(size)]
 
-def demo_mode(config: Dict = None):
+def demo_mode(config: dict = None):
     print("=" * 70)
     print("  AAlgoI - Artificial Algorithm Intelligence v2.0")
     print("  Adaptive Algorithm Selection & Optimization Demo")
@@ -70,7 +68,7 @@ def demo_mode(config: Dict = None):
 
         print(f"\n  Test: {name} (size={size}, pattern={pattern})")
 
-        result = system.run(data, task_type="sorting", expected_result=expected)
+        system.run(data, task_type="sorting", expected_result=expected)
 
         stats = system.get_stats()
         pipeline = stats["active_pipeline"]
@@ -109,7 +107,7 @@ def demo_mode(config: Dict = None):
                   f"quality={summary.get('avg_quality', 0):.2f}, "
                   f"success_rate={summary.get('success_rate', 0):.1%}")
 
-def benchmark_mode(size: int = 10000, config: Dict = None):
+def benchmark_mode(size: int = 10000, config: dict = None):
     print("=" * 70)
     print(f"  AAlgoI Benchmark - Size: {size}")
     print("=" * 70)
@@ -138,7 +136,7 @@ def benchmark_mode(size: int = 10000, config: Dict = None):
         chosen = system.get_stats()["active_pipeline"]
         print(f"   * AAlgoI chose: {' -> '.join(chosen)}")
 
-def learning_demo(config: Dict = None):
+def learning_demo(config: dict = None):
     print("=" * 70)
     print("  AAlgoI Learning Demo v2.0")
     print("  Showing how the system improves over time with bandit + vector KB")
@@ -178,7 +176,7 @@ def learning_demo(config: Dict = None):
         data = generate_test_data(size, pattern)
         expected = sorted(data)
 
-        result = system.run(data, task_type="sorting", expected_result=expected)
+        system.run(data, task_type="sorting", expected_result=expected)
 
         stats = system.get_stats()
         pipeline = stats["active_pipeline"]

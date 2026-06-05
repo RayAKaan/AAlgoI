@@ -1,19 +1,17 @@
+
 import pytest
 import torch
-from pathlib import Path
 
-from aalgoi.core.mind.training.bootstrap_trainer import (
-    BootstrapTrainer,
-    get_ideal_paths,
-    generate_training_data,
-    TrainingStep,
-    IdealPath,
-    _generate_problem_text,
-    _generate_problem_data,
-)
-from aalgoi.core.mind.rl_mind import AlgorithmicMind
 from aalgoi.core.mind.knowledge_graph import AlgorithmicKnowledgeGraph
 from aalgoi.core.mind.model_config import MindConfig
+from aalgoi.core.mind.rl_mind import AlgorithmicMind
+from aalgoi.core.mind.training.bootstrap_trainer import (
+    BootstrapTrainer,
+    _generate_problem_data,
+    _generate_problem_text,
+    generate_training_data,
+    get_ideal_paths,
+)
 
 
 @pytest.fixture

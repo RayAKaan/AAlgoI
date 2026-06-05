@@ -1,5 +1,6 @@
 """Stress test: AST optimizer correctness and speedup."""
 import time
+
 from aalgoi.core.ast_optimizer import ASTOptimizer
 
 

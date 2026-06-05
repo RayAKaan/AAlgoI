@@ -2,6 +2,7 @@
 Stress test: cross-domain knowledge graph routing.
 """
 import random
+
 from aalgoi.core.smart_solver import SmartSolver
 
 

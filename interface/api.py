@@ -1,19 +1,19 @@
-import sys
 import os
-import json
-from typing import Any, Dict, List, Optional
+import sys
+from typing import Any
+
 from pydantic import BaseModel
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from aalgoi.core.problem_spec import ProblemSpec
 from aalgoi.pipeline import UniversalSolver
-from interface.nl_parser import parse_description, extract_data_from_description
+from interface.nl_parser import extract_data_from_description, parse_description
 
 _FASTAPI_AVAILABLE = False
 try:
-    from fastapi import FastAPI, HTTPException
     import uvicorn
+    from fastapi import FastAPI, HTTPException
     _FASTAPI_AVAILABLE = True
 except ImportError:
     FastAPI = None
@@ -24,10 +24,10 @@ except ImportError:
 class SolveRequest(BaseModel):
     name: str = ""
     problem_type: str = "transformation"
-    inputs: Dict = {"data": {"type": "list"}}
-    outputs: Dict = {"result": {"type": "list"}}
-    constraints: List[str] = []
-    objectives: List[Dict] = []
+    inputs: dict = {"data": {"type": "list"}}
+    outputs: dict = {"result": {"type": "list"}}
+    constraints: list[str] = []
+    objectives: list[dict] = []
     data: Any = None
     use_llm: bool = False
 
@@ -43,7 +43,7 @@ class ExplainRequest(BaseModel):
     detail: str = "short"
 
 
-def create_app(solver: Optional[UniversalSolver] = None):
+def create_app(solver: UniversalSolver | None = None):
     if not _FASTAPI_AVAILABLE:
         return None
 

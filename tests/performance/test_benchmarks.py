@@ -1,15 +1,16 @@
 """Basic performance benchmarks to detect regressions."""
 
-import pytest
 import time
+
+import pytest
 
 
 @pytest.mark.performance
 class TestSortingPerformance:
 
     def test_sorting_large_list(self):
-        from aalgoi.pipeline import UniversalSolver
         from aalgoi.core.problem_spec import ProblemSpec, ProblemType
+        from aalgoi.pipeline import UniversalSolver
         solver = UniversalSolver()
         spec = ProblemSpec(name="bench_sort", problem_type=ProblemType.SORTING)
         data = list(range(10000, 0, -1))
@@ -25,9 +26,10 @@ class TestSortingPerformance:
 class TestOraclePerformance:
 
     def test_oracle_lookup_speed(self):
+        import time
+
         from aalgoi.core.oracles import evaluate
         from aalgoi.core.problem_spec import ProblemType
-        import time
         start = time.perf_counter()
         for _ in range(1000):
             evaluate(ProblemType.SORTING, [3, 1, 2], [1, 2, 3])

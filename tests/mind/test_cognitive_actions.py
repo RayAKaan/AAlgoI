@@ -1,5 +1,6 @@
 import pytest
-from aalgoi.core.mind.cognitive_actions import CognitiveAction, ActionParams, ActionResult, ActionHandler
+
+from aalgoi.core.mind.cognitive_actions import ActionHandler, ActionParams, ActionResult, CognitiveAction
 
 
 class TestCognitiveAction:
@@ -90,9 +91,10 @@ class TestActionHandler:
             assert callable(handler._handlers[action]), f"Handler for {action.name} not callable"
 
     def test_dispatch_unknown_action(self, handler):
+        import torch
+
         from aalgoi.core.mind.mind_state import MindState
         from aalgoi.core.mind.solving_loop import ThinkingSession
-        import torch
 
         state = MindState(problem_text="test", problem_signature="abc",
                           data_features=torch.zeros(64))
@@ -107,9 +109,10 @@ class TestActionHandler:
         assert result.success is True
 
     def test_dispatch_all_without_error(self, handler):
+        import torch
+
         from aalgoi.core.mind.mind_state import MindState
         from aalgoi.core.mind.solving_loop import ThinkingSession
-        import torch
 
         state = MindState(problem_text="sort this", problem_signature="abc",
                           data_features=torch.zeros(64))

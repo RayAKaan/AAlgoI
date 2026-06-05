@@ -1,7 +1,10 @@
 
-from typing import List, Any, Optional
-from aalgoi.algorithms.base import Algorithm
+from typing import Any
+
 import numpy as np
+
+from aalgoi.algorithms.base import Algorithm
+
 
 class GaussianBlur(Algorithm):
     name = "gaussian_blur"

@@ -1,10 +1,11 @@
-from aalgoi.pipeline import UniversalSolver
 from aalgoi.algorithms.base import Algorithm
+from aalgoi.pipeline import UniversalSolver
 
 solver = UniversalSolver()
 agent  = solver.meta_controller.rl_agent
 
 import numpy as np
+
 state = np.zeros(38, dtype=np.float32)
 action, log_prob, value = agent.select_action(state)
 
@@ -34,7 +35,7 @@ class TestAlgo(Algorithm):
 solver.register_algorithm(TestAlgo())
 
 n_after = agent._algo_embeddings.shape[0]
-print(f"\nAfter register_algorithm():")
+print("\nAfter register_algorithm():")
 print(f"  Embedding matrix: {n_after} x {agent._algo_embeddings.shape[1]}")
 print(f"  Expected: {n_embeds + 1}")
 
@@ -44,12 +45,13 @@ assert n_after == n_embeds + 1, \
 print("PASS Check 2: policy expanded without retraining")
 
 import collections
+
 selections = collections.Counter()
 for _ in range(200):
     a, _, _ = agent.select_action(state)
     selections[list(solver.registry.keys())[a]] += 1
 
-print(f"\nSelection distribution over 200 random states:")
+print("\nSelection distribution over 200 random states:")
 for algo, count in selections.most_common(5):
     print(f"  {algo}: {count}")
 

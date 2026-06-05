@@ -3,10 +3,10 @@ User-friendly wrapper that accepts plain English questions.
 """
 
 import logging
-from typing import Any, Dict, Optional
+from typing import Any
 
-from aalgoi.core.question_parser import QuestionParser
 from aalgoi.core.problem_spec import ProblemType
+from aalgoi.core.question_parser import QuestionParser
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +21,7 @@ class SmartSolver:
         result = solver.ask("Train Word2Vec on medical corpus with 200 dimensions", corpus)
     """
 
-    def __init__(self, config: Optional[Dict] = None):
+    def __init__(self, config: dict | None = None):
         self.parser = QuestionParser(use_transformer=False)
         self._config = config or {}
         self._solver = None
@@ -33,7 +33,7 @@ class SmartSolver:
             self._solver = UniversalSolver(config=self._config)
         return self._solver
 
-    def ask_with_spec(self, spec, data: Any = None, **kwargs) -> Dict:
+    def ask_with_spec(self, spec, data: Any = None, **kwargs) -> dict:
         """
         Same as ask() but accepts a pre-built ProblemSpec.
         Skips NL parsing. Used by aalgoi.transformer.solve().
@@ -53,7 +53,7 @@ class SmartSolver:
 
         return result
 
-    def ask(self, question: str, data: Any = None, **kwargs) -> Dict:
+    def ask(self, question: str, data: Any = None, **kwargs) -> dict:
         """
         Main interface: question + data -> answer
 
@@ -95,7 +95,7 @@ class SmartSolver:
 
         return result
 
-    def _format_answer(self, question: str, result: Dict) -> str:
+    def _format_answer(self, question: str, result: dict) -> str:
         algo = result.get("algorithm", "unknown")
         time_ms = result.get("time_ms", 0)
 

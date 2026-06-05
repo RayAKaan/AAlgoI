@@ -7,12 +7,11 @@ Two modes:
 """
 
 import hashlib
-import json
-import time
-import threading
 import logging
+import threading
+import time
 import uuid
-from typing import Dict, List, Any, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +22,7 @@ class FederatedKnowledgeSync:
     Users share "what worked", not "what the data was".
     """
 
-    def __init__(self, config: Optional[Dict] = None):
+    def __init__(self, config: dict | None = None):
         self.config = config or {}
         self.enabled = self.config.get("enabled", False)
         self.mode = self.config.get("mode", "central")
@@ -34,20 +33,20 @@ class FederatedKnowledgeSync:
         self.anonymous_id = self._get_anonymous_id()
 
         # P2P fields (legacy)
-        self.node_urls: List[str] = self.config.get("nodes", [])
+        self.node_urls: list[str] = self.config.get("nodes", [])
         self.local_kb: Any = None
-        self._pending_updates: List[Dict] = []
+        self._pending_updates: list[dict] = []
         self._last_sync: float = 0.0
         self._lock = threading.Lock()
         self._running = False
-        self._thread: Optional[threading.Thread] = None
+        self._thread: threading.Thread | None = None
 
     def _get_anonymous_id(self) -> str:
         """Generate anonymous client ID (MAC hash + UUID)."""
         try:
             mac = ":".join(
                 [
-                    "{:02x}".format((uuid.getnode() >> elements) & 0xFF)
+                    f"{(uuid.getnode() >> elements) & 0xFF:02x}"
                     for elements in range(0, 2 * 6, 2)
                 ][::-1]
             )
@@ -59,7 +58,7 @@ class FederatedKnowledgeSync:
     # CENTRAL-SERVER MODE
     # ============================================
 
-    def push_learnings(self, knowledge_update: Dict) -> bool:
+    def push_learnings(self, knowledge_update: dict) -> bool:
         """
         Push local model updates to the global network.
         Only sends metrics/metadata, NEVER raw user data.
@@ -89,7 +88,7 @@ class FederatedKnowledgeSync:
 
         return False
 
-    def pull_global_knowledge(self) -> Optional[Dict]:
+    def pull_global_knowledge(self) -> dict | None:
         """
         Download aggregated knowledge from the network.
         Returns dict of {algorithm_name: {avg_reward, success_rate, ...}}
@@ -196,7 +195,7 @@ class FederatedKnowledgeSync:
 
         self._last_sync = time.time()
 
-    def _incorporate_remote(self, updates: List[Dict]):
+    def _incorporate_remote(self, updates: list[dict]):
         pass
 
     def set_local_kb(self, kb: Any):
@@ -210,7 +209,7 @@ class FederatedKnowledgeSync:
         if url in self.node_urls:
             self.node_urls.remove(url)
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         return {
             "mode": self.mode,
             "enabled": self.enabled,

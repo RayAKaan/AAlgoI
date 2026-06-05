@@ -1,5 +1,5 @@
 import random
-import string
+
 from aalgoi.core.smart_solver import SmartSolver
 
 DOMAIN_TEST_CASES = [
@@ -98,7 +98,7 @@ def test_domain_routing_never_misroutes():
                     f"(got '{chosen_algo}') | '{case['description']}'"
                 )
 
-    print(f"\nDomain Routing Results:")
+    print("\nDomain Routing Results:")
     print(f"  Total cases: {len(DOMAIN_TEST_CASES)}")
     print(f"  Failures:    {len(failures)}")
     for f in failures:

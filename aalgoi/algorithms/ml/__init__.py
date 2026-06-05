@@ -13,26 +13,23 @@ Categories:
 """
 
 from aalgoi.algorithms.ml.base import MLAlgorithm
-
 from aalgoi.algorithms.ml.classical import (
-    LinearRegressionAlgo,
-    RidgeAlgo,
-    LassoAlgo,
-    LogisticRegressionAlgo,
-    KNNAlgo,
-    SVMAlgo,
     GaussianNBAlgo,
+    KNNAlgo,
+    LassoAlgo,
+    LinearRegressionAlgo,
+    LogisticRegressionAlgo,
+    RidgeAlgo,
+    SVMAlgo,
 )
-
-from aalgoi.algorithms.ml.ensemble import (
-    RandomForestAlgo,
-    XGBoostAlgo,
-    LightGBMAlgo,
-)
-
 from aalgoi.algorithms.ml.clustering import (
     GMMAlgo,
     PCAReductionAlgo,
+)
+from aalgoi.algorithms.ml.ensemble import (
+    LightGBMAlgo,
+    RandomForestAlgo,
+    XGBoostAlgo,
 )
 
 

@@ -10,24 +10,24 @@ Categories:
 - Generation: prompt enrichment, creative writing
 """
 
-from aalgoi.algorithms.nlp.word_embeddings import (
-    Word2VecTrainer,
-    FrequencyVectorArithmetic,
-    WordVectorArithmetic,
-    EmbeddingVisualization,
-)
-from aalgoi.algorithms.nlp.text_analysis import (
-    SentimentAnalyzer,
-    TextSummarizer,
+from aalgoi.algorithms.nlp.generation import (
+    CreativeSentenceGenerator,
+    PromptEnricher,
+    WordExpander,
 )
 from aalgoi.algorithms.nlp.retrieval import (
     RAGRetriever,
     SemanticSearcher,
 )
-from aalgoi.algorithms.nlp.generation import (
-    PromptEnricher,
-    CreativeSentenceGenerator,
-    WordExpander,
+from aalgoi.algorithms.nlp.text_analysis import (
+    SentimentAnalyzer,
+    TextSummarizer,
+)
+from aalgoi.algorithms.nlp.word_embeddings import (
+    EmbeddingVisualization,
+    FrequencyVectorArithmetic,
+    Word2VecTrainer,
+    WordVectorArithmetic,
 )
 
 __all__ = [

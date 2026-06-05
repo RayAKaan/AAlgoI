@@ -1,5 +1,6 @@
 import heapq
 from collections import deque
+
 from aalgoi.algorithms.base import Algorithm
 
 

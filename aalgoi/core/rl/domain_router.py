@@ -1,12 +1,12 @@
-from typing import Dict, List, Set
-from aalgoi.core.problem_spec import ProblemType
 import logging
+
+from aalgoi.core.problem_spec import ProblemType
 
 logger = logging.getLogger(__name__)
 
-DOMAIN_ALGORITHMS: Dict[ProblemType, Set[str]] = {}
+DOMAIN_ALGORITHMS: dict[ProblemType, set[str]] = {}
 
-def _build_domain_map(registry: Dict) -> None:
+def _build_domain_map(registry: dict) -> None:
     DOMAIN_ALGORITHMS.clear()
     for name, algo in registry.items():
         types = getattr(algo, 'problem_types', None) or getattr(algo, 'tags', [])
@@ -24,7 +24,7 @@ def _build_domain_map(registry: Dict) -> None:
     logger.info("Domain router built: %s", compact)
 
 
-def get_algorithms_for_domain(problem_type: ProblemType) -> List[str]:
+def get_algorithms_for_domain(problem_type: ProblemType) -> list[str]:
     return list(DOMAIN_ALGORITHMS.get(problem_type, set()))
 
 
@@ -44,7 +44,7 @@ def get_broad_domain(pt: ProblemType) -> ProblemType:
     return broad_map.get(pt, pt)
 
 
-def build_candidate_mask(algo_names: List[str], problem_type: ProblemType) -> List[int]:
+def build_candidate_mask(algo_names: list[str], problem_type: ProblemType) -> list[int]:
     domain_algos = get_algorithms_for_domain(problem_type)
     if not domain_algos:
         broad = get_broad_domain(problem_type)

@@ -1,19 +1,20 @@
 import sys
 from pathlib import Path
+
 _server_dir = Path(__file__).resolve().parent
 _project_dir = _server_dir.parent
 if str(_project_dir) not in sys.path:
     sys.path.insert(0, str(_project_dir))
 
-from fastapi import FastAPI, HTTPException, BackgroundTasks, Request
-from pydantic import BaseModel
-from typing import List, Optional
-import hashlib
 import json
 import os
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
+
+from fastapi import BackgroundTasks, FastAPI, HTTPException, Request
+from pydantic import BaseModel
 from slowapi import Limiter
 from slowapi.util import get_remote_address
+
 from server.database import get_db
 
 app = FastAPI(title="AAlgoI Federation", version="1.4.0")
@@ -35,7 +36,7 @@ class PerformanceMetric(BaseModel):
     problem_type: str
     success: bool
     execution_time_ms: float
-    data_size: Optional[int] = None
+    data_size: int | None = None
     user_id_hash: str
 
 
@@ -43,7 +44,7 @@ class AlgorithmSubmission(BaseModel):
     name: str
     code: str
     metadata: dict
-    embedding: List[float]
+    embedding: list[float]
     submitted_by: str
     code_hash: str
 
@@ -73,7 +74,7 @@ async def ingest_metric(
         """, (
             metric.algorithm, metric.problem_type, metric.success,
             metric.execution_time_ms, metric.data_size,
-            metric.user_id_hash, datetime.now(timezone.utc)
+            metric.user_id_hash, datetime.now(UTC)
         ))
         db.commit()
         return {"status": "accepted", "id": cursor.lastrowid}
@@ -97,7 +98,7 @@ async def get_aggregate(
             FROM metrics
             WHERE algorithm = ?
               AND timestamp > ?
-        """, (algorithm, datetime.now(timezone.utc) - timedelta(days=days)))
+        """, (algorithm, datetime.now(UTC) - timedelta(days=days)))
         row = cursor.fetchone()
         return {
             "algorithm": algorithm,
@@ -134,7 +135,7 @@ async def submit_algorithm(
         """, (
             sub.name, sub.code, json.dumps(sub.metadata),
             json.dumps(sub.embedding), sub.submitted_by,
-            sub.code_hash, datetime.now(timezone.utc)
+            sub.code_hash, datetime.now(UTC)
         ))
         db.commit()
         queue_id = cursor.lastrowid
@@ -185,14 +186,14 @@ async def get_sync_state():
         cursor.execute(
             "SELECT COUNT(*) FROM algorithm_queue "
             "WHERE status = 'passed' AND promoted_at > ?",
-            (datetime.now(timezone.utc) - timedelta(hours=1),)
+            (datetime.now(UTC) - timedelta(hours=1),)
         )
         new_count = cursor.fetchone()[0]
 
         return {
             "global_version": version,
             "new_algorithms_last_hour": new_count,
-            "timestamp": datetime.now(timezone.utc).isoformat()
+            "timestamp": datetime.now(UTC).isoformat()
         }
     finally:
         db.close()
@@ -202,7 +203,6 @@ async def get_sync_state():
 
 
 async def _validate_and_promote(name: str, code_hash: str):
-    from github import Github
 
     conn = get_db()
     try:
@@ -233,8 +233,9 @@ async def _validate_and_promote(name: str, code_hash: str):
 
 
 async def _open_github_pr(name, code, metadata, result, code_hash):
-    from github import Github
     import base64
+
+    from github import Github
 
     token = os.environ.get('AALGOI_GITHUB_TOKEN')
     if not token:

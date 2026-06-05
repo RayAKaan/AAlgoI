@@ -1,6 +1,8 @@
-import time
 import random
+import time
+
 from aalgoi.core.smart_solver import SmartSolver
+
 
 def test_system_learns_over_time():
     solver = SmartSolver()
@@ -64,7 +66,7 @@ def test_system_learns_over_time():
     first_50_median = statistics.median(first_50_times) * 1000 if first_50_times else 0
     last_50_median  = statistics.median(last_50_times)  * 1000 if last_50_times else 0
 
-    print(f"\nLearning Over Time:")
+    print("\nLearning Over Time:")
     print(f"  First 50 optimal selection rate: {first_50_rate:.1%}")
     print(f"  Last  50 optimal selection rate: {last_50_rate:.1%}")
     print(f"  First 50 median latency:         {first_50_median:.1f}ms")

@@ -8,8 +8,10 @@ Usage:
     python training/self_play_train.py
 """
 
-import torch
 import logging
+
+import torch
+
 from aalgoi.core.rl.agents.selection_agent import PPOAgent
 from aalgoi.core.rl.powerhouse_agent import WorldModel
 from training.self_play import SelfPlayEngine

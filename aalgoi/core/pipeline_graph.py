@@ -1,10 +1,11 @@
 
-from typing import Any, Dict, List, Optional, Callable
+from typing import Any
+
 from aalgoi.algorithms.base import Algorithm
 
 
 class PipelineNode:
-    def __init__(self, name: str, algorithm: Algorithm, depends_on: Optional[List[str]] = None):
+    def __init__(self, name: str, algorithm: Algorithm, depends_on: list[str] | None = None):
         self.name = name
         self.algorithm = algorithm
         self.depends_on = depends_on or []
@@ -12,11 +13,11 @@ class PipelineNode:
 
 class PipelineGraph:
     def __init__(self):
-        self.nodes: Dict[str, PipelineNode] = {}
-        self.node_order: List[str] = []
+        self.nodes: dict[str, PipelineNode] = {}
+        self.node_order: list[str] = []
 
     def add_algorithm(self, name: str, algorithm: Algorithm,
-                      depends_on: Optional[List[str]] = None):
+                      depends_on: list[str] | None = None):
         self.nodes[name] = PipelineNode(name, algorithm, depends_on)
         if name not in self.node_order:
             self.node_order.append(name)
@@ -46,9 +47,9 @@ class PipelineGraph:
                 return False
         return True
 
-    def topological_sort(self) -> List[str]:
+    def topological_sort(self) -> list[str]:
         visited: set = set()
-        result: List[str] = []
+        result: list[str] = []
 
         def dfs(name: str):
             if name in visited:
@@ -71,7 +72,7 @@ class PipelineGraph:
             raise ValueError("Pipeline graph contains a cycle")
 
         order = self.topological_sort()
-        intermediate: Dict[str, Any] = {}
+        intermediate: dict[str, Any] = {}
 
         for name in order:
             node = self.nodes[name]
@@ -97,13 +98,13 @@ class PipelineGraph:
             return intermediate[terminals[0]]
         return {t: intermediate[t] for t in terminals}
 
-    def _is_predecessor_of_any(self, name: str, order: List[str]) -> bool:
+    def _is_predecessor_of_any(self, name: str, order: list[str]) -> bool:
         for n in order:
             if n != name and name in self.nodes.get(n, PipelineNode("", None)).depends_on:
                 return True
         return False
 
-    def _merge_inputs(self, inputs: List[Any]) -> Any:
+    def _merge_inputs(self, inputs: list[Any]) -> Any:
         dict_inputs = [d for d in inputs if isinstance(d, dict)]
         if dict_inputs:
             merged = {}
@@ -112,7 +113,7 @@ class PipelineGraph:
             return merged
         return inputs[-1] if inputs else None
 
-    def to_linear(self, algorithms: List[Algorithm]) -> 'PipelineGraph':
+    def to_linear(self, algorithms: list[Algorithm]) -> 'PipelineGraph':
         graph = PipelineGraph()
         for i, algo in enumerate(algorithms):
             deps = [f"step_{i-1}"] if i > 0 else []

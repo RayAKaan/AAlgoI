@@ -1,11 +1,10 @@
-import sys
 import numpy as np
+
 from aalgoi.algorithms.primitives import PRIMITIVES
-from aalgoi.core.problem_spec import ProblemSpec, ProblemType
 
 
 def test_replay_buffer():
-    from aalgoi.core.rl.replay_buffer import ReplayBuffer, EpisodeBuffer
+    from aalgoi.core.rl.replay_buffer import EpisodeBuffer, ReplayBuffer
     buf = ReplayBuffer(capacity=100)
     buf.push(np.zeros(10), 0, 1.0, np.ones(10), False)
     buf.push(np.zeros(10), 1, 0.5, np.ones(10), True)
@@ -27,7 +26,7 @@ def test_replay_buffer():
 
 
 def test_reward_shaper():
-    from aalgoi.core.rl.reward_shaper import RewardShaper, AdaptiveRewardShaper
+    from aalgoi.core.rl.reward_shaper import AdaptiveRewardShaper, RewardShaper
     shaper = RewardShaper()
 
     reward = shaper.compute_reward(
@@ -50,8 +49,9 @@ def test_reward_shaper():
 
 
 def test_attention_actor_critic():
-    from aalgoi.core.rl.agents.selection_agent import AttentionActorCritic
     import torch
+
+    from aalgoi.core.rl.agents.selection_agent import AttentionActorCritic
     net = AttentionActorCritic(state_dim=38, algo_dim=32, hidden_dim=128)
     state = torch.randn(1, 38)
     algo_embeds = torch.randn(10, 32)
@@ -67,8 +67,9 @@ def test_attention_actor_critic():
 
 
 def test_ppo_agent():
-    from aalgoi.core.rl.agents.selection_agent import PPOAgent
     import torch
+
+    from aalgoi.core.rl.agents.selection_agent import PPOAgent
     agent = PPOAgent(state_dim=38)
     embeddings = torch.randn(5, 32)
     agent.update_algo_embeddings(embeddings, ['a', 'b', 'c', 'd', 'e'])
@@ -104,9 +105,10 @@ def test_environment_step():
 
 
 def test_full_training_loop():
-    from aalgoi.core.rl.agents.selection_agent import PPOAgent
-    import torch
     import numpy as np
+    import torch
+
+    from aalgoi.core.rl.agents.selection_agent import PPOAgent
 
     agent = PPOAgent(state_dim=38, config={"batch_size": 4, "update_epochs": 2})
     algo_names = ['a', 'b', 'c', 'd', 'e']

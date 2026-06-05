@@ -6,9 +6,8 @@ Text analysis algorithms:
 - Text summarization (Lab 7)
 """
 
-import numpy as np
-from typing import Dict, List, Optional, Any
 import logging
+from typing import Any
 
 from aalgoi.algorithms.base import Algorithm
 
@@ -50,7 +49,7 @@ class SentimentAnalyzer(Algorithm):
         self.patterns = ["TransformerBased", "SequenceClassification"]
         self.problem_types = ["NLP", "CLASSIFICATION"]
 
-    def process(self, data: Any) -> Dict:
+    def process(self, data: Any) -> dict:
         texts = data.get("texts", [])
         model = data.get("model", "distilbert-base-uncased-finetuned-sst-2-english")
 
@@ -158,7 +157,7 @@ class TextSummarizer(Algorithm):
         self.patterns = ["TransformerBased", "Seq2Seq", "AbstractiveSummarization"]
         self.problem_types = ["NLP", "SUMMARIZATION"]
 
-    def process(self, data: Any) -> Dict:
+    def process(self, data: Any) -> dict:
         text = data.get("text", "")
         max_length = data.get("max_length", 100)
         min_length = data.get("min_length", 30)

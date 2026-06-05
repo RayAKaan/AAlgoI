@@ -1,5 +1,4 @@
 import ast
-from typing import Any
 
 
 class CodeModifier:
@@ -183,7 +182,7 @@ class CodeModifier:
 
         for i, line in enumerate(lines):
             if line.strip().startswith("def "):
-                if any("sort()" in l for l in lines):
+                if any("sort()" in line for line in lines):
                     return None
                 indent = "    "
                 params = line.split("(")[1].split(")")[0].split(",")

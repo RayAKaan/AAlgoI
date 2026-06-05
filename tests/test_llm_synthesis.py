@@ -1,5 +1,4 @@
 """Tests for LLM + sandbox algorithm synthesis."""
-import sys
 import ast
 from unittest.mock import MagicMock, patch
 
@@ -7,11 +6,12 @@ import pytest
 
 from aalgoi.core.algorithm_synthesizer import LLMAlgorithmSynthesizer
 from aalgoi.core.llm_client import OllamaClient
-from aalgoi.core.sandboxed_executor import (
-    create_sandboxed_module, execute_sandboxed, benchmark_sandboxed,
-)
 from aalgoi.core.problem_spec import ProblemSpec, ProblemType
-
+from aalgoi.core.sandboxed_executor import (
+    benchmark_sandboxed,
+    create_sandboxed_module,
+    execute_sandboxed,
+)
 
 # ── Fixtures ──────────────────────────────────────────────────────────────
 
@@ -264,7 +264,8 @@ def process(data):
     module = create_sandboxed_module("test", code)
     assert module is not None
     data = list(range(10, 30))
-    baseline = lambda d: sorted(d)
+    def baseline(d):
+        return sorted(d)
     ok, synth_time, base_time = benchmark_sandboxed(
         module, "process", data, baseline, trials=3
     )

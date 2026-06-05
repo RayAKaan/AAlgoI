@@ -1,18 +1,18 @@
 
-import unittest
+import os
 import random
 import sys
-import os
+import unittest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from aalgoi.pipeline import AAlgoI
-from aalgoi.algorithms.sorting import QuickSort, InsertionSort, MergeSort, TimSort, RadixSort, HeapSort
+from aalgoi.algorithms.sorting import HeapSort, InsertionSort, MergeSort, QuickSort, RadixSort, TimSort
 from aalgoi.core.bandit import UCB1Bandit
-from aalgoi.core.validator import PipelineValidator
+from aalgoi.core.decision_log import Decision, DecisionLog
 from aalgoi.core.drift_detector import DriftDetector
-from aalgoi.core.decision_log import DecisionLog, Decision
 from aalgoi.core.pipeline_graph import PipelineGraph
+from aalgoi.core.validator import PipelineValidator
+from aalgoi.pipeline import AAlgoI
 
 
 class TestSorting(unittest.TestCase):

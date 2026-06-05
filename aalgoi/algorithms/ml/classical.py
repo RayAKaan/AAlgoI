@@ -1,7 +1,9 @@
 
-import numpy as np
-from aalgoi.algorithms.ml.base import MLAlgorithm
 import logging
+
+import numpy as np
+
+from aalgoi.algorithms.ml.base import MLAlgorithm
 
 logger = logging.getLogger(__name__)
 
@@ -150,9 +152,9 @@ class KNNAlgo(MLAlgorithm):
             return {}
 
     def solve(self, data: dict) -> dict:
+        import numpy as np
         from sklearn.neighbors import KNeighborsClassifier
         from sklearn.preprocessing import StandardScaler
-        import numpy as np
 
         X_train = np.array(data["X_train"])
         y_train = np.array(data["y_train"])

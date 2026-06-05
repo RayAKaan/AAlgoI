@@ -1,18 +1,14 @@
 """Tests for aalgoi._data universal data normalizer."""
 
-import json
-import io
-import tempfile
-from pathlib import Path
 from dataclasses import dataclass
-from enum import Enum
-from datetime import datetime, date, timedelta
+from datetime import date, datetime, timedelta
 from decimal import Decimal
+from enum import Enum
 from fractions import Fraction
 
 import pytest
 
-from aalgoi._data import normalize, detect_type, normalize_with_metadata
+from aalgoi._data import detect_type, normalize, normalize_with_metadata
 
 
 class Color(Enum):
@@ -154,8 +150,7 @@ class TestGenerators:
 
     def test_generator_capped(self):
         def big():
-            for i in range(20_000):
-                yield i
+            yield from range(20_000)
         result = normalize(big())
         assert len(result) == 10_000
 

@@ -1,12 +1,15 @@
-from aalgoi.core.mind.rl_mind import AlgorithmicMind, MindOutput
 from aalgoi.core.mind.cognitive_actions import (
-    CognitiveAction, ActionParams, ActionResult, ActionHandler,
+    ActionHandler,
+    ActionParams,
+    ActionResult,
+    CognitiveAction,
 )
-from aalgoi.core.mind.mind_state import MindState
-from aalgoi.core.mind.solving_loop import MindSolvingLoop, ThinkingSession, UniversalSolution
 from aalgoi.core.mind.knowledge_graph import AlgorithmicKnowledgeGraph
+from aalgoi.core.mind.mind_state import MindState
+from aalgoi.core.mind.model_config import DEFAULT_CONFIG, MindConfig
+from aalgoi.core.mind.rl_mind import AlgorithmicMind, MindOutput
 from aalgoi.core.mind.safety_manager import MindSafetyManager
-from aalgoi.core.mind.model_config import MindConfig, DEFAULT_CONFIG
+from aalgoi.core.mind.solving_loop import MindSolvingLoop, ThinkingSession, UniversalSolution
 
 
 def create_mind(
@@ -16,8 +19,11 @@ def create_mind(
     persist_dir: str = "~/.aalgoi",
 ) -> MindSolvingLoop:
     from pathlib import Path
+
     from aalgoi.core.mind.adapters import (
-        ExecutorAdapter, SynthesizerAdapter, ProverAdapter,
+        ExecutorAdapter,
+        ProverAdapter,
+        SynthesizerAdapter,
     )
     from aalgoi.core.reasoning.comprehension_engine import DeepComprehensionEngine
     from aalgoi.core.reasoning.correctness_prover import CorrectnessProver

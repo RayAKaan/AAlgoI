@@ -1,6 +1,6 @@
 
+
 from aalgoi.algorithms.ml.base import MLAlgorithm
-import numpy as np
 
 
 class GMMAlgo(MLAlgorithm):

@@ -1,11 +1,4 @@
-from .sorting_algos import (
-    QuickSort,
-    TimSort,
-    HeapSort,
-    InsertionSort,
-    RadixSort,
-    MergeSort
-)
+from .sorting_algos import HeapSort, InsertionSort, MergeSort, QuickSort, RadixSort, TimSort
 
 __all__ = [
     'QuickSort',

@@ -1,7 +1,7 @@
-import numpy as np
 import random
 from collections import deque
-from typing import Dict, Any, Tuple, Optional
+
+import numpy as np
 
 
 class ReplayBuffer:
@@ -10,13 +10,13 @@ class ReplayBuffer:
         self.capacity = capacity
 
     def push(self, state: np.ndarray, action: int, reward: float,
-             next_state: np.ndarray, done: bool, info: Dict = None):
+             next_state: np.ndarray, done: bool, info: dict = None):
         self.buffer.append({
             "state": state, "action": action, "reward": reward,
             "next_state": next_state, "done": done, "info": info or {}
         })
 
-    def sample(self, batch_size: int) -> Dict[str, np.ndarray]:
+    def sample(self, batch_size: int) -> dict[str, np.ndarray]:
         batch = random.sample(self.buffer, min(batch_size, len(self.buffer)))
         return {
             "states": np.array([t["state"] for t in batch]),
@@ -53,7 +53,7 @@ class EpisodeBuffer:
         if value is not None:
             self.values.append(value)
 
-    def get(self) -> Dict[str, np.ndarray]:
+    def get(self) -> dict[str, np.ndarray]:
         result = {
             "states": np.array(self.states),
             "actions": np.array(self.actions),
@@ -86,7 +86,7 @@ class PrioritizedReplayBuffer(ReplayBuffer):
             priority = max(self.priorities) if self.priorities else 1.0
         self.priorities.append(priority)
 
-    def sample(self, batch_size: int, beta: float = 0.4) -> Tuple[Dict, np.ndarray, np.ndarray]:
+    def sample(self, batch_size: int, beta: float = 0.4) -> tuple[dict, np.ndarray, np.ndarray]:
         priorities = np.array(self.priorities)
         probs = priorities ** self.alpha
         probs /= probs.sum()

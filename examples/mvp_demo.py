@@ -2,12 +2,11 @@
 """3-Domain MVP demo: sorting, pathfinding, optimization with UniversalSolver."""
 
 import time
-from pprint import pprint
 
-from aalgoi.algorithms.sorting import QuickSort, MergeSort
-from aalgoi.algorithms.pathfinding import Dijkstra, AStar, BFSPathfinder
 from aalgoi.algorithms.optimization import GreedyKnapsack, SimulatedAnnealing
-from aalgoi.core.problem_spec import ProblemSpec, ProblemType, Objective
+from aalgoi.algorithms.pathfinding import AStar, BFSPathfinder, Dijkstra
+from aalgoi.algorithms.sorting import MergeSort, QuickSort
+from aalgoi.core.problem_spec import ProblemSpec, ProblemType
 
 
 def demo_sorting():
@@ -35,7 +34,7 @@ def demo_pathfinding():
         "D": {},
         "E": {"D": 2},
     }
-    print(f"  Graph: A -> B(1), C(4); B -> C(2), D(5), E(1); C -> D(1); E -> D(2)")
+    print("  Graph: A -> B(1), C(4); B -> C(2), D(5), E(1); C -> D(1); E -> D(2)")
     for algo in [Dijkstra(), AStar(), BFSPathfinder()]:
         start = time.perf_counter()
         if algo.name == "bfs_path":
@@ -76,7 +75,8 @@ def demo_universal_solver():
     print("UNIVERSAL SOLVER (auto-detect + auto-wrap)")
     print("=" * 60)
 
-    import sys, os
+    import os
+    import sys
     sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
     from aalgoi.pipeline import UniversalSolver
     solver = UniversalSolver()

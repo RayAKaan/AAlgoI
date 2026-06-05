@@ -1,12 +1,14 @@
-import sys
 import os
+import sys
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import ast
-from typing import Any, Optional
+from typing import Any
+
 from aalgoi.core.problem_spec import ProblemSpec
 from aalgoi.pipeline import UniversalSolver
-from interface.nl_parser import parse_description, extract_data_from_description
+from interface.nl_parser import extract_data_from_description, parse_description
 
 
 def _parse_data_input(raw: str) -> Any:
@@ -29,7 +31,7 @@ except ImportError:
     gr = None
 
 
-def create_interface(solver: Optional[UniversalSolver] = None):
+def create_interface(solver: UniversalSolver | None = None):
     if not _GRADIO_AVAILABLE:
         return None
 
@@ -88,7 +90,7 @@ def create_interface(solver: Optional[UniversalSolver] = None):
         result = solver.solve(spec, data)
         output_str = str(result.get("result", ""))
         strategy = result.get("selection", {}).get("synthesis_strategy", "unknown")
-        confidence = result.get("selection", {}).get("confidence", 0)
+        result.get("selection", {}).get("confidence", 0)
         time_str = f"{result.get('time_ms', 0):.2f} ms"
         pipeline_str = " → ".join(result.get("pipeline", []))
         validation_info = ""

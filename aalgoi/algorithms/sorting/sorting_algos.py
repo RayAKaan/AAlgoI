@@ -1,4 +1,3 @@
-import numpy as np
 from aalgoi.algorithms.base import Algorithm
 
 

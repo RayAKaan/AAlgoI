@@ -1,7 +1,7 @@
 
 from collections import deque
+
 import numpy as np
-from typing import List, Optional
 
 
 class DriftDetector:
@@ -9,7 +9,7 @@ class DriftDetector:
         self.window_size = window
         self.threshold = threshold
         self.scores: deque = deque(maxlen=window)
-        self.reference_mean: Optional[float] = None
+        self.reference_mean: float | None = None
         self.drift_count = 0
         self.last_drift_time = 0.0
         self._index = 0

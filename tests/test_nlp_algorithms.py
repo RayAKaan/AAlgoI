@@ -18,7 +18,6 @@ Plus integration tests for solve() routing and explainer templates.
 """
 
 import pytest
-import numpy as np
 
 
 @pytest.fixture
@@ -401,7 +400,7 @@ class TestNLPRegistry:
         ]
 
         for name in expected:
-            assert name in solver.registry, "%s not in registry" % name
+            assert name in solver.registry, f"{name} not in registry"
 
     def test_registry_count_increased(self):
         from aalgoi.pipeline import UniversalSolver

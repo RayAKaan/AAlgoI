@@ -1,30 +1,27 @@
 
-import numpy as np
-import time
+import logging
+import os
 import random
 import re
-import os
-import glob as glob_mod
-from typing import Dict, List, Any, Optional, Tuple
-from collections import defaultdict
-import logging
 import sys
 import threading
-import functools
+import time
+from collections import defaultdict
+from typing import Any
+
+import numpy as np
 
 from aalgoi.core.bandit import UCB1Bandit
+from aalgoi.core.knowledge_graph import AlgorithmKnowledgeGraph
 from aalgoi.core.llm_adapter import LLMAdapter
 from aalgoi.core.problem_spec import ProblemSpec, ProblemType
-from aalgoi.core.algorithm_synthesizer import AlgorithmSynthesizer
-from aalgoi.core.knowledge_graph import AlgorithmKnowledgeGraph
-from aalgoi.algorithms.primitives import PRIMITIVES
 
 logger = logging.getLogger(__name__)
 
 
 class UniversalMetaController:
-    def __init__(self, config: Dict = None, knowledge_base=None,
-                 algorithm_registry: Dict = None,
+    def __init__(self, config: dict = None, knowledge_base=None,
+                 algorithm_registry: dict = None,
                  problem_library=None, llm_client=None,
                  mode: str = "standard"):
         self.config = config or {}
@@ -64,7 +61,7 @@ class UniversalMetaController:
         self.fallback_chain = self._build_fallback_chain()
 
         # Domain routing + per-domain bandits for hybrid PPO + bandit selection
-        self._domain_bandits: Dict[str, UCB1Bandit] = {}
+        self._domain_bandits: dict[str, UCB1Bandit] = {}
         self.bandit_weight = self.config.get("bandit_weight", 0.3)
         from aalgoi.core.rl.domain_router import _build_domain_map
         _build_domain_map(self.registry)
@@ -125,7 +122,7 @@ class UniversalMetaController:
                 config=rl_config,
             )
             self._rl_episode_buffer = []
-            logger.info(f"RL agent created: state_dim=42 (attention head)")
+            logger.info("RL agent created: state_dim=42 (attention head)")
             self._load_pretrained_model()
         except Exception as e:
             logger.warning(f"Failed to init RL agent: {e}")
@@ -137,7 +134,6 @@ class UniversalMetaController:
             return
 
         from aalgoi.core.checkpoint_downloader import (
-            CHECKPOINT_PATH as DOWNLOADED_PATH,
             checkpoint_exists,
             get_checkpoint_path,
         )
@@ -226,7 +222,7 @@ class UniversalMetaController:
                 )
 
             if semantic_candidates:
-                candidate_names = {c if isinstance(c, str) else c.get("name", "") for c in candidates}
+                {c if isinstance(c, str) else c.get("name", "") for c in candidates}
                 filtered = [c for c in candidates
                             if (c if isinstance(c, str) else c.get("name", "")) in semantic_candidates]
                 if filtered:
@@ -234,7 +230,7 @@ class UniversalMetaController:
                     candidates = filtered
             elif self._cross_domain_pool:
                 # No primary candidates at all — use cross-domain
-                candidate_names = {c if isinstance(c, str) else c.get("name", "") for c in candidates}
+                {c if isinstance(c, str) else c.get("name", "") for c in candidates}
                 filtered = [c for c in candidates
                             if (c if isinstance(c, str) else c.get("name", "")) in self._cross_domain_pool]
                 if filtered:
@@ -404,7 +400,7 @@ class UniversalMetaController:
             return list(self.registry.values())[0]
         return None
 
-    def get_fallback_alternative(self, failed_algo_name: str) -> Optional[str]:
+    def get_fallback_alternative(self, failed_algo_name: str) -> str | None:
         if not self.kg_enabled:
             return None
         alternatives = self.kg.find_alternatives(failed_algo_name)
@@ -414,7 +410,7 @@ class UniversalMetaController:
             return self._cross_domain_pool[0]
         return None
 
-    def _build_fallback_chain(self) -> List[str]:
+    def _build_fallback_chain(self) -> list[str]:
         """Ordered list of safe algorithms to try when all else fails."""
         return [
             "identity",
@@ -424,7 +420,7 @@ class UniversalMetaController:
             "greedy_knapsack",
         ]
 
-    def _get_fallback_algorithms(self) -> List[Any]:
+    def _get_fallback_algorithms(self) -> list[Any]:
         """Return fallback algorithms from the chain that exist in registry."""
         fallbacks = []
         for name in self.fallback_chain:
@@ -529,7 +525,7 @@ class UniversalMetaController:
         return score
 
     def _select_best_algorithm(self, candidates: list, query: str = "",
-                               context: dict = None) -> Optional[str]:
+                               context: dict = None) -> str | None:
         if not candidates:
             return None
         names = []
@@ -552,7 +548,7 @@ class UniversalMetaController:
         scored.sort(key=lambda x: (-x[1], names.index(x[0])))
         return scored[0][0]
 
-    def _extract_kg_constraints(self, spec: ProblemSpec, data: Any) -> List[str]:
+    def _extract_kg_constraints(self, spec: ProblemSpec, data: Any) -> list[str]:
         constraints = []
         ptype = spec.problem_type.value if hasattr(spec, 'problem_type') else spec.get('problem_type', 'sorting')
 
@@ -678,7 +674,7 @@ class UniversalMetaController:
 
         return vec
 
-    def get_last_selection(self) -> Optional[Dict]:
+    def get_last_selection(self) -> dict | None:
         return self._last_selection
 
     def get_last_confidence(self) -> float:
@@ -842,13 +838,13 @@ class UniversalMetaController:
 
 
 class MetaController:
-    def __init__(self, algorithm_registry: Dict[str, Any], strategy: str = "hybrid",
-                 config: Optional[Dict] = None):
+    def __init__(self, algorithm_registry: dict[str, Any], strategy: str = "hybrid",
+                 config: dict | None = None):
         self.registry = algorithm_registry
         self.strategy = strategy
         self.config = config or {}
-        self.history: List[Dict] = []
-        self.knowledge_base: Dict = defaultdict(list)
+        self.history: list[dict] = []
+        self.knowledge_base: dict = defaultdict(list)
         self._trained = False
         self._model = None
         self._feature_names = [
@@ -869,7 +865,7 @@ class MetaController:
 
         self._population = []
         self._generation = 0
-        self._performance_cache: Dict[str, Dict] = {}
+        self._performance_cache: dict[str, dict] = {}
 
         bandit_config = self.config.get("bandit", {})
         self.bandit = UCB1Bandit(
@@ -883,13 +879,13 @@ class MetaController:
         self._last_confidence = 0.0
         self._last_reason = ""
 
-    def select(self, context: Dict[str, Any]) -> List[Any]:
+    def select(self, context: dict[str, Any]) -> list[Any]:
         algorithms, confidence, reason = self.select_with_confidence(context)
         self._last_confidence = confidence
         self._last_reason = reason
         return algorithms
 
-    def select_with_confidence(self, context: Dict[str, Any]) -> Tuple[List[Any], float, str]:
+    def select_with_confidence(self, context: dict[str, Any]) -> tuple[list[Any], float, str]:
         domain_algos = self._get_domain_algorithms(context)
         domain_names = [a for a in domain_algos if a in self.registry]
         if not domain_names:
@@ -924,7 +920,7 @@ class MetaController:
 
         return [self.registry[domain_names[0]]], 0.0, "fallback"
 
-    def _compute_kb_confidence(self, similar_records: List[Dict]) -> float:
+    def _compute_kb_confidence(self, similar_records: list[dict]) -> float:
         if not similar_records or len(similar_records) < 3:
             return 0.2
         scores = [s.get("metrics", {}).get("score", 0) for s in similar_records if s.get("metrics")]
@@ -932,7 +928,7 @@ class MetaController:
             return 0.2
         return min(1.0, max(0.0, np.mean(scores)))
 
-    def _rule_based_select_single(self, context: Dict) -> Optional[str]:
+    def _rule_based_select_single(self, context: dict) -> str | None:
         features = context.get("features", {})
         data_profile = context.get("data_profile", {})
         constraints = context.get("constraints", {})
@@ -942,9 +938,9 @@ class MetaController:
         is_sorted = data_profile.get("patterns", {}).get("is_sorted", False)
         data_type = data_profile.get("type", "")
 
-        cpu_free = features.get("cpu_free", 0.5)
+        features.get("cpu_free", 0.5)
         mem_free = features.get("mem_free_ratio", 0.5)
-        priority = constraints.get("priority", "balanced")
+        constraints.get("priority", "balanced")
         time_budget = constraints.get("time_budget_ms", 500)
 
         stats = data_profile.get("statistics", {})
@@ -970,7 +966,7 @@ class MetaController:
 
         return domain_algos[0] if domain_algos else None
 
-    def _ml_select_single(self, context: Dict) -> Optional[str]:
+    def _ml_select_single(self, context: dict) -> str | None:
         if not self._trained or len(self.history) < 50:
             return None
         try:
@@ -985,7 +981,7 @@ class MetaController:
             pass
         return None
 
-    def _rule_based_select_with_confidence(self, context: Dict, confidence: float) -> Tuple[List[Any], float, str]:
+    def _rule_based_select_with_confidence(self, context: dict, confidence: float) -> tuple[list[Any], float, str]:
         algo = self._rule_based_select_single(context)
         if algo and algo in self.registry:
             if confidence > 0.6:
@@ -994,7 +990,7 @@ class MetaController:
             return [self.registry[chosen]], confidence, "rule-based + bandit"
         return [list(self.registry.values())[0]], 0.0, "fallback"
 
-    def _genetic_select_with_confidence(self, context: Dict, confidence: float) -> Tuple[List[Any], float, str]:
+    def _genetic_select_with_confidence(self, context: dict, confidence: float) -> tuple[list[Any], float, str]:
         if len(self.history) < 100:
             algo = self._rule_based_select_single(context)
             return [self.registry[algo]], confidence, "genetic (no history)"
@@ -1014,8 +1010,8 @@ class MetaController:
         algo = self._rule_based_select_single(context)
         return [self.registry[algo]], confidence, "genetic fallback"
 
-    def _hybrid_select_with_confidence(self, context: Dict, confidence: float,
-                                        domain_names: List[str]) -> Tuple[List[Any], float, str]:
+    def _hybrid_select_with_confidence(self, context: dict, confidence: float,
+                                        domain_names: list[str]) -> tuple[list[Any], float, str]:
         similar = self._find_similar_contexts(context, top_k=10)
 
         if len(self.history) < 10:
@@ -1056,7 +1052,7 @@ class MetaController:
         fallback = next(iter(self.registry.values()))
         return [fallback], 0.1, "hybrid fallback"
 
-    def _compute_similarity(self, context_a: Dict, context_b: Dict) -> float:
+    def _compute_similarity(self, context_a: dict, context_b: dict) -> float:
         features_a = context_a.get("features", {})
         features_b = context_b.get("features", {})
 
@@ -1070,7 +1066,7 @@ class MetaController:
             return 0.0
         return float(dot / norms)
 
-    def _find_similar_contexts(self, context: Dict, top_k: int = 5) -> List[Dict]:
+    def _find_similar_contexts(self, context: dict, top_k: int = 5) -> list[dict]:
         if not self.history:
             return []
 
@@ -1083,7 +1079,7 @@ class MetaController:
         similarities.sort(key=lambda x: x[0], reverse=True)
         return [record for _, record in similarities[:top_k]]
 
-    def _select_from_history_weighted(self, similar_records: List[Dict], current_context: Dict) -> Optional[str]:
+    def _select_from_history_weighted(self, similar_records: list[dict], current_context: dict) -> str | None:
         algo_scores = defaultdict(list)
         algo_similarities = defaultdict(list)
 
@@ -1110,9 +1106,9 @@ class MetaController:
         best_algo = max(algo_scores.keys(), key=weighted_avg)
         return best_algo
 
-    def _smart_explore_with_confidence(self, context: Dict, current_best: str,
-                                        domain_algos: List[str], similar_records: List[Dict],
-                                        confidence: float) -> Tuple[List[Any], float, str]:
+    def _smart_explore_with_confidence(self, context: dict, current_best: str,
+                                        domain_algos: list[str], similar_records: list[dict],
+                                        confidence: float) -> tuple[list[Any], float, str]:
         tried_algos = set()
         for record in similar_records:
             tried_algos.update(record.get("algorithms", []))
@@ -1143,7 +1139,7 @@ class MetaController:
     def get_last_reason(self) -> str:
         return self._last_reason
 
-    def execute_with_fallback(self, data: Any, context: Dict, pipeline_algorithms: List[Any]) -> Tuple[Any, bool]:
+    def execute_with_fallback(self, data: Any, context: dict, pipeline_algorithms: list[Any]) -> tuple[Any, bool]:
         try:
             result = data
             for algo in pipeline_algorithms:
@@ -1155,7 +1151,7 @@ class MetaController:
                 return self.registry[safe_name].process(data), True
             return data, False
 
-    def _get_domain_algorithms(self, context: Dict) -> List[str]:
+    def _get_domain_algorithms(self, context: dict) -> list[str]:
         task_type = context.get("task_type", "sorting")
         domain = task_type
         if task_type in ("auto", ""):
@@ -1176,17 +1172,17 @@ class MetaController:
         ]
         return np.mean(scores) if scores else 0.5
 
-    def _vectorize(self, features: Dict) -> List[float]:
+    def _vectorize(self, features: dict) -> list[float]:
         return [features.get(f, 0.0) for f in self._feature_names]
 
-    def _initialize_population(self, context: Dict):
+    def _initialize_population(self, context: dict):
         domain_algos = self._get_domain_algorithms(context)
         self._population = [
             random.choice(domain_algos)
             for _ in range(20)
         ]
 
-    def _evolve_population(self, context: Dict):
+    def _evolve_population(self, context: dict):
         if not self.history:
             return
 
@@ -1219,7 +1215,7 @@ class MetaController:
         self._population = new_population
         self._generation += 1
 
-    def _select_best_individual(self, context: Dict) -> Optional[str]:
+    def _select_best_individual(self, context: dict) -> str | None:
         if not self._population:
             return None
 
@@ -1238,9 +1234,10 @@ class MetaController:
             return
 
         try:
+            from collections import Counter
+
             from sklearn.ensemble import RandomForestClassifier
             from sklearn.model_selection import StratifiedKFold
-            from collections import Counter
 
             X = []
             y = []
@@ -1275,7 +1272,7 @@ class MetaController:
 
             try:
                 from sklearn.model_selection import cross_val_score
-                scores = cross_val_score(model, X, y, cv=cv)
+                cross_val_score(model, X, y, cv=cv)
             except Exception:
                 pass
 
@@ -1288,7 +1285,7 @@ class MetaController:
         except Exception:
             pass
 
-    def record(self, context: Dict, algorithms: List[Any], score: float, metrics: Dict):
+    def record(self, context: dict, algorithms: list[Any], score: float, metrics: dict):
         algo_names = [a.name if hasattr(a, "name") else str(a) for a in algorithms]
 
         record = {
@@ -1311,7 +1308,7 @@ class MetaController:
         if len(self.history) % 100 == 0 and self.strategy in ("ml-based", "hybrid"):
             self.train()
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         return {
             "strategy": self.strategy,
             "history_size": len(self.history),

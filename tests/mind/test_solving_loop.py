@@ -1,11 +1,13 @@
+from pathlib import Path
+
 import pytest
 import torch
-from aalgoi.core.mind.solving_loop import MindSolvingLoop, ThinkingSession, UniversalSolution
-from aalgoi.core.mind.rl_mind import AlgorithmicMind
-from aalgoi.core.mind.knowledge_graph import AlgorithmicKnowledgeGraph
-from aalgoi.core.mind.safety_manager import MindSafetyManager
+
 from aalgoi.core.mind.cognitive_actions import ActionHandler
-from pathlib import Path
+from aalgoi.core.mind.knowledge_graph import AlgorithmicKnowledgeGraph
+from aalgoi.core.mind.rl_mind import AlgorithmicMind
+from aalgoi.core.mind.safety_manager import MindSafetyManager
+from aalgoi.core.mind.solving_loop import MindSolvingLoop, ThinkingSession, UniversalSolution
 
 
 class TestThinkingSession:
@@ -99,7 +101,6 @@ class TestMindSolvingLoop:
 
     def test_get_available_actions_after_some_steps(self, loop):
         from aalgoi.core.mind.cognitive_actions import CognitiveAction
-        import torch
         from aalgoi.core.mind.mind_state import MindState
 
         state = MindState(problem_text="test", problem_signature="abc",

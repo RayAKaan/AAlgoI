@@ -7,10 +7,9 @@ Text generation algorithms:
 - Word expansion
 """
 
-import numpy as np
-from typing import Dict, List, Optional, Any
 import logging
 import random
+from typing import Any
 
 from aalgoi.algorithms.base import Algorithm
 
@@ -55,7 +54,7 @@ class PromptEnricher(Algorithm):
         self.patterns = ["EmbeddingBased", "PromptEngineering", "SemanticSimilarity"]
         self.problem_types = ["NLP", "GENERATION"]
 
-    def process(self, data: Any) -> Dict:
+    def process(self, data: Any) -> dict:
         prompt = data.get("prompt", "")
         seed_word = data.get("seed_word", "")
         top_n = data.get("top_n", 5)
@@ -93,7 +92,7 @@ class PromptEnricher(Algorithm):
         words = [w.strip(".,!?;:") for w in words if len(w) > 3]
         return words[0] if words else ""
 
-    def _get_similar_words(self, word: str, top_n: int) -> List[str]:
+    def _get_similar_words(self, word: str, top_n: int) -> list[str]:
         if not word:
             return []
 
@@ -125,15 +124,15 @@ class PromptEnricher(Algorithm):
 
         return []
 
-    def _enrich_prompt(self, prompt: str, similar_words: List[str], style: str) -> str:
+    def _enrich_prompt(self, prompt: str, similar_words: list[str], style: str) -> str:
         if style == "formal":
-            return "%s Include terms like %s to provide more detail." % (prompt, ', '.join(similar_words[:3]))
+            return "{} Include terms like {} to provide more detail.".format(prompt, ', '.join(similar_words[:3]))
         elif style == "casual":
-            return "%s Think about stuff like %s." % (prompt, ', '.join(similar_words[:3]))
+            return "{} Think about stuff like {}.".format(prompt, ', '.join(similar_words[:3]))
         elif style == "technical":
-            return "%s Consider technical aspects: %s." % (prompt, ', '.join(similar_words[:5]))
+            return "{} Consider technical aspects: {}.".format(prompt, ', '.join(similar_words[:5]))
         else:
-            return "%s Related concepts: %s." % (prompt, ', '.join(similar_words[:3]))
+            return "{} Related concepts: {}.".format(prompt, ', '.join(similar_words[:3]))
 
 
 class CreativeSentenceGenerator(Algorithm):
@@ -171,7 +170,7 @@ class CreativeSentenceGenerator(Algorithm):
         self.patterns = ["EmbeddingBased", "CreativeGeneration", "RandomWalk"]
         self.problem_types = ["NLP", "GENERATION"]
 
-    def process(self, data: Any) -> Dict:
+    def process(self, data: Any) -> dict:
         seed_word = data.get("seed_word", "")
         num_sentences = data.get("num_sentences", 4)
         style = data.get("style", "story")
@@ -182,7 +181,7 @@ class CreativeSentenceGenerator(Algorithm):
         similar_words = self._get_similar_words(seed_word, 5)
 
         if not similar_words:
-            return {"valid": False, "error": "'%s' not found in vocabulary" % seed_word}
+            return {"valid": False, "error": f"'{seed_word}' not found in vocabulary"}
 
         sentences = self._generate_sentences(seed_word, similar_words, num_sentences, style)
 
@@ -196,7 +195,7 @@ class CreativeSentenceGenerator(Algorithm):
             "algorithm": self.name
         }
 
-    def _get_similar_words(self, word: str, top_n: int) -> List[str]:
+    def _get_similar_words(self, word: str, top_n: int) -> list[str]:
         try:
             import gensim.downloader as api
 
@@ -218,27 +217,27 @@ class CreativeSentenceGenerator(Algorithm):
         }
         return fallback_words.get(word.lower(), [])
 
-    def _generate_sentences(self, seed: str, similar: List[str], n: int, style: str) -> List[str]:
+    def _generate_sentences(self, seed: str, similar: list[str], n: int, style: str) -> list[str]:
         templates = {
             'story': [
-                "The %s was surrounded by %s and %s." % (seed, similar[0], similar[1]),
-                "People often associate %s with %s and %s." % (seed, similar[2], similar[3]),
-                "In the land of %s, %s was a common sight." % (seed, similar[4]),
-                "A story about %s would be incomplete without %s and %s." % (seed, similar[1], similar[3]),
-                "The %s whispered tales of the %s." % (similar[0], seed),
-                "Beyond the %s, there lay %s unknown to many." % (seed, similar[2]),
+                f"The {seed} was surrounded by {similar[0]} and {similar[1]}.",
+                f"People often associate {seed} with {similar[2]} and {similar[3]}.",
+                f"In the land of {seed}, {similar[4]} was a common sight.",
+                f"A story about {seed} would be incomplete without {similar[1]} and {similar[3]}.",
+                f"The {similar[0]} whispered tales of the {seed}.",
+                f"Beyond the {seed}, there lay {similar[2]} unknown to many.",
             ],
             'poem': [
-                "%s dances with %s," % (seed.capitalize(), similar[0]),
-                "Where %s meets the sky." % similar[1],
-                "%s sings of %s," % (similar[2].capitalize(), seed),
-                "Under watchful %s." % similar[3],
+                f"{seed.capitalize()} dances with {similar[0]},",
+                f"Where {similar[1]} meets the sky.",
+                f"{similar[2].capitalize()} sings of {seed},",
+                f"Under watchful {similar[3]}.",
             ],
             'description': [
-                "The %s is characterized by its %s." % (seed, similar[0]),
-                "Notable features include %s and %s." % (similar[1], similar[2]),
-                "Many consider %s essential to understanding %s." % (similar[3], seed),
-                "The relationship between %s and %s is significant." % (seed, similar[4]),
+                f"The {seed} is characterized by its {similar[0]}.",
+                f"Notable features include {similar[1]} and {similar[2]}.",
+                f"Many consider {similar[3]} essential to understanding {seed}.",
+                f"The relationship between {seed} and {similar[4]} is significant.",
             ]
         }
 
@@ -286,7 +285,7 @@ class WordExpander(Algorithm):
         self.patterns = ["GraphTraversal", "SynonymExpansion"]
         self.problem_types = ["NLP", "GENERATION"]
 
-    def process(self, data: Any) -> Dict:
+    def process(self, data: Any) -> dict:
         word = data.get("word", "")
         depth = data.get("depth", 2)
         top_n = data.get("top_n", 5)
@@ -331,7 +330,7 @@ class WordExpander(Algorithm):
         except Exception:
             return False
 
-    def _get_similar(self, word: str, top_n: int) -> List[str]:
+    def _get_similar(self, word: str, top_n: int) -> list[str]:
         if not self.model:
             return []
 

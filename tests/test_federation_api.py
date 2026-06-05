@@ -1,15 +1,12 @@
 """Tests for federation server API."""
-import json
-import os
-import sys
 import tempfile
-from unittest.mock import patch, MagicMock
 from pathlib import Path
 
 import pytest
 
 # Point database to temp dir for test isolation
 import server.database as db_mod
+
 
 @pytest.fixture(autouse=True)
 def temp_db():
@@ -22,8 +19,9 @@ def temp_db():
 
 @pytest.fixture
 def client():
-    from server.federation_api import app
     from fastapi.testclient import TestClient
+
+    from server.federation_api import app
     return TestClient(app)
 
 

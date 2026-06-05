@@ -3,13 +3,13 @@ Self-Play Training Engine
 Agent improves by competing against itself.
 """
 
-import torch
-import numpy as np
 import logging
-from typing import Dict, Tuple, Optional
 
-from aalgoi.core.rl.powerhouse_agent import WorldModel, MultiTaskAgent
+import numpy as np
+import torch
+
 from aalgoi.core.rl.agents.selection_agent import PPOAgent
+from aalgoi.core.rl.powerhouse_agent import WorldModel
 
 logger = logging.getLogger(__name__)
 
@@ -20,12 +20,12 @@ class SelfPlayEngine:
     Uses WorldModel for fast simulation of outcomes.
     """
 
-    def __init__(self, agent: PPOAgent, world_model: Optional[WorldModel] = None):
+    def __init__(self, agent: PPOAgent, world_model: WorldModel | None = None):
         self.agent = agent
         self.world_model = world_model or WorldModel()
-        self.stats: Dict[str, int] = {"wins": 0, "losses": 0, "steps": 0}
+        self.stats: dict[str, int] = {"wins": 0, "losses": 0, "steps": 0}
 
-    def train_round(self, iterations: int = 1000, state_dim: int = 200) -> Dict[str, int]:
+    def train_round(self, iterations: int = 1000, state_dim: int = 200) -> dict[str, int]:
         """
         Main self-play loop:
         1. Generate adversarial state (hard problem)
@@ -50,7 +50,7 @@ class SelfPlayEngine:
 
             real_reward, success = self._execute_and_verify(state, action)
 
-            advantage = real_reward - pred_reward.item()
+            real_reward - pred_reward.item()
 
             self.agent.store_transition(
                 state=state.cpu().numpy().flatten(),
@@ -74,7 +74,7 @@ class SelfPlayEngine:
         logger.info("Self-play complete: %s", self.stats)
         return self.stats
 
-    def _execute_and_verify(self, state: torch.Tensor, action: int) -> Tuple[float, bool]:
+    def _execute_and_verify(self, state: torch.Tensor, action: int) -> tuple[float, bool]:
         """Run actual algorithm to get real performance."""
         with torch.no_grad():
             _, pred_reward = self.world_model.predict(state, torch.tensor([action]))

@@ -1,10 +1,11 @@
 from dataclasses import dataclass, field
-from typing import Any, TYPE_CHECKING
-import torch
+from typing import TYPE_CHECKING, Any
+
 import numpy as np
+import torch
 
 if TYPE_CHECKING:
-    from aalgoi.core.mind.cognitive_actions import CognitiveAction
+    from aalgoi.core.mind.cognitive_actions import ActionResult, CognitiveAction
     from aalgoi.core.reasoning.essence import ProblemEssence
 
 
@@ -141,7 +142,6 @@ class MindState:
     is_terminal: bool = False
 
     def to_tensor(self, device: torch.device = torch.device("cpu")) -> dict[str, torch.Tensor]:
-        import torch.nn.functional as F
 
         history_len = 20
         n_actions = 25

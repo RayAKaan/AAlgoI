@@ -7,10 +7,10 @@ Demonstrates all new features: vector KB, validation, bandit, drift detection,
 DAG pipelines, LLM advisor, decision audit log, and genetic evolution.
 """
 
-from aalgoi.pipeline import AAlgoI
 import random
 import time
-import numpy as np
+
+from aalgoi.pipeline import AAlgoI
 
 
 def example_1_basic_sorting():
@@ -60,7 +60,7 @@ def example_2_strategy_comparison():
         system = AAlgoI(config={"strategy": strategy})
 
         start = time.perf_counter()
-        result = system.run(data, task_type="sorting", expected_result=expected)
+        system.run(data, task_type="sorting", expected_result=expected)
         elapsed = (time.perf_counter() - start) * 1000
 
         stats = system.get_stats()
@@ -119,7 +119,7 @@ def example_4_explain_decisions():
 
     data = _make_nearly_sorted(5000)
     expected = sorted(data)
-    result = system.run(data, task_type="sorting", expected_result=expected)
+    system.run(data, task_type="sorting", expected_result=expected)
 
     explanation = system.explain_decision()
     print("\nContext:")
@@ -199,7 +199,7 @@ def example_7_llm_advisor():
 
     data = _make_nearly_sorted(5000)
     expected = sorted(data)
-    result = system.run(data, task_type="sorting", expected_result=expected)
+    system.run(data, task_type="sorting", expected_result=expected)
 
     if system.meta_controller.llm.check_available():
         explanation = system.explain_decision()
@@ -220,10 +220,10 @@ def example_8_dag_pipeline():
 
         image = np.random.rand(100, 100).astype(np.float32)
 
-        result = system.run(image, task_type="image_processing")
+        system.run(image, task_type="image_processing")
         pipeline = system.get_stats()["active_pipeline"]
         print(f"\nPipeline: {' -> '.join(pipeline)}")
-        print(f"DAG mode: DAG pipeline executed")
+        print("DAG mode: DAG pipeline executed")
 
     except ImportError:
         print("\nSkipping - numpy required for image processing demo")

@@ -1,15 +1,11 @@
-import unittest
-import sys
 import os
-import json
+import sys
+import unittest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from interface.nl_parser import (
-    parse_description, extract_data_from_description,
-    parse_solve_input, PATTERNS
-)
-from aalgoi.core.problem_spec import ProblemSpec, ProblemType
+from aalgoi.core.problem_spec import ProblemType
+from interface.nl_parser import PATTERNS, extract_data_from_description, parse_description, parse_solve_input
 
 
 class TestNLParseSorting(unittest.TestCase):
