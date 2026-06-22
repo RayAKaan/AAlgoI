@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "aalgoi"
-version = "2.2.2"
+version = "2.2.3"
 description = "Algorithmic AI — an algorithmic mind that learns, reasons, and discovers"
 readme = "README.md"
 license = {text = "MIT"}

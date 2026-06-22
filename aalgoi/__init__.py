@@ -1,6 +1,6 @@
 from aalgoi.api import Mind, session, solve
 
-__version__ = "2.2.2"
+__version__ = "2.2.3"
 
 __all__ = [
     "solve",

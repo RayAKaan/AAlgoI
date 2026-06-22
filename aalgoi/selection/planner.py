@@ -3,6 +3,7 @@ from __future__ import annotations
 import time
 from typing import Any
 
+from aalgoi.data.normalize import normalize
 from aalgoi.algorithms.registry import AlgorithmRegistry, get_registry
 from aalgoi.kg.graph import KnowledgeGraph
 from aalgoi.kg.queries import QueryEngine
