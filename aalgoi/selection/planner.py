@@ -44,6 +44,7 @@ class Planner:
         trace: list[DecisionEvent] = []
         t0 = time.time()
 
+        data = normalize(data)
         spec = self._parse(problem_text, data, trace)
         candidates = self._retrieve(spec, trace)
         ranked = self._rank(spec, candidates, trace)
@@ -99,17 +100,20 @@ class Planner:
                 except Exception as e:
                     validation.errors.append(str(e))
                     validated = False
-                return SolveResult(
-                    output=result.output,
-                    ok=validated,
-                    algorithm=result.algorithm,
-                    validated=True,
+                if validated:
+                    return SolveResult(
+                        output=result.output,
+                        ok=True,
+                        algorithm=result.algorithm,
+                        validated=True,
                     validation=validation,
                     candidates=ranked,
                     complexity=result.complexity,
                     time_ms=(time.time() - t0) * 1000,
                     confidence=cs.score,
                 )
+                best_error = "; ".join(validation.errors) if validation.errors else f"{cs.algorithm} failed oracle validation"
+                continue
             if result.error:
                 best_error = result.error
         return SolveResult(

@@ -37,7 +37,7 @@ class LCM(Algorithm):
         a, b = _get_two_ints(spec)
         if a == 0 or b == 0:
             return 0
-        return a // math.gcd(a, b) * b
+        return abs(a // math.gcd(a, b) * b)
 
 
 @algorithm(AlgorithmSpec(
@@ -97,6 +97,14 @@ class Sieve(Algorithm):
 class FastExponentiation(Algorithm):
     def run(self, spec: ProblemSpec) -> Any:
         base_val, exp = _get_base_and_exp(spec)
+        if exp < 0:
+            if base_val == 0:
+                raise ZeroDivisionError("0 cannot be raised to a negative exponent")
+            return 1 / self._pow_positive(base_val, -exp)
+        return self._pow_positive(base_val, exp)
+
+    @staticmethod
+    def _pow_positive(base_val: int | float, exp: int) -> Any:
         result = 1
         b = base_val
         e = exp

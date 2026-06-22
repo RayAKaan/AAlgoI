@@ -12,27 +12,49 @@ from aalgoi.types import (
 )
 
 
+def _edge_weight(w: Any, default_key: str = "weight") -> float:
+    if isinstance(w, dict):
+        return float(w.get(default_key, w.get("weight", w.get("capacity", 1))))
+    return float(w)
+
+
 def _dict_to_graph(val: Any) -> nx.Graph | None:
-    if isinstance(val, nx.Graph):
+    if isinstance(val, nx.Graph) and not isinstance(val, nx.DiGraph):
         return val
-    if not isinstance(val, dict):
-        return None
+    if isinstance(val, nx.DiGraph):
+        G = nx.Graph()
+        G.add_nodes_from(val.nodes)
+        for u, v, d in val.edges(data=True):
+            G.add_edge(u, v, **d)
+        return G
     try:
         G = nx.Graph()
+        if isinstance(val, (list, tuple)):
+            for edge in val:
+                if not isinstance(edge, (list, tuple)) or len(edge) < 2:
+                    continue
+                u, v = edge[0], edge[1]
+                if len(edge) >= 3:
+                    G.add_edge(u, v, weight=_edge_weight(edge[2]))
+                else:
+                    G.add_edge(u, v)
+            return G
+        if not isinstance(val, dict):
+            return None
         for node, neighbors in val.items():
             G.add_node(node)
-            if isinstance(neighbors, list):
+            if isinstance(neighbors, (list, set, tuple)):
                 for nb in neighbors:
-                    G.add_edge(node, nb)
+                    if isinstance(nb, (list, tuple)) and len(nb) >= 2:
+                        G.add_edge(node, nb[0], weight=_edge_weight(nb[1]))
+                    else:
+                        G.add_edge(node, nb)
             elif isinstance(neighbors, dict):
                 for nb, w in neighbors.items():
                     if isinstance(w, dict):
                         G.add_edge(node, nb, **w)
                     else:
                         G.add_edge(node, nb, weight=w)
-            elif isinstance(neighbors, set):
-                for nb in neighbors:
-                    G.add_edge(node, nb)
         return G
     except Exception:
         return None
@@ -41,18 +63,41 @@ def _dict_to_graph(val: Any) -> nx.Graph | None:
 def _dict_to_digraph(val: Any) -> nx.DiGraph | None:
     if isinstance(val, nx.DiGraph):
         return val
-    if isinstance(val, nx.Graph):
+    try:
         DG = nx.DiGraph()
-        DG.add_nodes_from(val.nodes)
-        DG.add_edges_from(val.edges)
+        if isinstance(val, nx.Graph):
+            DG.add_nodes_from(val.nodes)
+            DG.add_edges_from(val.edges(data=True))
+            return DG
+        if isinstance(val, (list, tuple)):
+            for edge in val:
+                if not isinstance(edge, (list, tuple)) or len(edge) < 2:
+                    continue
+                u, v = edge[0], edge[1]
+                if len(edge) >= 3:
+                    DG.add_edge(u, v, weight=_edge_weight(edge[2]))
+                else:
+                    DG.add_edge(u, v)
+            return DG
+        if not isinstance(val, dict):
+            return None
+        for node, neighbors in val.items():
+            DG.add_node(node)
+            if isinstance(neighbors, (list, set, tuple)):
+                for nb in neighbors:
+                    if isinstance(nb, (list, tuple)) and len(nb) >= 2:
+                        DG.add_edge(node, nb[0], weight=_edge_weight(nb[1]))
+                    else:
+                        DG.add_edge(node, nb)
+            elif isinstance(neighbors, dict):
+                for nb, w in neighbors.items():
+                    if isinstance(w, dict):
+                        DG.add_edge(node, nb, **w)
+                    else:
+                        DG.add_edge(node, nb, weight=w)
         return DG
-    G = _dict_to_graph(val)
-    if G is None:
+    except Exception:
         return None
-    DG = nx.DiGraph()
-    DG.add_nodes_from(G.nodes)
-    DG.add_edges_from(G.edges)
-    return DG
 
 
 def _get_graph_and_nodes(spec: ProblemSpec) -> tuple[nx.Graph, Any, Any]:
@@ -63,26 +108,43 @@ def _get_graph_and_nodes(spec: ProblemSpec) -> tuple[nx.Graph, Any, Any]:
             start = val
         elif key in ("end", "target", "sink"):
             end = val
-        else:
+        elif key == "graph" or isinstance(val, (dict, list, tuple, nx.Graph)):
             converted = _dict_to_graph(val)
-            if converted is not None:
+            if converted is not None and (converted.number_of_nodes() or converted.number_of_edges()):
+                G = converted
+    return G, start, end
+
+
+def _get_digraph_and_nodes(spec: ProblemSpec) -> tuple[nx.DiGraph, Any, Any]:
+    G = nx.DiGraph()
+    start = end = None
+    for key, val in spec.inputs.items():
+        if key in ("start", "source"):
+            start = val
+        elif key in ("end", "target", "sink"):
+            end = val
+        elif key == "graph" or isinstance(val, (dict, list, tuple, nx.Graph)):
+            converted = _dict_to_digraph(val)
+            if converted is not None and (converted.number_of_nodes() or converted.number_of_edges()):
                 G = converted
     return G, start, end
 
 
 def _get_graph_digraph(spec: ProblemSpec) -> nx.DiGraph:
-    for val in spec.inputs.values():
-        converted = _dict_to_digraph(val)
-        if converted is not None:
-            return converted
+    for key, val in spec.inputs.items():
+        if key == "graph" or isinstance(val, (dict, list, tuple, nx.Graph)):
+            converted = _dict_to_digraph(val)
+            if converted is not None:
+                return converted
     return nx.DiGraph()
 
 
 def _get_graph(spec: ProblemSpec) -> nx.Graph:
-    for val in spec.inputs.values():
-        converted = _dict_to_graph(val)
-        if converted is not None:
-            return converted
+    for key, val in spec.inputs.items():
+        if key == "graph" or isinstance(val, (dict, list, tuple, nx.Graph)):
+            converted = _dict_to_graph(val)
+            if converted is not None:
+                return converted
     return nx.Graph()
 
 
@@ -177,19 +239,9 @@ class ShortestPathUnweighted(Algorithm):
 ))
 class Dijkstra(Algorithm):
     def run(self, spec: ProblemSpec) -> Any:
-        G, start, end = _get_graph_and_nodes(spec)
+        G, start, end = _get_digraph_and_nodes(spec)
         if start is None or end is None:
             return []
-        if isinstance(G, nx.DiGraph):
-            pass
-        elif not isinstance(G, nx.DiGraph):
-            DG = nx.DiGraph()
-            DG.add_nodes_from(G.nodes)
-            for u, v, d in G.edges(data=True):
-                w = d.get("weight", 1)
-                DG.add_edge(u, v, weight=w)
-                DG.add_edge(v, u, weight=w)
-            G = DG
         try:
             path = nx.shortest_path(G, source=start, target=end, weight="weight")
             length = nx.shortest_path_length(G, source=start, target=end, weight="weight")
@@ -208,10 +260,9 @@ class Dijkstra(Algorithm):
 ))
 class BellmanFord(Algorithm):
     def run(self, spec: ProblemSpec) -> Any:
-        G, start, end = _get_graph_and_nodes(spec)
+        DG, start, end = _get_digraph_and_nodes(spec)
         if start is None or end is None:
             return []
-        DG = G if isinstance(G, nx.DiGraph) else nx.DiGraph(G)
         try:
             path = nx.shortest_path(DG, source=start, target=end, weight="weight", method="bellman-ford")
             length = nx.shortest_path_length(DG, source=start, target=end, weight="weight", method="bellman-ford")

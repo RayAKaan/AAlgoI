@@ -64,12 +64,14 @@ def _binary_search_oracle(inputs: dict, output: Any) -> bool:
 def _two_sum_oracle(inputs: dict, output: Any) -> bool:
     data = _get_data_list(inputs)
     target = _get_target(inputs)
+    if output == []:
+        return not any(data[i] + data[j] == target for i in range(len(data)) for j in range(i + 1, len(data)))
     if not isinstance(output, list) or len(output) != 2:
         return False
     i, j = output
     if i == j:
         return False
-    return data[i] + data[j] == target
+    return 0 <= i < len(data) and 0 <= j < len(data) and data[i] + data[j] == target
 
 
 @register_oracle(ProblemTask.GCD)
@@ -85,7 +87,7 @@ def _lcm_oracle(inputs: dict, output: Any) -> bool:
     a, b = _get_two_ints(inputs)
     if a == 0 or b == 0:
         return output == 0
-    return output == a // math.gcd(a, b) * b
+    return output == abs(a // math.gcd(a, b) * b)
 
 
 @register_oracle(ProblemTask.IS_PRIME)
@@ -124,7 +126,7 @@ def _palindrome_oracle(inputs: dict, output: Any) -> bool:
 @register_oracle(ProblemTask.ANAGRAM)
 def _anagram_oracle(inputs: dict, output: Any) -> bool:
     s, t = _get_two_strings(inputs)
-    return output == (Counter(s) == Counter(t))
+    return output == (Counter(_normalize_anagram_text(s)) == Counter(_normalize_anagram_text(t)))
 
 
 @register_oracle(ProblemTask.KMP)
@@ -221,6 +223,10 @@ def _coin_change_oracle(inputs: dict, output: Any) -> bool:
 @register_oracle(ProblemTask.LIS)
 def _lis_oracle(inputs: dict, output: Any) -> bool:
     return isinstance(output, int) and output >= 0
+
+
+def _normalize_anagram_text(s: str) -> str:
+    return "".join(ch.lower() for ch in s if ch.isalnum())
 
 
 def _get_data_list(inputs: dict) -> list:

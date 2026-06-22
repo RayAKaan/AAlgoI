@@ -72,19 +72,17 @@ class CountingSort(Algorithm):
         if not data:
             return []
         arr = list(data)
-        k = max(arr)
-        counts = [0] * (k + 1)
+        if not all(isinstance(x, int) for x in arr):
+            raise TypeError("counting_sort requires integer inputs")
+        lo = min(arr)
+        hi = max(arr)
+        offset = -lo
+        counts = [0] * (hi - lo + 1)
         for x in arr:
-            counts[x] += 1
-        total = 0
-        for i in range(k + 1):
-            old = counts[i]
-            counts[i] = total
-            total += old
-        out = [0] * len(arr)
-        for x in arr:
-            out[counts[x]] = x
-            counts[x] += 1
+            counts[x + offset] += 1
+        out = []
+        for i, count in enumerate(counts):
+            out.extend([i - offset] * count)
         return out
 
 

@@ -41,7 +41,7 @@ class Palindrome(Algorithm):
 class Anagram(Algorithm):
     def run(self, spec: ProblemSpec) -> Any:
         s, t = _get_two_strings(spec)
-        return Counter(s) == Counter(t)
+        return Counter(_normalize_anagram_text(s)) == Counter(_normalize_anagram_text(t))
 
 
 @algorithm(AlgorithmSpec(
@@ -173,6 +173,10 @@ class LCS(Algorithm):
                 else:
                     dp[i][j] = max(dp[i - 1][j], dp[i][j - 1])
         return dp[n][m]
+
+
+def _normalize_anagram_text(s: str) -> str:
+    return "".join(ch.lower() for ch in s if ch.isalnum())
 
 
 def _get_string(spec: ProblemSpec) -> str:

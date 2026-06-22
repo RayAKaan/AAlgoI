@@ -43,8 +43,12 @@ class ProblemParser:
 
     def _infer_task(self, text: str, data: Any) -> ProblemTask:
         rules = [
-            (r'\bsort\b', ProblemTask.SORT),
+            # Specific phrases must come before broad data/graph fallbacks.
+            (r'\b(?:max(?:imum)?.?flow|edmonds.?karp)\b', ProblemTask.MAX_FLOW),
+            (r'\bfind.?target\b|\bfind.?index\b|\bsearch.?target\b', ProblemTask.BINARY_SEARCH if 'sorted' in text else ProblemTask.LINEAR_SEARCH),
+            (r'\balphabeti[sz]e\b', ProblemTask.SORT),
             (r'\bcounting.?sort\b', ProblemTask.COUNTING_SORT),
+            (r'\bsort\b', ProblemTask.SORT),
             (r'\bbinary.?search\b', ProblemTask.BINARY_SEARCH),
             (r'\btwo.?sum\b', ProblemTask.TWO_SUM),
             (r'\blower.?bound\b', ProblemTask.LOWER_BOUND),
@@ -70,7 +74,6 @@ class ProblemParser:
             (r'\bcycle.?detect|has.?cycle\b', ProblemTask.CYCLE_DETECTION),
             (r'\bconnected.?component(?:s)?\b', ProblemTask.CONNECTED_COMPONENTS),
             (r'\bmst|minimum.?spanning|kruskal\b', ProblemTask.MST),
-            (r'\bmax.?flow|edmonds.?karp\b', ProblemTask.MAX_FLOW),
             (r'\bkadane|maximum.?subarray\b', ProblemTask.KADANE),
             (r'\bknapsack\b', ProblemTask.KNAPSACK_01),
             (r'\bcoin.?change\b', ProblemTask.COIN_CHANGE),
@@ -91,12 +94,12 @@ class ProblemParser:
         if isinstance(data, list):
             return ProblemTask.SORT
         if isinstance(data, dict):
-            if "graph" in data or any(k in data for k in ["start", "end", "source", "target"]):
-                return ProblemTask.SHORTEST_PATH_UNWEIGHTED
             if "items" in data or "capacity" in data:
                 return ProblemTask.KNAPSACK_01
-            if "nums" in data and "target" in data:
-                return ProblemTask.TWO_SUM
+            if ("nums" in data or "data" in data or "arr" in data) and "target" in data:
+                return ProblemTask.LINEAR_SEARCH
+            if "graph" in data or any(k in data for k in ["start", "end", "source"]):
+                return ProblemTask.SHORTEST_PATH_UNWEIGHTED
             if "a" in data and "b" in data:
                 vals = [v for v in data.values() if isinstance(v, int)]
                 if len(vals) == 2:
