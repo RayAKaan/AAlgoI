@@ -1,90 +1,41 @@
+import importlib
+
 from aalgoi.algorithms.base import Algorithm
-from aalgoi.algorithms.primitives import (
-    PRIMITIVES,
-    BacktrackingPrimitive,
-    BFSPrimitive,
-    BinarySearchPrimitive,
-    DFSPrimitive,
-    DynamicProgrammingPrimitive,
-    FilterPrimitive,
-    GradientDescentPrimitive,
-    GreedyPrimitive,
-    HeapSortPrimitive,
-    InterpolationSearchPrimitive,
-    IteratePrimitive,
-    LinearSearchPrimitive,
-    LongestCommonSubsequencePrimitive,
-    MapPrimitive,
-    MergeSortPrimitive,
-    PartitionPrimitive,
-    Primitive,
-    QuickSortPrimitive,
-    RabinKarpPrimitive,
-    RandomSearchPrimitive,
-    ReducePrimitive,
-    ScanPrimitive,
-    SlidingWindowPrimitive,
-    TopologicalSortPrimitive,
-    TwoPointerPrimitive,
-    UnionFindPrimitive,
-)
+from aalgoi.algorithms.registry import AlgorithmRegistry, algorithm, get_registry
 
-try:
-    from aalgoi.algorithms.sorting import HeapSort, InsertionSort, MergeSort, QuickSort, RadixSort, TimSort
-except ImportError:
-    QuickSort = InsertionSort = MergeSort = TimSort = RadixSort = HeapSort = None
+_registered = False
 
-try:
-    from aalgoi.algorithms.image_processing import (
-        CLAHE,
-        BilateralFilter,
-        CannyEdgeDetection,
-        GaussianBlur,
-        LaplacianEdgeDetection,
-        MedianFilter,
-        MorphologyOperation,
-        NLMDenoising,
-        SobelEdgeDetection,
-    )
-except ImportError:
-    GaussianBlur = MedianFilter = BilateralFilter = SobelEdgeDetection = CLAHE = CannyEdgeDetection = LaplacianEdgeDetection = NLMDenoising = MorphologyOperation = None
 
-try:
-    from aalgoi.algorithms.ml import DBSCANClustering, KMeansClustering, LinearRegression, RandomForestClassifier
-except ImportError:
-    KMeansClustering = DBSCANClustering = RandomForestClassifier = LinearRegression = None
+def _ensure_registered() -> None:
+    global _registered
+    if _registered:
+        return
+    _registered = True
+    for mod_name in [
+        "aalgoi.algorithms.sorting",
+        "aalgoi.algorithms.searching",
+        "aalgoi.algorithms.math",
+        "aalgoi.algorithms.strings",
+        "aalgoi.algorithms.graph",
+        "aalgoi.algorithms.dp",
+        "aalgoi.algorithms.optimization",
+        "aalgoi.algorithms.ml",
+        "aalgoi.algorithms.nlp",
+        "aalgoi.algorithms.image",
+    ]:
+        try:
+            importlib.import_module(mod_name)
+        except Exception:
+            pass
 
-try:
-    from aalgoi.algorithms.pathfinding import AStar, BFSPathfinder, Dijkstra
-except ImportError:
-    Dijkstra = AStar = BFSPathfinder = None
 
-try:
-    from aalgoi.algorithms.optimization import GreedyKnapsack, SimulatedAnnealing
-except ImportError:
-    GreedyKnapsack = SimulatedAnnealing = None
+# Trigger registration on import
+_ensure_registered()
 
-try:
-    from aalgoi.algorithms.safety import IdentityAlgorithm, SafeKnapsack, SafePath, SafeSort
-except ImportError:
-    IdentityAlgorithm = SafeSort = SafePath = SafeKnapsack = None
 
 __all__ = [
-    "Algorithm", "Primitive", "PRIMITIVES",
-    "IteratePrimitive", "MapPrimitive", "FilterPrimitive",
-    "ReducePrimitive", "ScanPrimitive", "PartitionPrimitive",
-    "BinarySearchPrimitive", "LinearSearchPrimitive", "GreedyPrimitive",
-    "DynamicProgrammingPrimitive", "GradientDescentPrimitive",
-    "QuickSortPrimitive", "MergeSortPrimitive", "HeapSortPrimitive",
-    "BFSPrimitive", "DFSPrimitive", "InterpolationSearchPrimitive",
-    "TwoPointerPrimitive", "SlidingWindowPrimitive", "TopologicalSortPrimitive",
-    "UnionFindPrimitive", "BacktrackingPrimitive", "RandomSearchPrimitive",
-    "LongestCommonSubsequencePrimitive", "RabinKarpPrimitive",
-    "QuickSort", "InsertionSort", "MergeSort", "TimSort", "RadixSort", "HeapSort",
-    "GaussianBlur", "MedianFilter", "BilateralFilter", "SobelEdgeDetection", "CLAHE",
-    "CannyEdgeDetection", "LaplacianEdgeDetection", "NLMDenoising", "MorphologyOperation",
-    "KMeansClustering", "DBSCANClustering", "RandomForestClassifier", "LinearRegression",
-    "Dijkstra", "AStar", "BFSPathfinder",
-    "GreedyKnapsack", "SimulatedAnnealing",
-    "IdentityAlgorithm", "SafeSort", "SafePath", "SafeKnapsack",
+    "Algorithm",
+    "AlgorithmRegistry",
+    "algorithm",
+    "get_registry",
 ]
