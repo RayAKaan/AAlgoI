@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import random
 import time
 from typing import Any
 
@@ -19,9 +20,9 @@ class BenchmarkSuite:
     def add(self, spec: ProblemSpec) -> None:
         self._problems.append(spec)
 
-    def add_generated(self, task: ProblemTask, count: int = 5) -> None:
+    def add_generated(self, task: ProblemTask, count: int = 5, rng: random.Random | None = None) -> None:
         for _ in range(count):
-            inputs, expected = generate_example(task)
+            inputs, expected = generate_example(task, rng=rng)
             spec = ProblemSpec(
                 id=f"{task.value}_{len(self._problems)}",
                 task=task,
@@ -119,6 +120,7 @@ class BenchmarkSuite:
 
 def core_v1() -> BenchmarkSuite:
     suite = BenchmarkSuite("core-v1")
+    rng = random.Random(1337)
     for task in ProblemTask:
-        suite.add_generated(task, count=3)
+        suite.add_generated(task, count=3, rng=rng)
     return suite

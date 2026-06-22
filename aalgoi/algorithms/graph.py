@@ -12,6 +12,23 @@ from aalgoi.types import (
 )
 
 
+def _coerce_node(node: Any, graph: nx.Graph | nx.DiGraph) -> Any:
+    if node in graph:
+        return node
+    if isinstance(node, (int, float)) and not isinstance(node, bool):
+        candidate = str(node)
+        if candidate in graph:
+            return candidate
+    if isinstance(node, str):
+        try:
+            candidate = int(node)
+            if candidate in graph:
+                return candidate
+        except (ValueError, TypeError):
+            pass
+    return node
+
+
 def _edge_weight(w: Any, default_key: str = "weight") -> float:
     if isinstance(w, dict):
         return float(w.get(default_key, w.get("weight", w.get("capacity", 1))))
@@ -112,6 +129,10 @@ def _get_graph_and_nodes(spec: ProblemSpec) -> tuple[nx.Graph, Any, Any]:
             converted = _dict_to_graph(val)
             if converted is not None and (converted.number_of_nodes() or converted.number_of_edges()):
                 G = converted
+    if start is not None:
+        start = _coerce_node(start, G)
+    if end is not None:
+        end = _coerce_node(end, G)
     return G, start, end
 
 
@@ -127,6 +148,10 @@ def _get_digraph_and_nodes(spec: ProblemSpec) -> tuple[nx.DiGraph, Any, Any]:
             converted = _dict_to_digraph(val)
             if converted is not None and (converted.number_of_nodes() or converted.number_of_edges()):
                 G = converted
+    if start is not None:
+        start = _coerce_node(start, G)
+    if end is not None:
+        end = _coerce_node(end, G)
     return G, start, end
 
 
@@ -358,6 +383,10 @@ class EdmondsKarp(Algorithm):
                 source = val
             elif key in ("sink", "t"):
                 sink = val
+        if source is not None:
+            source = _coerce_node(source, G)
+        if sink is not None:
+            sink = _coerce_node(sink, G)
         if source is None or sink is None or not G.edges:
             return {"flow_value": 0, "flow_dict": {}}
         try:
