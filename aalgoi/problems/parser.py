@@ -43,6 +43,16 @@ class ProblemParser:
 
     def _infer_task(self, text: str, data: Any) -> ProblemTask:
         rules = [
+            # ML / data-science tasks before broad generic fallbacks.
+            (r'\b(?:classify|classification|classifier|predict.?class|label)\b', ProblemTask.CLASSIFICATION),
+            (r'\b(?:regress|regression|predict.?value|forecast|estimate)\b', ProblemTask.REGRESSION),
+            (r'\b(?:cluster|clustering|kmeans|k-means|dbscan|agglomerative|gaussian.?mixture)\b', ProblemTask.CLUSTERING),
+            (r'\b(?:pca|dimensionality.?reduction|reduce.?dimensions|components)\b', ProblemTask.DIMENSIONALITY_REDUCTION),
+            (r'\b(?:anomaly|outlier|isolation.?forest)\b', ProblemTask.ANOMALY_DETECTION),
+            (r'\b(?:sentiment|emotion|polarity)\b', ProblemTask.SENTIMENT_ANALYSIS),
+            (r'\b(?:summari[sz]e|summary|summarization)\b', ProblemTask.TEXT_SUMMARIZATION),
+            (r'\b(?:gaussian.?blur|blur image|image blur)\b', ProblemTask.IMAGE_BLUR),
+            (r'\b(?:edge.?detect|edge detection|sobel)\b', ProblemTask.EDGE_DETECTION),
             # Specific phrases must come before broad data/graph fallbacks.
             (r'\b(?:max(?:imum)?.?flow|edmonds.?karp)\b', ProblemTask.MAX_FLOW),
             (r'\bfind.?target\b|\bfind.?index\b|\bsearch.?target\b', ProblemTask.BINARY_SEARCH if 'sorted' in text else ProblemTask.LINEAR_SEARCH),
@@ -91,9 +101,25 @@ class ProblemParser:
         return ProblemTask.SORT
 
     def _infer_from_data(self, data: Any) -> ProblemTask | None:
-        if isinstance(data, list):
-            return ProblemTask.SORT
         if isinstance(data, dict):
+            keys = set(data)
+            if {"X_train", "y_train"}.issubset(keys) or {"train_x", "train_y"}.issubset(keys):
+                y = data.get("y_train", data.get("train_y", []))
+                return ProblemTask.REGRESSION if _looks_regression_target(y) else ProblemTask.CLASSIFICATION
+            if "n_clusters" in data or "k" in data:
+                return ProblemTask.CLUSTERING
+            if "n_components" in data or "components" in data:
+                return ProblemTask.DIMENSIONALITY_REDUCTION
+            if "contamination" in data or "outliers" in data:
+                return ProblemTask.ANOMALY_DETECTION
+            if "image" in data and "sigma" in data:
+                return ProblemTask.IMAGE_BLUR
+            if "image" in data and any(k in data for k in ["edges", "edge", "sobel"]):
+                return ProblemTask.EDGE_DETECTION
+            if "text" in data and "pattern" in data:
+                return ProblemTask.KMP
+            if "text" in data:
+                return ProblemTask.SENTIMENT_ANALYSIS
             if "items" in data or "capacity" in data:
                 return ProblemTask.KNAPSACK_01
             if ("nums" in data or "data" in data or "arr" in data) and "target" in data:
@@ -104,8 +130,8 @@ class ProblemParser:
                 vals = [v for v in data.values() if isinstance(v, int)]
                 if len(vals) == 2:
                     return ProblemTask.GCD
-            if "text" in data and "pattern" in data:
-                return ProblemTask.KMP
+        if isinstance(data, list):
+            return ProblemTask.SORT
         return None
 
     def _extract_inputs(self, text: str, data: Any) -> dict[str, Any]:
@@ -134,6 +160,18 @@ class ProblemParser:
 
     def _compute_confidence(self, task: ProblemTask, text: str, data: Any) -> float:
         return 0.8
+
+
+def _looks_regression_target(y: Any) -> bool:
+    try:
+        vals = list(y)
+    except Exception:
+        return False
+    if not vals:
+        return False
+    if any(isinstance(v, float) and not float(v).is_integer() for v in vals):
+        return True
+    return all(isinstance(v, (int, float)) for v in vals) and len(set(vals)) > max(10, len(vals) // 2)
 
 
 parse_problem = ProblemParser().parse

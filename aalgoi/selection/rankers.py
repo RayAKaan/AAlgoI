@@ -23,6 +23,24 @@ class RuleRanker:
                 score += 0.1
             if spec_algo.task == spec.task:
                 score += 0.2
+            prompt = getattr(spec, "id", "").lower()
+            algo_tokens = name.lower().replace("_", " ")
+            algo_variants = {
+                name.lower(),
+                algo_tokens,
+                name.lower().replace("_regressor", "_regression"),
+                name.lower().replace("_classifier", "_classification"),
+                algo_tokens.replace(" regressor", " regression"),
+                algo_tokens.replace(" classifier", " classification"),
+            }
+            if any(v and v in prompt for v in algo_variants):
+                score += 0.5
+            if spec.task.value == "clustering" and name == "kmeans" and not any(x in prompt for x in ["dbscan", "agglomerative", "gaussian_mixture", "gaussian mixture"]):
+                score += 0.2
+            for tag in getattr(spec_algo, "tags", frozenset()):
+                tag_text = str(tag).lower().replace("_", " ")
+                if tag_text and tag_text in prompt:
+                    score += 0.15
             if self.queries:
                 perf = self.queries.get_performance_profile(name, spec.task.value)
                 if perf["run_count"] > 0:

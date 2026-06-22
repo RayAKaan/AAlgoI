@@ -11,7 +11,7 @@ from aalgoi.types import (
 
 @algorithm(AlgorithmSpec(
     name="gaussian_blur",
-    task=ProblemTask.LINEAR_SEARCH,
+    task=ProblemTask.IMAGE_BLUR,
     domain=Domain.IMAGE,
     complexity=Complexity("O(n)", "O(n)", "n", "n"),
     principles=frozenset({"convolution"}),
@@ -35,7 +35,7 @@ class GaussianBlur(Algorithm):
 
 @algorithm(AlgorithmSpec(
     name="edge_detection",
-    task=ProblemTask.LINEAR_SEARCH,
+    task=ProblemTask.EDGE_DETECTION,
     domain=Domain.IMAGE,
     complexity=Complexity("O(n)", "O(n)", "n", "n"),
     principles=frozenset({"convolution"}),

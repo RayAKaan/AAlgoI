@@ -416,5 +416,23 @@ def generate_example(task: ProblemTask, rng: random.Random | None = None) -> tup
             else:
                 tails[i] = x
         return {"data": data}, len(tails)
+    elif task == ProblemTask.CLASSIFICATION:
+        return {"X_train": [[0], [1], [10], [11]], "y_train": [0, 0, 1, 1], "X_test": [[0.2], [10.5]]}, [0, 1]
+    elif task == ProblemTask.REGRESSION:
+        return {"X_train": [[0], [1], [2]], "y_train": [0, 2, 4], "X_test": [[3], [4]]}, [6, 8]
+    elif task == ProblemTask.CLUSTERING:
+        return {"data": [[0, 0], [0, 1], [9, 9], [9, 8]], "n_clusters": 2}, None
+    elif task == ProblemTask.DIMENSIONALITY_REDUCTION:
+        return {"data": [[1, 2, 3], [2, 3, 4], [5, 6, 7]], "n_components": 2}, None
+    elif task == ProblemTask.ANOMALY_DETECTION:
+        return {"data": [[0, 0], [0, 1], [1, 0], [20, 20]], "X_test": [[0, 0], [20, 20]]}, None
+    elif task == ProblemTask.SENTIMENT_ANALYSIS:
+        return {"text": "I love this product"}, None
+    elif task == ProblemTask.TEXT_SUMMARIZATION:
+        return {"text": "short text"}, "short text"
+    elif task == ProblemTask.IMAGE_BLUR:
+        return {"image": [[0, 1], [1, 0]], "sigma": 1.0}, None
+    elif task == ProblemTask.EDGE_DETECTION:
+        return {"image": [[0, 1], [1, 0]], "edge": True}, None
     else:
         return {"data": [1, 2, 3]}, [1, 2, 3]

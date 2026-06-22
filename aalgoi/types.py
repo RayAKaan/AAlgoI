@@ -41,6 +41,15 @@ class ProblemTask(Enum):
     KNAPSACK_FRACTIONAL = "knapsack_fractional"
     COIN_CHANGE = "coin_change"
     LIS = "lis"
+    CLASSIFICATION = "classification"
+    REGRESSION = "regression"
+    CLUSTERING = "clustering"
+    DIMENSIONALITY_REDUCTION = "dimensionality_reduction"
+    ANOMALY_DETECTION = "anomaly_detection"
+    SENTIMENT_ANALYSIS = "sentiment_analysis"
+    TEXT_SUMMARIZATION = "text_summarization"
+    IMAGE_BLUR = "image_blur"
+    EDGE_DETECTION = "edge_detection"
 
 
 class Domain(Enum):
@@ -90,6 +99,15 @@ DOMAIN_FOR_TASK: dict[ProblemTask, Domain] = {
     ProblemTask.KNAPSACK_FRACTIONAL: Domain.OPTIMIZATION,
     ProblemTask.COIN_CHANGE: Domain.DP,
     ProblemTask.LIS: Domain.DP,
+    ProblemTask.CLASSIFICATION: Domain.ML,
+    ProblemTask.REGRESSION: Domain.ML,
+    ProblemTask.CLUSTERING: Domain.ML,
+    ProblemTask.DIMENSIONALITY_REDUCTION: Domain.ML,
+    ProblemTask.ANOMALY_DETECTION: Domain.ML,
+    ProblemTask.SENTIMENT_ANALYSIS: Domain.NLP,
+    ProblemTask.TEXT_SUMMARIZATION: Domain.NLP,
+    ProblemTask.IMAGE_BLUR: Domain.IMAGE,
+    ProblemTask.EDGE_DETECTION: Domain.IMAGE,
 }
 
 

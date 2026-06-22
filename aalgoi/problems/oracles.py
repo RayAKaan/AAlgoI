@@ -225,6 +225,47 @@ def _lis_oracle(inputs: dict, output: Any) -> bool:
     return isinstance(output, int) and output >= 0
 
 
+@register_oracle(ProblemTask.CLASSIFICATION)
+def _classification_oracle(inputs: dict, output: Any) -> bool:
+    return isinstance(output, list) and len(output) == len(inputs.get("X_test", inputs.get("test_x", output)))
+
+
+@register_oracle(ProblemTask.REGRESSION)
+def _regression_oracle(inputs: dict, output: Any) -> bool:
+    return isinstance(output, list) and all(isinstance(v, (int, float)) for v in output)
+
+
+@register_oracle(ProblemTask.CLUSTERING)
+def _clustering_oracle(inputs: dict, output: Any) -> bool:
+    return isinstance(output, dict) and "labels" in output and isinstance(output.get("labels"), list)
+
+
+@register_oracle(ProblemTask.DIMENSIONALITY_REDUCTION)
+def _dimensionality_oracle(inputs: dict, output: Any) -> bool:
+    return isinstance(output, dict) and "transformed" in output
+
+
+@register_oracle(ProblemTask.ANOMALY_DETECTION)
+def _anomaly_oracle(inputs: dict, output: Any) -> bool:
+    return isinstance(output, dict) and "labels" in output
+
+
+@register_oracle(ProblemTask.SENTIMENT_ANALYSIS)
+def _sentiment_oracle(inputs: dict, output: Any) -> bool:
+    return isinstance(output, dict) and "label" in output
+
+
+@register_oracle(ProblemTask.TEXT_SUMMARIZATION)
+def _summary_oracle(inputs: dict, output: Any) -> bool:
+    return isinstance(output, str)
+
+
+@register_oracle(ProblemTask.IMAGE_BLUR)
+@register_oracle(ProblemTask.EDGE_DETECTION)
+def _image_oracle(inputs: dict, output: Any) -> bool:
+    return isinstance(output, list)
+
+
 def _normalize_anagram_text(s: str) -> str:
     return "".join(ch.lower() for ch in s if ch.isalnum())
 
