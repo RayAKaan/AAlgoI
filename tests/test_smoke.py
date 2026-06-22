@@ -8,7 +8,7 @@ import aalgoi
 
 
 def test_version():
-    assert aalgoi.__version__ == "2.1.0"
+    assert aalgoi.__version__ == "2.2.1"
 
 
 def test_solve_sort():

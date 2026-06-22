@@ -429,7 +429,7 @@ class TestDetectType:
 
 class TestModuleAPI:
     def test_version(self):
-        assert aalgoi.__version__ == "2.0.0"
+        assert aalgoi.__version__ == "2.2.1"
 
     def test_solve_exposed(self):
         assert callable(aalgoi.solve)
